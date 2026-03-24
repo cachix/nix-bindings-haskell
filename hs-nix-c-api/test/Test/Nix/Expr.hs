@@ -2,10 +2,9 @@
 
 module Test.Nix.Expr (spec) where
 
-import Control.Exception (try)
 import Test.Hspec
 
-import Nix.Context (NixException)
+import Nix.Context (NixError)
 import Nix.Expr
 import Nix.Init (initNix)
 import Nix.Value
@@ -80,13 +79,10 @@ spec = describe "Nix.Expr" $ before_ initNix $ do
         getString state val `shouldReturn` "hello world"
 
     it "reports errors for invalid expressions" $ do
-      withEnv $ \state -> do
-        result <- try @NixException $ do
-          val <- evalFromString state "let in" "."
-          valueForce state val
-        case result of
-          Left _ -> pure ()
-          Right _ -> expectationFailure "Should have thrown for invalid expression"
+      withEnv $ \state ->
+        (do val <- evalFromString state "let in" "."
+            valueForce state val
+        ) `shouldThrow` \(_ :: NixError) -> True
 
     it "can deeply force a nested structure" $ do
       withEnv $ \state -> do

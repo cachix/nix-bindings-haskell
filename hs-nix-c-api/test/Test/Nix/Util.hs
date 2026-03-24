@@ -33,7 +33,7 @@ spec = describe "Nix.Init" $ before_ initNix $ do
 
 -- | Open a local store and eval state, then run an action.
 withEnv :: (EvalState -> IO a) -> IO a
-withEnv f = withStore "daemon" $ \store -> withEvalState store $ \state -> f state
+withEnv f = withStore "daemon" $ \store -> withEvalState store f
 
 -- | Evaluate and force a Nix expression string.
 eval :: EvalState -> ByteString -> IO Value

@@ -29,6 +29,7 @@ foreign import capi "nix_api_util.h nix_version_get"
 
 -- | Initialize all Nix libraries.
 -- This is idempotent and safe to call multiple times.
+-- Throws 'Nix.Context.NixError' on failure.
 initNix :: IO ()
 initNix = do
   withContext c_nix_libutil_init

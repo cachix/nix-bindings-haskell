@@ -2,11 +2,10 @@
 
 module Test.Nix.Store (spec) where
 
-import Control.Exception (try)
 import qualified Data.ByteString as BS
 import Test.Hspec
 
-import Nix.Context (NixException (..))
+import Nix.Context (NixError)
 import Nix.Init (initNix)
 import Nix.Store
 
@@ -17,10 +16,7 @@ spec = describe "Nix.Store" $ before_ initNix $ do
       withStore "daemon" $ \_ -> pure ()
 
     it "can open the daemon store" $ do
-      result <- try @NixException $ withStore "daemon" $ \_ -> pure ()
-      case result of
-        Right () -> pure ()
-        Left _ -> pendingWith "Nix daemon not available"
+      withStore "daemon" $ \_ -> pure ()
 
   describe "storeUri" $ do
     it "returns a non-empty URI" $ do
@@ -43,8 +39,6 @@ spec = describe "Nix.Store" $ before_ initNix $ do
 
   describe "parseStorePath" $ do
     it "rejects invalid store paths" $ do
-      withStore "daemon" $ \store -> do
-        result <- try @NixException $ parseStorePath store "not-a-store-path" $ \_ -> pure ()
-        case result of
-          Left _ -> pure ()
-          Right () -> expectationFailure "Should have thrown for invalid path"
+      withStore "daemon" $ \store ->
+        parseStorePath store "not-a-store-path" (\_ -> pure ())
+          `shouldThrow` \(_ :: NixError) -> True

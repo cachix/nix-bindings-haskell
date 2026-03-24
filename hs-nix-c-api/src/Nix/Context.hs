@@ -5,11 +5,14 @@
 -- Provides managed error contexts that capture errors from C API calls
 -- and translate them into Haskell exceptions.
 module Nix.Context
-  ( NixException (..)
+  ( NixErrorKind (..)
+  , NixError (..)
   , withContext
   , withContext'
   , checkError
+  , checkNull
   , getErrorMsg
+  , getErrorInfoMsg
   , withCallbackBS
   , StringCallback
   , c_nix_c_context_create
@@ -46,6 +49,17 @@ foreign import capi "nix_api_util.h nix_err_msg"
     -> Ptr CUInt
     -> IO CString
 
+foreign import capi "nix_api_util.h nix_err_code"
+  c_nix_err_code :: Ptr CNixContext -> IO CInt
+
+foreign import capi "nix_api_util.h nix_err_info_msg"
+  c_nix_err_info_msg
+    :: Ptr CNixContext
+    -> Ptr CNixContext
+    -> FunPtr StringCallback
+    -> Ptr ()
+    -> IO CInt
+
 -- | Callback type matching @nix_get_string_callback@.
 type StringCallback = CString -> CUInt -> Ptr () -> IO ()
 
@@ -62,17 +76,55 @@ globalStringCallback = unsafePerformIO $ mkStringCallback $ \cstr len userData -
   bs <- BS.packCStringLen (cstr, fromIntegral len)
   writeIORef ref bs
 
--- | Exception thrown when a Nix C API call fails.
-data NixException = NixException
-  { nixErrCode :: !Int
-  , nixErrMessage :: !ByteString
-  }
-  deriving (Show)
+-- | Error category from the Nix C API.
+data NixErrorKind
+  = NixErrUnknown
+  -- ^ Generic or unclassified error.
+  | NixErrOverflow
+  -- ^ Integer overflow.
+  | NixErrKey
+  -- ^ Key or attribute lookup failure.
+  | NixErrNixError
+  -- ^ Nix evaluation error (syntax, type, missing file, etc.).
+  | NixErrRecoverable
+  -- ^ Recoverable error.
+  deriving (Show, Eq, Ord, Bounded, Enum)
 
-instance Exception NixException
+-- | Convert a raw C error code to a 'NixErrorKind'.
+toNixErrorKind :: CInt -> NixErrorKind
+toNixErrorKind (-1) = NixErrUnknown
+toNixErrorKind (-2) = NixErrOverflow
+toNixErrorKind (-3) = NixErrKey
+toNixErrorKind (-4) = NixErrNixError
+toNixErrorKind (-5) = NixErrRecoverable
+toNixErrorKind _ = NixErrUnknown
+
+-- | Error thrown when a Nix C API call fails.
+data NixError = NixError
+  { nixErrorKind :: !NixErrorKind
+  , nixErrorMessage :: !ByteString
+  , nixErrorInfo :: !ByteString
+  -- ^ Additional context (stack trace, source location).
+  -- Empty if not available.
+  }
+  deriving (Show, Eq)
+
+instance Exception NixError
+
+-- | Build a 'NixError' from a context and raw error code.
+-- Only reads detailed info if the error code indicates a real error,
+-- since @nix_err_info_msg@ crashes on contexts with no error.
+buildError :: Ptr CNixContext -> CInt -> IO NixError
+buildError ctx rc = do
+  msg <- getErrorMsg ctx
+  info <-
+    if rc /= 0
+      then getErrorInfoMsg ctx
+      else pure BS.empty
+  pure $ NixError (toNixErrorKind rc) msg info
 
 -- | Run an action with a fresh Nix error context.
--- If the action returns a non-zero error code, throw a 'NixException'.
+-- If the action returns a non-zero error code, throw a 'NixError'.
 withContext :: (Ptr CNixContext -> IO CInt) -> IO ()
 withContext f = withContext' $ \ctx -> do
   rc <- f ctx
@@ -86,9 +138,27 @@ withContext' = bracket c_nix_c_context_create c_nix_c_context_free
 checkError :: Ptr CNixContext -> CInt -> IO ()
 checkError ctx rc
   | rc == 0 = pure ()
-  | otherwise = do
-      msg <- getErrorMsg ctx
-      throwIO $ NixException (fromIntegral rc) msg
+  | otherwise = throwIO =<< buildError ctx rc
+
+-- | Check a pointer for null and throw if null.
+-- Reads the error information from the context.
+checkNull :: Ptr CNixContext -> Ptr a -> IO (Ptr a)
+checkNull ctx ptr
+  | ptr == nullPtr = throwIO =<< readContextError ctx
+  | otherwise = pure ptr
+
+-- | Read error information from a context that is known to have an error.
+readContextError :: Ptr CNixContext -> IO NixError
+readContextError ctx = do
+  msg <- getErrorMsg ctx
+  -- Only read info if the context has a non-empty error message,
+  -- since nix_err_info_msg crashes on contexts with no error.
+  if BS.null msg
+    then pure $ NixError NixErrUnknown BS.empty BS.empty
+    else do
+      rc <- c_nix_err_code ctx
+      info <- getErrorInfoMsg ctx
+      pure $ NixError (toNixErrorKind rc) msg info
 
 -- | Extract the error message from a context.
 getErrorMsg :: Ptr CNixContext -> IO ByteString
@@ -98,13 +168,20 @@ getErrorMsg ctx = do
     then pure BS.empty
     else BS.packCString cstr
 
+-- | Extract the detailed error info message from a context.
+-- Returns the empty bytestring if no info is available.
+getErrorInfoMsg :: Ptr CNixContext -> IO ByteString
+getErrorInfoMsg ctx =
+  snd <$> withCallbackBS (\cb ud -> c_nix_err_info_msg nullPtr ctx cb ud)
+
 -- | Run an action that populates a string via the global 'StringCallback',
--- returning the captured bytes.
+-- returning both the action's result and the captured bytes.
 -- Allocates a 'StablePtr' to an 'IORef' for the duration of the call,
 -- avoiding per-call 'FunPtr' allocation.
-withCallbackBS :: (FunPtr StringCallback -> Ptr () -> IO a) -> IO ByteString
+withCallbackBS :: (FunPtr StringCallback -> Ptr () -> IO a) -> IO (a, ByteString)
 withCallbackBS f = do
   ref <- newIORef BS.empty
   bracket (newStablePtr ref) freeStablePtr $ \sptr -> do
-    _ <- f globalStringCallback (castStablePtrToPtr sptr)
-    readIORef ref
+    a <- f globalStringCallback (castStablePtrToPtr sptr)
+    bs <- readIORef ref
+    pure (a, bs)

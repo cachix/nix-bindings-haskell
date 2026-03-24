@@ -1,7 +1,7 @@
 {-# LANGUAGE CApiFFI #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 -- | Safe interface to the Nix expression evaluator.
+-- All fallible functions throw 'Nix.Context.NixError' on failure.
 module Nix.Expr
   ( EvalState
   , withEvalState
@@ -10,16 +10,16 @@ module Nix.Expr
   , valueForceDeep
   ) where
 
-import Control.Exception (bracket, bracketOnError, finally, throwIO)
+import Control.Exception (bracket, bracketOnError, finally)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
-import Foreign (Ptr, nullPtr)
+import Foreign (Ptr)
 import Foreign.C (CInt (..), CString)
 import Nix.Context
-  ( NixException (..)
-  , c_nix_c_context_create
+  ( c_nix_c_context_create
   , c_nix_c_context_free
   , checkError
+  , checkNull
   )
 import Nix.Internal
   ( CEvalState
@@ -71,15 +71,12 @@ withEvalState store f =
  where
   createState =
     bracketOnError c_nix_c_context_create c_nix_c_context_free $ \ctx -> do
-      builder <- c_nix_eval_state_builder_new ctx (storePtr store)
-      if builder == nullPtr
-        then throwIO $ NixException 1 "Failed to create eval state builder"
-        else flip finally (c_nix_eval_state_builder_free builder) $ do
-          checkError ctx =<< c_nix_eval_state_builder_load ctx builder
-          state <- c_nix_eval_state_build ctx builder
-          if state == nullPtr
-            then throwIO $ NixException 1 "Failed to create eval state"
-            else pure (EvalState state ctx)
+      builder <- checkNull ctx
+        =<< c_nix_eval_state_builder_new ctx (storePtr store)
+      flip finally (c_nix_eval_state_builder_free builder) $ do
+        checkError ctx =<< c_nix_eval_state_builder_load ctx builder
+        state <- checkNull ctx =<< c_nix_eval_state_build ctx builder
+        pure (EvalState state ctx)
   destroyState es = do
     c_nix_state_free (evalPtr es)
     c_nix_c_context_free (evalCtx es)
@@ -89,24 +86,19 @@ withEvalState store f =
 -- The @path@ argument is used to resolve relative paths in the expression.
 evalFromString :: EvalState -> ByteString -> ByteString -> IO Value
 evalFromString es expr path = do
-  val <- c_nix_alloc_value (evalCtx es) (evalPtr es)
-  if val == nullPtr
-    then throwIO $ NixException 1 "Failed to allocate value"
-    else do
-      rc <- BS.useAsCString expr $ \cExpr ->
-        BS.useAsCString path $ \cPath ->
-          c_nix_expr_eval_from_string (evalCtx es) (evalPtr es) cExpr cPath val
-      checkError (evalCtx es) rc
-      pure (Value val)
+  val <- checkNull (evalCtx es) =<< c_nix_alloc_value (evalCtx es) (evalPtr es)
+  rc <- BS.useAsCString expr $ \cExpr ->
+    BS.useAsCString path $ \cPath ->
+      c_nix_expr_eval_from_string (evalCtx es) (evalPtr es) cExpr cPath val
+  checkError (evalCtx es) rc
+  pure (Value val)
 
 -- | Force evaluation of a lazy value.
 valueForce :: EvalState -> Value -> IO ()
-valueForce es (Value val) = do
-  rc <- c_nix_value_force (evalCtx es) (evalPtr es) val
-  checkError (evalCtx es) rc
+valueForce es (Value val) =
+  checkError (evalCtx es) =<< c_nix_value_force (evalCtx es) (evalPtr es) val
 
 -- | Recursively force evaluation of a value and all its sub-values.
 valueForceDeep :: EvalState -> Value -> IO ()
-valueForceDeep es (Value val) = do
-  rc <- c_nix_value_force_deep (evalCtx es) (evalPtr es) val
-  checkError (evalCtx es) rc
+valueForceDeep es (Value val) =
+  checkError (evalCtx es) =<< c_nix_value_force_deep (evalCtx es) (evalPtr es) val

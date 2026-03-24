@@ -14,30 +14,33 @@ description:
   .
   main :: IO ()
   main = do
-    initNix
-    withStore "local" $ \\store ->
-      withEvalState store $ \\state -> do
-        val <- evalFromString state "1 + 2" "."
-        valueForce state val
-        n <- getInt state val
-        print n  -- 3
+    result <- 'runNix' $ do
+      'initNix'
+      'withStore' "local" $ \\store ->
+        'withEvalState' store $ \\state -> do
+          val <- 'evalFromString' state "1 + 2" "."
+          'valueForce' state val
+          'getInt' state val
+    print result  -- Right 3
   @
   .
   == Modules
   .
-  * "Nix" — re-exports everything below
-  * "Nix.Init" — library initialization and version query
-  * "Nix.Store" — open\/close stores, query paths, parse store paths
-  * "Nix.Expr" — create evaluator states, evaluate Nix expressions
-  * "Nix.Value" — inspect and extract values (int, string, list, attrs, …)
-  * "Nix.Context" — error context management and 'NixException'
+  * "Nix" — safe monadic API via the 'Nix' monad
+  * "Nix.Throw" — throwing IO API (re-exports domain modules)
+  * "Nix.Monad" — 'Nix' monad type and runners
+  * "Nix.Context" — error types ('NixError', 'NixErrorKind')
   .
   == Design
   .
+  Three usage styles from a single implementation:
+  .
+  * @import Nix@ — the 'Nix' monad with automatic error short-circuiting
+  * @import Nix.Throw@ — throwing IO functions for direct use
+  * @'runNix'@ — get @Either NixError a@ from any 'Nix' computation
+  .
   Resources ('Store', 'EvalState') are managed via bracket-style
   @with*@ functions that guarantee cleanup.
-  Errors from the C API are captured in a 'NixException' and thrown
-  as Haskell exceptions.
   .
   For raw FFI access to the complete C API surface, depend on
   @hs-nix-c-api-sys@ directly.
@@ -56,12 +59,15 @@ library
   hs-source-dirs:   src
   build-depends:
     , bytestring
+    , transformers
   exposed-modules:
     Nix
     Nix.Context
     Nix.Init
+    Nix.Monad
     Nix.Store
     Nix.Expr
+    Nix.Throw
     Nix.Value
 
   other-modules:
@@ -74,7 +80,9 @@ library
 
   other-extensions:
     CApiFFI
+    DerivingVia
     ForeignFunctionInterface
+    TypeApplications
 
 test-suite hs-nix-c-api-test
   import:           common

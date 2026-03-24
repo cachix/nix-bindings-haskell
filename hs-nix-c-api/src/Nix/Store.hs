@@ -1,6 +1,7 @@
 {-# LANGUAGE CApiFFI #-}
 
 -- | Safe interface to the Nix store.
+-- All functions throw 'Nix.Context.NixError' on failure.
 module Nix.Store
   ( Store
   , StorePath
@@ -13,7 +14,7 @@ module Nix.Store
   , storePathName
   ) where
 
-import Control.Exception (bracket, bracketOnError, throwIO)
+import Control.Exception (bracket, bracketOnError)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import Foreign (FunPtr, Ptr, nullPtr)
@@ -23,12 +24,11 @@ import Foreign.C
   , CString
   )
 import Nix.Context
-  ( NixException (..)
-  , StringCallback
+  ( StringCallback
   , c_nix_c_context_create
   , c_nix_c_context_free
   , checkError
-  , getErrorMsg
+  , checkNull
   , withCallbackBS
   )
 import Nix.Internal (CNixContext, CStore, CStorePath, Store (..), StorePath (..))
@@ -74,11 +74,8 @@ openStore uri =
   bracketOnError c_nix_c_context_create c_nix_c_context_free $ \ctx -> do
     ptr <- BS.useAsCString uri $ \cUri ->
       c_nix_store_open ctx cUri nullPtr
-    if ptr == nullPtr
-      then do
-        msg <- getErrorMsg ctx
-        throwIO $ NixException 1 msg
-      else pure (Store ptr ctx)
+    p <- checkNull ctx ptr
+    pure (Store p ctx)
 
 closeStore :: Store -> IO ()
 closeStore store = do
@@ -89,10 +86,11 @@ getStoreString
   :: (Ptr CNixContext -> Ptr CStore -> FunPtr StringCallback -> Ptr () -> IO CInt)
   -> Store
   -> IO ByteString
-getStoreString f store =
-  withCallbackBS $ \cb ud -> do
-    rc <- f (storeCtx store) (storePtr store) cb ud
-    checkError (storeCtx store) rc
+getStoreString f store = do
+  (rc, bs) <- withCallbackBS $ \cb ud ->
+    f (storeCtx store) (storePtr store) cb ud
+  checkError (storeCtx store) rc
+  pure bs
 
 -- | Get the URI of the store.
 storeUri :: Store -> IO ByteString
@@ -116,21 +114,12 @@ isValidPath store (StorePath sp) = do
 -- The 'StorePath' is valid only within the callback and freed afterwards.
 parseStorePath :: Store -> ByteString -> (StorePath -> IO a) -> IO a
 parseStorePath store path f =
-  BS.useAsCString path $ \cPath ->
-    bracket
-      ( do
-          sp <- c_nix_store_parse_path (storeCtx store) (storePtr store) cPath
-          if sp == nullPtr
-            then do
-              msg <- getErrorMsg (storeCtx store)
-              throwIO $ NixException 1 msg
-            else pure sp
-      )
-      c_nix_store_path_free
-      (f . StorePath)
+  BS.useAsCString path $ \cPath -> do
+    sp <- checkNull (storeCtx store)
+      =<< c_nix_store_parse_path (storeCtx store) (storePtr store) cPath
+    bracket (pure sp) c_nix_store_path_free (f . StorePath)
 
 -- | Get the name component of a store path.
 storePathName :: StorePath -> IO ByteString
 storePathName (StorePath sp) =
-  withCallbackBS $ \cb ud ->
-    c_nix_store_path_name sp cb ud
+  snd <$> withCallbackBS (\cb ud -> c_nix_store_path_name sp cb ud)

@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Safe interface to Nix values.
+-- Fallible functions throw 'Nix.Context.NixError' on failure.
 module Nix.Value
   ( Value
   , NixType (..)
@@ -15,16 +16,15 @@ module Nix.Value
   , getAttrsSize
   , hasAttrByName
   , getAttrByName
+  , lookupAttr
   , getListByIdx
   ) where
 
 import Control.Exception (throwIO)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
-import Data.ByteString.Builder (intDec, toLazyByteString)
-import qualified Data.ByteString.Lazy as LBS
 import Data.Int (Int64)
-import Foreign (FunPtr, Ptr, nullPtr)
+import Foreign (FunPtr, Ptr)
 import Foreign.C
   ( CBool (..)
   , CDouble (..)
@@ -33,9 +33,11 @@ import Foreign.C
   , CUInt (..)
   )
 import Nix.Context
-  ( NixException (..)
+  ( NixError (..)
+  , NixErrorKind (..)
   , StringCallback
   , checkError
+  , checkNull
   , withCallbackBS
   )
 import Nix.Internal (CEvalState, CNixContext, CNixValue, EvalState (..), Value (..))
@@ -121,18 +123,17 @@ getBool es (Value val) = do
 
 -- | Extract a string from a Nix value.
 getString :: EvalState -> Value -> IO ByteString
-getString es (Value val) =
-  withCallbackBS $ \cb ud -> do
-    rc <- c_nix_get_string (evalCtx es) val cb ud
-    checkError (evalCtx es) rc
+getString es (Value val) = do
+  (rc, bs) <- withCallbackBS $ \cb ud ->
+    c_nix_get_string (evalCtx es) val cb ud
+  checkError (evalCtx es) rc
+  pure bs
 
 -- | Extract a path string from a Nix value.
 getPathString :: EvalState -> Value -> IO ByteString
 getPathString es (Value val) = do
-  cstr <- c_nix_get_path_string (evalCtx es) val
-  if cstr == nullPtr
-    then throwIO $ NixException 1 "Failed to get path string"
-    else BS.packCString cstr
+  cstr <- checkNull (evalCtx es) =<< c_nix_get_path_string (evalCtx es) val
+  BS.packCString cstr
 
 -- | Get the number of elements in a Nix list value.
 getListSize :: EvalState -> Value -> IO Int
@@ -150,18 +151,29 @@ hasAttrByName es (Value val) name =
     pure (b /= 0)
 
 -- | Get an attribute by name from an attribute set.
+-- Throws 'NixError' with 'NixErrKey' if the attribute does not exist.
 getAttrByName :: EvalState -> Value -> ByteString -> IO Value
-getAttrByName es (Value val) name =
-  BS.useAsCString name $ \cName -> do
-    result <- c_nix_get_attr_byname (evalCtx es) val (evalPtr es) cName
-    if result == nullPtr
-      then throwIO $ NixException 1 ("Attribute not found: " <> name)
-      else pure (Value result)
+getAttrByName es val name = do
+  result <- lookupAttr es val name
+  case result of
+    Just v -> pure v
+    Nothing -> throwIO $ NixError NixErrKey ("Attribute not found: " <> name) BS.empty
+
+-- | Look up an attribute by name, returning 'Nothing' if absent.
+-- Only throws on genuine errors, not for missing attributes.
+lookupAttr :: EvalState -> Value -> ByteString -> IO (Maybe Value)
+lookupAttr es (Value val) name = do
+  exists <- hasAttrByName es (Value val) name
+  if not exists
+    then pure Nothing
+    else BS.useAsCString name $ \cName -> do
+      result <- checkNull (evalCtx es)
+        =<< c_nix_get_attr_byname (evalCtx es) val (evalPtr es) cName
+      pure (Just (Value result))
 
 -- | Get a list element by index.
 getListByIdx :: EvalState -> Value -> Int -> IO Value
 getListByIdx es (Value val) idx = do
-  result <- c_nix_get_list_byidx (evalCtx es) val (evalPtr es) (fromIntegral idx)
-  if result == nullPtr
-    then throwIO $ NixException 1 ("List index out of bounds: " <> LBS.toStrict (toLazyByteString (intDec idx)))
-    else pure (Value result)
+  result <- checkNull (evalCtx es)
+    =<< c_nix_get_list_byidx (evalCtx es) val (evalPtr es) (fromIntegral idx)
+  pure (Value result)
