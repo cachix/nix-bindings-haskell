@@ -2,25 +2,42 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Safe interface to Nix values.
--- Fallible functions throw 'Nix.Context.NixError' on failure.
+--
+-- All accessor functions check the value's type before extracting,
+-- throwing 'NixError' on type mismatch.
+-- For unchecked accessors, use the @unsafe@-prefixed variants.
 module Nix.Value
   ( Value
   , NixType (..)
+    -- * Type inspection
   , getType
+  , nixTypeName
+    -- * Safe value extraction (type-checked)
   , getInt
   , getFloat
   , getBool
   , getString
   , getPathString
+    -- * Safe collection accessors (type-checked)
   , getListSize
   , getAttrsSize
   , hasAttrByName
   , getAttrByName
   , lookupAttr
   , getListByIdx
+    -- * Unchecked value extraction (caller must ensure correct type)
+  , unsafeGetInt
+  , unsafeGetFloat
+  , unsafeGetBool
+  , unsafeGetListSize
+  , unsafeGetAttrsSize
+  , unsafeHasAttrByName
+  , unsafeLookupAttr
+  , unsafeGetListByIdx
   ) where
 
 import Control.Exception (throwIO)
+import Control.Monad (when)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import Data.Int (Int64)
@@ -57,6 +74,21 @@ data NixType
   | TypeExternal
   | TypeFailed
   deriving (Show, Eq, Ord, Enum, Bounded)
+
+-- | Human-readable name for a Nix type.
+nixTypeName :: NixType -> ByteString
+nixTypeName TypeThunk = "thunk"
+nixTypeName TypeInt = "int"
+nixTypeName TypeFloat = "float"
+nixTypeName TypeBool = "bool"
+nixTypeName TypeString = "string"
+nixTypeName TypePath = "path"
+nixTypeName TypeNull = "null"
+nixTypeName TypeAttrs = "attrs"
+nixTypeName TypeList = "list"
+nixTypeName TypeFunction = "function"
+nixTypeName TypeExternal = "external"
+nixTypeName TypeFailed = "failed"
 
 -- FFI imports
 foreign import capi "nix_api_value.h nix_get_type"
@@ -101,57 +133,88 @@ toNixType n
   | n >= 0 && n <= fromIntegral (fromEnum (maxBound :: NixType)) = toEnum (fromIntegral n)
   | otherwise = TypeFailed
 
+-- | Throw a type mismatch error if the value is not the expected type.
+checkType :: NixType -> EvalState -> Value -> IO ()
+checkType expected es val = do
+  actual <- getType es val
+  when (actual /= expected) $
+    throwIO $
+      NixError
+        NixErrNixError
+        ("Type mismatch: expected " <> nixTypeName expected <> ", got " <> nixTypeName actual)
+        BS.empty
+
+-- * Type inspection
+
 -- | Get the type of a Nix value.
 getType :: EvalState -> Value -> IO NixType
 getType es (Value val) = toNixType <$> c_nix_get_type (evalCtx es) val
 
+-- * Safe value extraction (type-checked)
+
 -- | Extract an integer from a Nix value.
+-- Throws on type mismatch.
 getInt :: EvalState -> Value -> IO Int64
-getInt es (Value val) = c_nix_get_int (evalCtx es) val
+getInt es val = do
+  checkType TypeInt es val
+  unsafeGetInt es val
 
 -- | Extract a float from a Nix value.
+-- Throws on type mismatch.
 getFloat :: EvalState -> Value -> IO Double
-getFloat es (Value val) = do
-  CDouble d <- c_nix_get_float (evalCtx es) val
-  pure d
+getFloat es val = do
+  checkType TypeFloat es val
+  unsafeGetFloat es val
 
 -- | Extract a boolean from a Nix value.
+-- Throws on type mismatch.
 getBool :: EvalState -> Value -> IO Bool
-getBool es (Value val) = do
-  b <- c_nix_get_bool (evalCtx es) val
-  pure (b /= 0)
+getBool es val = do
+  checkType TypeBool es val
+  unsafeGetBool es val
 
 -- | Extract a string from a Nix value.
+-- Throws on type mismatch (via C API error).
 getString :: EvalState -> Value -> IO ByteString
-getString es (Value val) = do
+getString es (Value v) = do
   (rc, bs) <- withCallbackBS $ \cb ud ->
-    c_nix_get_string (evalCtx es) val cb ud
+    c_nix_get_string (evalCtx es) v cb ud
   checkError (evalCtx es) rc
   pure bs
 
 -- | Extract a path string from a Nix value.
+-- Throws on type mismatch (via C API error).
 getPathString :: EvalState -> Value -> IO ByteString
-getPathString es (Value val) = do
-  cstr <- checkNull (evalCtx es) =<< c_nix_get_path_string (evalCtx es) val
+getPathString es (Value v) = do
+  cstr <- checkNull (evalCtx es) =<< c_nix_get_path_string (evalCtx es) v
   BS.packCString cstr
 
+-- * Safe collection accessors (type-checked)
+
 -- | Get the number of elements in a Nix list value.
+-- Throws on type mismatch.
 getListSize :: EvalState -> Value -> IO Int
-getListSize es (Value val) = fromIntegral <$> c_nix_get_list_size (evalCtx es) val
+getListSize es val = do
+  checkType TypeList es val
+  unsafeGetListSize es val
 
 -- | Get the number of attributes in a Nix attribute set value.
+-- Throws on type mismatch.
 getAttrsSize :: EvalState -> Value -> IO Int
-getAttrsSize es (Value val) = fromIntegral <$> c_nix_get_attrs_size (evalCtx es) val
+getAttrsSize es val = do
+  checkType TypeAttrs es val
+  unsafeGetAttrsSize es val
 
 -- | Check if an attribute set has an attribute with the given name.
+-- Throws on type mismatch.
 hasAttrByName :: EvalState -> Value -> ByteString -> IO Bool
-hasAttrByName es (Value val) name =
-  BS.useAsCString name $ \cName -> do
-    b <- c_nix_has_attr_byname (evalCtx es) val (evalPtr es) cName
-    pure (b /= 0)
+hasAttrByName es val name = do
+  checkType TypeAttrs es val
+  unsafeHasAttrByName es val name
 
 -- | Get an attribute by name from an attribute set.
 -- Throws 'NixError' with 'NixErrKey' if the attribute does not exist.
+-- Throws on type mismatch.
 getAttrByName :: EvalState -> Value -> ByteString -> IO Value
 getAttrByName es val name = do
   result <- lookupAttr es val name
@@ -160,20 +223,85 @@ getAttrByName es val name = do
     Nothing -> throwIO $ NixError NixErrKey ("Attribute not found: " <> name) BS.empty
 
 -- | Look up an attribute by name, returning 'Nothing' if absent.
--- Only throws on genuine errors, not for missing attributes.
+-- Only throws on genuine errors (e.g. type mismatch), not for missing attributes.
+-- Throws on type mismatch.
+--
+-- Note: This makes two C API calls (has + get) because @nix_get_attr_byname@
+-- crashes the process when called for a missing attribute.
 lookupAttr :: EvalState -> Value -> ByteString -> IO (Maybe Value)
-lookupAttr es (Value val) name = do
-  exists <- hasAttrByName es (Value val) name
-  if not exists
-    then pure Nothing
-    else BS.useAsCString name $ \cName -> do
-      result <- checkNull (evalCtx es)
-        =<< c_nix_get_attr_byname (evalCtx es) val (evalPtr es) cName
-      pure (Just (Value result))
+lookupAttr es val name = do
+  checkType TypeAttrs es val
+  unsafeLookupAttr es val name
 
 -- | Get a list element by index.
+-- Throws if the index is negative or out of bounds, or on type mismatch.
 getListByIdx :: EvalState -> Value -> Int -> IO Value
-getListByIdx es (Value val) idx = do
+getListByIdx es val idx = do
+  checkType TypeList es val
+  when (idx < 0) $
+    throwIO $ NixError NixErrUnknown "List index out of bounds" BS.empty
+  unsafeGetListByIdx es val idx
+
+-- * Unchecked value extraction
+
+-- | Extract an integer without checking the value's type.
+-- Caller must ensure the value is 'TypeInt', otherwise behaviour is undefined.
+unsafeGetInt :: EvalState -> Value -> IO Int64
+unsafeGetInt es (Value val) = c_nix_get_int (evalCtx es) val
+
+-- | Extract a float without checking the value's type.
+-- Caller must ensure the value is 'TypeFloat', otherwise behaviour is undefined.
+unsafeGetFloat :: EvalState -> Value -> IO Double
+unsafeGetFloat es (Value val) = do
+  CDouble d <- c_nix_get_float (evalCtx es) val
+  pure d
+
+-- | Extract a boolean without checking the value's type.
+-- Caller must ensure the value is 'TypeBool', otherwise behaviour is undefined.
+unsafeGetBool :: EvalState -> Value -> IO Bool
+unsafeGetBool es (Value val) = do
+  b <- c_nix_get_bool (evalCtx es) val
+  pure (b /= 0)
+
+-- | Get the list size without checking the value's type.
+-- Caller must ensure the value is 'TypeList', otherwise behaviour is undefined.
+unsafeGetListSize :: EvalState -> Value -> IO Int
+unsafeGetListSize es (Value val) = fromIntegral <$> c_nix_get_list_size (evalCtx es) val
+
+-- | Get the attribute set size without checking the value's type.
+-- Caller must ensure the value is 'TypeAttrs', otherwise behaviour is undefined.
+unsafeGetAttrsSize :: EvalState -> Value -> IO Int
+unsafeGetAttrsSize es (Value val) = fromIntegral <$> c_nix_get_attrs_size (evalCtx es) val
+
+-- | Check attribute existence without checking the value's type.
+-- Caller must ensure the value is 'TypeAttrs', otherwise behaviour is undefined.
+unsafeHasAttrByName :: EvalState -> Value -> ByteString -> IO Bool
+unsafeHasAttrByName es (Value val) name =
+  BS.useAsCString name $ \cName -> do
+    b <- c_nix_has_attr_byname (evalCtx es) val (evalPtr es) cName
+    pure (b /= 0)
+
+-- | Look up an attribute without checking the value's type.
+-- Caller must ensure the value is 'TypeAttrs', otherwise behaviour is undefined.
+--
+-- Makes two C API calls (has + get) because @nix_get_attr_byname@
+-- crashes the process when called for a missing attribute.
+unsafeLookupAttr :: EvalState -> Value -> ByteString -> IO (Maybe Value)
+unsafeLookupAttr es (Value val) name =
+  BS.useAsCString name $ \cName -> do
+    b <- c_nix_has_attr_byname (evalCtx es) val (evalPtr es) cName
+    if b == 0
+      then pure Nothing
+      else do
+        result <- checkNull (evalCtx es)
+          =<< c_nix_get_attr_byname (evalCtx es) val (evalPtr es) cName
+        pure (Just (Value result))
+
+-- | Get a list element by index without checking the value's type.
+-- Caller must ensure the value is 'TypeList' and the index is valid,
+-- otherwise behaviour is undefined.
+unsafeGetListByIdx :: EvalState -> Value -> Int -> IO Value
+unsafeGetListByIdx es (Value val) idx = do
   result <- checkNull (evalCtx es)
     =<< c_nix_get_list_byidx (evalCtx es) val (evalPtr es) (fromIntegral idx)
   pure (Value result)

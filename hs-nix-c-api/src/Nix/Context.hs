@@ -111,17 +111,18 @@ data NixError = NixError
 
 instance Exception NixError
 
--- | Build a 'NixError' from a context and raw error code.
--- Only reads detailed info if the error code indicates a real error,
+-- | Build a 'NixError' from a context, optionally using a known error code.
+-- Only reads detailed info if the context has a non-empty error message,
 -- since @nix_err_info_msg@ crashes on contexts with no error.
-buildError :: Ptr CNixContext -> CInt -> IO NixError
-buildError ctx rc = do
+buildError :: Ptr CNixContext -> Maybe CInt -> IO NixError
+buildError ctx mbRc = do
   msg <- getErrorMsg ctx
-  info <-
-    if rc /= 0
-      then getErrorInfoMsg ctx
-      else pure BS.empty
-  pure $ NixError (toNixErrorKind rc) msg info
+  if BS.null msg
+    then pure $ NixError NixErrUnknown BS.empty BS.empty
+    else do
+      rc <- maybe (c_nix_err_code ctx) pure mbRc
+      info <- getErrorInfoMsg ctx
+      pure $ NixError (toNixErrorKind rc) msg info
 
 -- | Run an action with a fresh Nix error context.
 -- If the action returns a non-zero error code, throw a 'NixError'.
@@ -138,27 +139,14 @@ withContext' = bracket c_nix_c_context_create c_nix_c_context_free
 checkError :: Ptr CNixContext -> CInt -> IO ()
 checkError ctx rc
   | rc == 0 = pure ()
-  | otherwise = throwIO =<< buildError ctx rc
+  | otherwise = throwIO =<< buildError ctx (Just rc)
 
 -- | Check a pointer for null and throw if null.
 -- Reads the error information from the context.
 checkNull :: Ptr CNixContext -> Ptr a -> IO (Ptr a)
 checkNull ctx ptr
-  | ptr == nullPtr = throwIO =<< readContextError ctx
+  | ptr == nullPtr = throwIO =<< buildError ctx Nothing
   | otherwise = pure ptr
-
--- | Read error information from a context that is known to have an error.
-readContextError :: Ptr CNixContext -> IO NixError
-readContextError ctx = do
-  msg <- getErrorMsg ctx
-  -- Only read info if the context has a non-empty error message,
-  -- since nix_err_info_msg crashes on contexts with no error.
-  if BS.null msg
-    then pure $ NixError NixErrUnknown BS.empty BS.empty
-    else do
-      rc <- c_nix_err_code ctx
-      info <- getErrorInfoMsg ctx
-      pure $ NixError (toNixErrorKind rc) msg info
 
 -- | Extract the error message from a context.
 getErrorMsg :: Ptr CNixContext -> IO ByteString

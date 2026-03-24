@@ -77,7 +77,7 @@ import Nix.Context (NixError (..), NixErrorKind (..))
 import qualified Nix.Expr as Throw
 import qualified Nix.Init as Throw
 import Nix.Internal (EvalState, Store, StorePath, Value)
-import Nix.Monad (Nix (..), liftNix, runNixThrow)
+import Nix.Monad (Nix, liftNix, runNix, runNixThrow)
 import qualified Nix.Store as Throw
 import qualified Nix.Value as Throw
 import Nix.Value (NixType (..))
@@ -154,16 +154,19 @@ getType :: EvalState -> Value -> Nix NixType
 getType es val = liftIO $ Throw.getType es val
 
 -- | Extract an integer from a Nix value.
+-- Fails on type mismatch.
 getInt :: EvalState -> Value -> Nix Int64
-getInt es val = liftIO $ Throw.getInt es val
+getInt es val = liftNix $ Throw.getInt es val
 
 -- | Extract a float from a Nix value.
+-- Fails on type mismatch.
 getFloat :: EvalState -> Value -> Nix Double
-getFloat es val = liftIO $ Throw.getFloat es val
+getFloat es val = liftNix $ Throw.getFloat es val
 
 -- | Extract a boolean from a Nix value.
+-- Fails on type mismatch.
 getBool :: EvalState -> Value -> Nix Bool
-getBool es val = liftIO $ Throw.getBool es val
+getBool es val = liftNix $ Throw.getBool es val
 
 -- | Extract a string from a Nix value.
 getString :: EvalState -> Value -> Nix ByteString
@@ -174,16 +177,19 @@ getPathString :: EvalState -> Value -> Nix ByteString
 getPathString es val = liftNix $ Throw.getPathString es val
 
 -- | Get the number of elements in a Nix list value.
+-- Fails on type mismatch.
 getListSize :: EvalState -> Value -> Nix Int
-getListSize es val = liftIO $ Throw.getListSize es val
+getListSize es val = liftNix $ Throw.getListSize es val
 
 -- | Get the number of attributes in a Nix attribute set value.
+-- Fails on type mismatch.
 getAttrsSize :: EvalState -> Value -> Nix Int
-getAttrsSize es val = liftIO $ Throw.getAttrsSize es val
+getAttrsSize es val = liftNix $ Throw.getAttrsSize es val
 
 -- | Check if an attribute set has an attribute with the given name.
+-- Fails on type mismatch.
 hasAttrByName :: EvalState -> Value -> ByteString -> Nix Bool
-hasAttrByName es val name = liftIO $ Throw.hasAttrByName es val name
+hasAttrByName es val name = liftNix $ Throw.hasAttrByName es val name
 
 -- | Get an attribute by name from an attribute set.
 -- Returns an error if the attribute does not exist.

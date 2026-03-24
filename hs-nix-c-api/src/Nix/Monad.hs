@@ -12,7 +12,8 @@
 -- -- result :: Either NixError Int64
 -- @
 module Nix.Monad
-  ( Nix (..)
+  ( Nix
+  , runNix
   , runNixThrow
   , liftNix
   ) where

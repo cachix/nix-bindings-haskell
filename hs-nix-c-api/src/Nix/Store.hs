@@ -114,10 +114,12 @@ isValidPath store (StorePath sp) = do
 -- The 'StorePath' is valid only within the callback and freed afterwards.
 parseStorePath :: Store -> ByteString -> (StorePath -> IO a) -> IO a
 parseStorePath store path f =
-  BS.useAsCString path $ \cPath -> do
-    sp <- checkNull (storeCtx store)
-      =<< c_nix_store_parse_path (storeCtx store) (storePtr store) cPath
-    bracket (pure sp) c_nix_store_path_free (f . StorePath)
+  BS.useAsCString path $ \cPath ->
+    bracket
+      (checkNull (storeCtx store)
+        =<< c_nix_store_parse_path (storeCtx store) (storePtr store) cPath)
+      c_nix_store_path_free
+      (f . StorePath)
 
 -- | Get the name component of a store path.
 storePathName :: StorePath -> IO ByteString
