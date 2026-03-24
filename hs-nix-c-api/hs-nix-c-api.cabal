@@ -1,0 +1,94 @@
+cabal-version: 3.4
+name:          hs-nix-c-api
+version:       0.1.0.0
+synopsis:      Safe Haskell bindings to the Nix C API
+description:
+  Idiomatic Haskell bindings to the Nix C API with automatic resource
+  management, structured error handling, and type safety.
+  .
+  == Quick start
+  .
+  @
+  {-# LANGUAGE OverloadedStrings #-}
+  import Nix
+  .
+  main :: IO ()
+  main = do
+    initNix
+    withStore "local" $ \\store ->
+      withEvalState store $ \\state -> do
+        val <- evalFromString state "1 + 2" "."
+        valueForce state val
+        n <- getInt state val
+        print n  -- 3
+  @
+  .
+  == Modules
+  .
+  * "Nix" — re-exports everything below
+  * "Nix.Init" — library initialization and version query
+  * "Nix.Store" — open\/close stores, query paths, parse store paths
+  * "Nix.Expr" — create evaluator states, evaluate Nix expressions
+  * "Nix.Value" — inspect and extract values (int, string, list, attrs, …)
+  * "Nix.Context" — error context management and 'NixException'
+  .
+  == Design
+  .
+  Resources ('Store', 'EvalState') are managed via bracket-style
+  @with*@ functions that guarantee cleanup.
+  Errors from the C API are captured in a 'NixException' and thrown
+  as Haskell exceptions.
+  .
+  For raw FFI access to the complete C API surface, depend on
+  @hs-nix-c-api-sys@ directly.
+
+license:       MIT
+license-file:  LICENSE
+build-type:    Simple
+
+common common
+  default-language: GHC2021
+  ghc-options:      -Wall -Wunused-packages
+  build-depends:    base >=4.18 && <5
+
+library
+  import:           common
+  hs-source-dirs:   src
+  build-depends:
+    , bytestring
+  exposed-modules:
+    Nix
+    Nix.Context
+    Nix.Init
+    Nix.Store
+    Nix.Expr
+    Nix.Value
+
+  other-modules:
+    Nix.Internal
+
+  pkgconfig-depends:
+    , nix-util-c
+    , nix-store-c
+    , nix-expr-c
+
+  other-extensions:
+    CApiFFI
+    ForeignFunctionInterface
+
+test-suite hs-nix-c-api-test
+  import:           common
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Main.hs
+  ghc-options:      -threaded -rtsopts -with-rtsopts=-N
+  other-modules:
+    Test.Nix.Util
+    Test.Nix.Store
+    Test.Nix.Expr
+    Test.Nix.Value
+
+  build-depends:
+    , bytestring
+    , hs-nix-c-api
+    , hspec
