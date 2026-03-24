@@ -1,5 +1,3 @@
-{-# LANGUAGE CApiFFI #-}
-
 -- | Internal module for Nix C API error handling.
 --
 -- Provides managed error contexts that capture errors from C API calls
@@ -14,7 +12,6 @@ module Nix.Context
   , getErrorMsg
   , getErrorInfoMsg
   , withCallbackBS
-  , StringCallback
   , c_nix_c_context_create
   , c_nix_c_context_free
   ) where
@@ -23,7 +20,7 @@ import Control.Exception (Exception, bracket, throwIO)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
-import Foreign (FunPtr, Ptr, nullPtr)
+import Foreign (FunPtr, Ptr, castFunPtr, castPtr, nullPtr)
 import Foreign.C (CInt (..), CString, CUInt (..))
 import Foreign.StablePtr
   ( castPtrToStablePtr
@@ -32,49 +29,42 @@ import Foreign.StablePtr
   , freeStablePtr
   , newStablePtr
   )
+import Generated.Nix.Util
+  ( Nix_err (..)
+  , Nix_get_string_callback (..)
+  )
+import qualified Generated.Nix.Util.Safe as Sys
+import HsBindgen.Runtime.PtrConst (unsafeFromPtr, unsafeToPtr)
 import Nix.Internal (CNixContext)
 import System.IO.Unsafe (unsafePerformIO)
 
--- FFI imports
-foreign import capi "nix_api_util.h nix_c_context_create"
-  c_nix_c_context_create :: IO (Ptr CNixContext)
+-- | Allocate a new Nix error context.
+c_nix_c_context_create :: IO (Ptr CNixContext)
+c_nix_c_context_create = Sys.nix_c_context_create
 
-foreign import capi "nix_api_util.h nix_c_context_free"
-  c_nix_c_context_free :: Ptr CNixContext -> IO ()
+-- | Free a Nix error context.
+c_nix_c_context_free :: Ptr CNixContext -> IO ()
+c_nix_c_context_free = Sys.nix_c_context_free
 
-foreign import capi "nix_api_util.h nix_err_msg"
-  c_nix_err_msg
-    :: Ptr CNixContext
-    -> Ptr CNixContext
-    -> Ptr CUInt
-    -> IO CString
-
-foreign import capi "nix_api_util.h nix_err_code"
-  c_nix_err_code :: Ptr CNixContext -> IO CInt
-
-foreign import capi "nix_api_util.h nix_err_info_msg"
-  c_nix_err_info_msg
-    :: Ptr CNixContext
-    -> Ptr CNixContext
-    -> FunPtr StringCallback
-    -> Ptr ()
-    -> IO CInt
-
--- | Callback type matching @nix_get_string_callback@.
-type StringCallback = CString -> CUInt -> Ptr () -> IO ()
+-- Raw callback type matching the C signature.
+type RawCallback = CString -> CUInt -> Ptr () -> IO ()
 
 foreign import ccall "wrapper"
-  mkStringCallback :: StringCallback -> IO (FunPtr StringCallback)
+  mkRawCallback :: RawCallback -> IO (FunPtr RawCallback)
 
--- | Global string callback 'FunPtr', allocated once as a CAF.
--- Uses the @userData@ pointer (a 'StablePtr' to an 'IORef' 'ByteString')
--- to write the result, so the 'FunPtr' itself is stateless and reusable.
+-- | Global string callback, allocated once as a CAF.
+-- Each call site passes its own 'IORef' via the userData pointer,
+-- so concurrent calls are safe.
 {-# NOINLINE globalStringCallback #-}
-globalStringCallback :: FunPtr StringCallback
-globalStringCallback = unsafePerformIO $ mkStringCallback $ \cstr len userData -> do
-  ref <- deRefStablePtr (castPtrToStablePtr userData) :: IO (IORef ByteString)
-  bs <- BS.packCStringLen (cstr, fromIntegral len)
-  writeIORef ref bs
+globalStringCallback :: Nix_get_string_callback
+globalStringCallback = unsafePerformIO $ do
+  fp <- mkRawCallback $ \cstr len userData -> do
+    ref <- deRefStablePtr (castPtrToStablePtr userData) :: IO (IORef ByteString)
+    bs <- BS.packCStringLen (cstr, fromIntegral len)
+    writeIORef ref bs
+  -- castFunPtr is safe: the C-level function signatures are identical,
+  -- only the Haskell type wrappers differ (CString vs PtrConst CChar, etc.)
+  pure $ Nix_get_string_callback (castFunPtr fp)
 
 -- | Error category from the Nix C API.
 data NixErrorKind
@@ -120,7 +110,7 @@ buildError ctx mbRc = do
   if BS.null msg
     then pure $ NixError NixErrUnknown BS.empty BS.empty
     else do
-      rc <- maybe (c_nix_err_code ctx) pure mbRc
+      rc <- maybe (unwrapNix_err <$> Sys.nix_err_code (unsafeFromPtr ctx)) pure mbRc
       info <- getErrorInfoMsg ctx
       pure $ NixError (toNixErrorKind rc) msg info
 
@@ -151,22 +141,26 @@ checkNull ctx ptr
 -- | Extract the error message from a context.
 getErrorMsg :: Ptr CNixContext -> IO ByteString
 getErrorMsg ctx = do
-  cstr <- c_nix_err_msg nullPtr ctx nullPtr
-  if cstr == nullPtr
+  cstr <- Sys.nix_err_msg nullPtr (unsafeFromPtr ctx) nullPtr
+  let p = unsafeToPtr cstr
+  if p == nullPtr
     then pure BS.empty
-    else BS.packCString cstr
+    else BS.packCString p
 
 -- | Extract the detailed error info message from a context.
 -- Returns the empty bytestring if no info is available.
 getErrorInfoMsg :: Ptr CNixContext -> IO ByteString
 getErrorInfoMsg ctx =
-  snd <$> withCallbackBS (\cb ud -> c_nix_err_info_msg nullPtr ctx cb ud)
+  snd <$> withCallbackBS (\cb ud ->
+    Sys.nix_err_info_msg nullPtr (unsafeFromPtr ctx) cb (castPtr ud))
 
--- | Run an action that populates a string via the global 'StringCallback',
+-- | Run an action that populates a string via the global string callback,
 -- returning both the action's result and the captured bytes.
 -- Allocates a 'StablePtr' to an 'IORef' for the duration of the call,
 -- avoiding per-call 'FunPtr' allocation.
-withCallbackBS :: (FunPtr StringCallback -> Ptr () -> IO a) -> IO (a, ByteString)
+withCallbackBS
+  :: (Nix_get_string_callback -> Ptr () -> IO a)
+  -> IO (a, ByteString)
 withCallbackBS f = do
   ref <- newIORef BS.empty
   bracket (newStablePtr ref) freeStablePtr $ \sptr -> do

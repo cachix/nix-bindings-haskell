@@ -1,0 +1,46 @@
+version:
+  hs_bindgen: 0.1.0
+  binding_specification: '1.0'
+hsmodule: Generated.Nix.Flake
+ctypes:
+- headers: nix_api_flake.h
+  cname: struct nix_flake_settings
+  hsname: Nix_flake_settings
+- headers: nix_api_flake.h
+  cname: nix_flake_settings
+  hsname: Nix_flake_settings
+- headers: nix_api_flake.h
+  cname: struct nix_flake_reference_parse_flags
+  hsname: Nix_flake_reference_parse_flags
+- headers: nix_api_flake.h
+  cname: nix_flake_reference_parse_flags
+  hsname: Nix_flake_reference_parse_flags
+- headers: nix_api_flake.h
+  cname: struct nix_flake_reference
+  hsname: Nix_flake_reference
+- headers: nix_api_flake.h
+  cname: nix_flake_reference
+  hsname: Nix_flake_reference
+- headers: nix_api_flake.h
+  cname: struct nix_flake_lock_flags
+  hsname: Nix_flake_lock_flags
+- headers: nix_api_flake.h
+  cname: nix_flake_lock_flags
+  hsname: Nix_flake_lock_flags
+- headers: nix_api_flake.h
+  cname: struct nix_locked_flake
+  hsname: Nix_locked_flake
+- headers: nix_api_flake.h
+  cname: nix_locked_flake
+  hsname: Nix_locked_flake
+hstypes:
+- hsname: Nix_flake_lock_flags
+  representation: emptydata
+- hsname: Nix_flake_reference
+  representation: emptydata
+- hsname: Nix_flake_reference_parse_flags
+  representation: emptydata
+- hsname: Nix_flake_settings
+  representation: emptydata
+- hsname: Nix_locked_flake
+  representation: emptydata

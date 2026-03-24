@@ -54,7 +54,10 @@
             (drv: {
               pkg-configDepends = nixCApiPkgs;
             })
-            (hpkgs.callCabal2nix "hs-nix-c-api" ./hs-nix-c-api { });
+            (hpkgs.callCabal2nix "hs-nix-c-api" ./hs-nix-c-api {
+              inherit hs-nix-c-api-sys;
+              inherit (hpkgs) hs-bindgen-runtime;
+            });
         in
         {
           packages = {

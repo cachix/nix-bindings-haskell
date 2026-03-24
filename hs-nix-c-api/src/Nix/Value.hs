@@ -1,4 +1,3 @@
-{-# LANGUAGE CApiFFI #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Safe interface to Nix values.
@@ -41,23 +40,26 @@ import Control.Monad (when)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import Data.Int (Int64)
-import Foreign (FunPtr, Ptr)
-import Foreign.C
-  ( CBool (..)
-  , CDouble (..)
-  , CInt (..)
-  , CString
-  , CUInt (..)
-  )
+import Foreign (Ptr, castPtr)
+import Foreign.C (CDouble (..))
+import Generated.Nix.Util (Nix_err (..))
+import Generated.Nix.Value (ValueType (..))
+import qualified Generated.Nix.Value.Safe as SysValue
+import HsBindgen.Runtime.PtrConst (unsafeFromPtr, unsafeToPtr)
 import Nix.Context
   ( NixError (..)
   , NixErrorKind (..)
-  , StringCallback
   , checkError
   , checkNull
   , withCallbackBS
   )
 import Nix.Internal (CEvalState, CNixContext, CNixValue, EvalState (..), Value (..))
+
+-- | Cast the EvalState pointer for cross-module -sys type compatibility.
+-- Generated.Nix.Expr and Generated.Nix.Value define separate EvalState types;
+-- castPtr is safe since they refer to the same C struct.
+castEvalPtr :: EvalState -> Ptr a
+castEvalPtr = castPtr . evalPtr
 
 -- | The type of a Nix value.
 data NixType
@@ -90,47 +92,9 @@ nixTypeName TypeFunction = "function"
 nixTypeName TypeExternal = "external"
 nixTypeName TypeFailed = "failed"
 
--- FFI imports
-foreign import capi "nix_api_value.h nix_get_type"
-  c_nix_get_type :: Ptr CNixContext -> Ptr CNixValue -> IO CInt
-
-foreign import capi "nix_api_value.h nix_get_int"
-  c_nix_get_int :: Ptr CNixContext -> Ptr CNixValue -> IO Int64
-
-foreign import capi "nix_api_value.h nix_get_float"
-  c_nix_get_float :: Ptr CNixContext -> Ptr CNixValue -> IO CDouble
-
-foreign import capi "nix_api_value.h nix_get_bool"
-  c_nix_get_bool :: Ptr CNixContext -> Ptr CNixValue -> IO CBool
-
-foreign import capi "nix_api_value.h nix_get_string"
-  c_nix_get_string
-    :: Ptr CNixContext -> Ptr CNixValue -> FunPtr StringCallback -> Ptr () -> IO CInt
-
-foreign import capi "nix_api_value.h nix_get_path_string"
-  c_nix_get_path_string :: Ptr CNixContext -> Ptr CNixValue -> IO CString
-
-foreign import capi "nix_api_value.h nix_get_list_size"
-  c_nix_get_list_size :: Ptr CNixContext -> Ptr CNixValue -> IO CUInt
-
-foreign import capi "nix_api_value.h nix_get_attrs_size"
-  c_nix_get_attrs_size :: Ptr CNixContext -> Ptr CNixValue -> IO CUInt
-
-foreign import capi "nix_api_value.h nix_has_attr_byname"
-  c_nix_has_attr_byname
-    :: Ptr CNixContext -> Ptr CNixValue -> Ptr CEvalState -> CString -> IO CBool
-
-foreign import capi "nix_api_value.h nix_get_attr_byname"
-  c_nix_get_attr_byname
-    :: Ptr CNixContext -> Ptr CNixValue -> Ptr CEvalState -> CString -> IO (Ptr CNixValue)
-
-foreign import capi "nix_api_value.h nix_get_list_byidx"
-  c_nix_get_list_byidx
-    :: Ptr CNixContext -> Ptr CNixValue -> Ptr CEvalState -> CUInt -> IO (Ptr CNixValue)
-
-toNixType :: CInt -> NixType
+toNixType :: Int -> NixType
 toNixType n
-  | n >= 0 && n <= fromIntegral (fromEnum (maxBound :: NixType)) = toEnum (fromIntegral n)
+  | n >= 0 && n <= fromEnum (maxBound :: NixType) = toEnum n
   | otherwise = TypeFailed
 
 -- | Throw a type mismatch error if the value is not the expected type.
@@ -148,7 +112,11 @@ checkType expected es val = do
 
 -- | Get the type of a Nix value.
 getType :: EvalState -> Value -> IO NixType
-getType es (Value val) = toNixType <$> c_nix_get_type (evalCtx es) val
+getType es (Value val) = do
+  vt <- SysValue.nix_get_type (evalCtx es) (unsafeFromPtr val)
+  -- ValueType is a newtype over CUInt; extract and convert
+  let n = fromIntegral (unwrapValueType vt)
+  pure (toNixType n)
 
 -- * Safe value extraction (type-checked)
 
@@ -177,8 +145,8 @@ getBool es val = do
 -- Throws on type mismatch (via C API error).
 getString :: EvalState -> Value -> IO ByteString
 getString es (Value v) = do
-  (rc, bs) <- withCallbackBS $ \cb ud ->
-    c_nix_get_string (evalCtx es) v cb ud
+  (Nix_err rc, bs) <- withCallbackBS $ \cb ud ->
+    SysValue.nix_get_string (evalCtx es) (unsafeFromPtr v) cb (castPtr ud)
   checkError (evalCtx es) rc
   pure bs
 
@@ -186,8 +154,9 @@ getString es (Value v) = do
 -- Throws on type mismatch (via C API error).
 getPathString :: EvalState -> Value -> IO ByteString
 getPathString es (Value v) = do
-  cstr <- checkNull (evalCtx es) =<< c_nix_get_path_string (evalCtx es) v
-  BS.packCString cstr
+  cstr <- SysValue.nix_get_path_string (evalCtx es) (unsafeFromPtr v)
+  p <- checkNull (evalCtx es) (unsafeToPtr cstr)
+  BS.packCString p
 
 -- * Safe collection accessors (type-checked)
 
@@ -247,38 +216,41 @@ getListByIdx es val idx = do
 -- | Extract an integer without checking the value's type.
 -- Caller must ensure the value is 'TypeInt', otherwise behaviour is undefined.
 unsafeGetInt :: EvalState -> Value -> IO Int64
-unsafeGetInt es (Value val) = c_nix_get_int (evalCtx es) val
+unsafeGetInt es (Value val) =
+  fromIntegral <$> SysValue.nix_get_int (evalCtx es) (unsafeFromPtr val)
 
 -- | Extract a float without checking the value's type.
 -- Caller must ensure the value is 'TypeFloat', otherwise behaviour is undefined.
 unsafeGetFloat :: EvalState -> Value -> IO Double
 unsafeGetFloat es (Value val) = do
-  CDouble d <- c_nix_get_float (evalCtx es) val
+  CDouble d <- SysValue.nix_get_float (evalCtx es) (unsafeFromPtr val)
   pure d
 
 -- | Extract a boolean without checking the value's type.
 -- Caller must ensure the value is 'TypeBool', otherwise behaviour is undefined.
 unsafeGetBool :: EvalState -> Value -> IO Bool
 unsafeGetBool es (Value val) = do
-  b <- c_nix_get_bool (evalCtx es) val
+  b <- SysValue.nix_get_bool (evalCtx es) (unsafeFromPtr val)
   pure (b /= 0)
 
 -- | Get the list size without checking the value's type.
 -- Caller must ensure the value is 'TypeList', otherwise behaviour is undefined.
 unsafeGetListSize :: EvalState -> Value -> IO Int
-unsafeGetListSize es (Value val) = fromIntegral <$> c_nix_get_list_size (evalCtx es) val
+unsafeGetListSize es (Value val) =
+  fromIntegral <$> SysValue.nix_get_list_size (evalCtx es) (unsafeFromPtr val)
 
 -- | Get the attribute set size without checking the value's type.
 -- Caller must ensure the value is 'TypeAttrs', otherwise behaviour is undefined.
 unsafeGetAttrsSize :: EvalState -> Value -> IO Int
-unsafeGetAttrsSize es (Value val) = fromIntegral <$> c_nix_get_attrs_size (evalCtx es) val
+unsafeGetAttrsSize es (Value val) =
+  fromIntegral <$> SysValue.nix_get_attrs_size (evalCtx es) (unsafeFromPtr val)
 
 -- | Check attribute existence without checking the value's type.
 -- Caller must ensure the value is 'TypeAttrs', otherwise behaviour is undefined.
 unsafeHasAttrByName :: EvalState -> Value -> ByteString -> IO Bool
 unsafeHasAttrByName es (Value val) name =
   BS.useAsCString name $ \cName -> do
-    b <- c_nix_has_attr_byname (evalCtx es) val (evalPtr es) cName
+    b <- SysValue.nix_has_attr_byname (evalCtx es) (unsafeFromPtr val) (castEvalPtr es) (unsafeFromPtr cName)
     pure (b /= 0)
 
 -- | Look up an attribute without checking the value's type.
@@ -289,12 +261,12 @@ unsafeHasAttrByName es (Value val) name =
 unsafeLookupAttr :: EvalState -> Value -> ByteString -> IO (Maybe Value)
 unsafeLookupAttr es (Value val) name =
   BS.useAsCString name $ \cName -> do
-    b <- c_nix_has_attr_byname (evalCtx es) val (evalPtr es) cName
+    b <- SysValue.nix_has_attr_byname (evalCtx es) (unsafeFromPtr val) (castEvalPtr es) (unsafeFromPtr cName)
     if b == 0
       then pure Nothing
       else do
         result <- checkNull (evalCtx es)
-          =<< c_nix_get_attr_byname (evalCtx es) val (evalPtr es) cName
+          =<< SysValue.nix_get_attr_byname (evalCtx es) (unsafeFromPtr val) (castEvalPtr es) (unsafeFromPtr cName)
         pure (Just (Value result))
 
 -- | Get a list element by index without checking the value's type.
@@ -303,5 +275,5 @@ unsafeLookupAttr es (Value val) name =
 unsafeGetListByIdx :: EvalState -> Value -> Int -> IO Value
 unsafeGetListByIdx es (Value val) idx = do
   result <- checkNull (evalCtx es)
-    =<< c_nix_get_list_byidx (evalCtx es) val (evalPtr es) (fromIntegral idx)
+    =<< SysValue.nix_get_list_byidx (evalCtx es) (unsafeFromPtr val) (castEvalPtr es) (fromIntegral idx)
   pure (Value result)

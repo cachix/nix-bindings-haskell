@@ -1,0 +1,58 @@
+version:
+  hs_bindgen: 0.1.0
+  binding_specification: '1.0'
+hsmodule: Generated.Nix.External
+ctypes:
+- headers: nix_api_external.h
+  cname: struct nix_string_return
+  hsname: Nix_string_return
+- headers: nix_api_external.h
+  cname: nix_string_return
+  hsname: Nix_string_return
+- headers: nix_api_external.h
+  cname: struct nix_printer
+  hsname: Nix_printer
+- headers: nix_api_external.h
+  cname: nix_printer
+  hsname: Nix_printer
+- headers: nix_api_external.h
+  cname: struct nix_string_context
+  hsname: Nix_string_context
+- headers: nix_api_external.h
+  cname: nix_string_context
+  hsname: Nix_string_context
+- headers: nix_api_external.h
+  cname: struct NixCExternalValueDesc
+  hsname: NixCExternalValueDesc
+- headers: nix_api_external.h
+  cname: NixCExternalValueDesc
+  hsname: NixCExternalValueDesc
+hstypes:
+- hsname: NixCExternalValueDesc
+  representation:
+    record:
+      constructor: NixCExternalValueDesc
+      fields:
+      - nixCExternalValueDesc_print
+      - nixCExternalValueDesc_showType
+      - nixCExternalValueDesc_typeOf
+      - nixCExternalValueDesc_coerceToString
+      - nixCExternalValueDesc_equal
+      - nixCExternalValueDesc_printValueAsJSON
+      - nixCExternalValueDesc_printValueAsXML
+  instances:
+  - Eq
+  - Generic
+  - HasCField
+  - HasField
+  - ReadRaw
+  - Show
+  - StaticSize
+  - Storable
+  - WriteRaw
+- hsname: Nix_printer
+  representation: emptydata
+- hsname: Nix_string_context
+  representation: emptydata
+- hsname: Nix_string_return
+  representation: emptydata

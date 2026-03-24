@@ -1,0 +1,14 @@
+version:
+  hs_bindgen: 0.1.0
+  binding_specification: '1.0'
+hsmodule: Generated.Nix.Fetchers
+ctypes:
+- headers: nix_api_fetchers.h
+  cname: struct nix_fetchers_settings
+  hsname: Nix_fetchers_settings
+- headers: nix_api_fetchers.h
+  cname: nix_fetchers_settings
+  hsname: Nix_fetchers_settings
+hstypes:
+- hsname: Nix_fetchers_settings
+  representation: emptydata

@@ -1,0 +1,91 @@
+version:
+  hs_bindgen: 0.1.0
+  binding_specification: '1.0'
+hsmodule: Generated.Nix.Util
+ctypes:
+- headers: nix_api_util.h
+  cname: enum nix_err
+  hsname: Nix_err
+- headers: nix_api_util.h
+  cname: nix_err
+  hsname: Nix_err
+- headers: nix_api_util.h
+  cname: enum nix_verbosity
+  hsname: Nix_verbosity
+- headers: nix_api_util.h
+  cname: nix_verbosity
+  hsname: Nix_verbosity
+- headers: nix_api_util.h
+  cname: struct nix_c_context
+  hsname: Nix_c_context
+- headers: nix_api_util.h
+  cname: nix_c_context
+  hsname: Nix_c_context
+- headers: nix_api_util.h
+  cname: nix_get_string_callback
+  hsname: Nix_get_string_callback
+hstypes:
+- hsname: Nix_c_context
+  representation: emptydata
+- hsname: Nix_err
+  representation:
+    newtype:
+      constructor: Nix_err
+      fields:
+      - unwrapNix_err
+  instances:
+  - CEnum
+  - Eq
+  - Generic
+  - HasCField
+  - HasFFIType
+  - HasField
+  - Ord
+  - Prim
+  - Read
+  - ReadRaw
+  - SequentialCEnum
+  - Show
+  - StaticSize
+  - Storable
+  - WriteRaw
+- hsname: Nix_get_string_callback
+  representation:
+    newtype:
+      constructor: Nix_get_string_callback
+      fields:
+      - unwrapNix_get_string_callback
+  instances:
+  - Eq
+  - Generic
+  - HasCField
+  - HasFFIType
+  - HasField
+  - Ord
+  - ReadRaw
+  - Show
+  - StaticSize
+  - Storable
+  - WriteRaw
+- hsname: Nix_verbosity
+  representation:
+    newtype:
+      constructor: Nix_verbosity
+      fields:
+      - unwrapNix_verbosity
+  instances:
+  - CEnum
+  - Eq
+  - Generic
+  - HasCField
+  - HasFFIType
+  - HasField
+  - Ord
+  - Prim
+  - Read
+  - ReadRaw
+  - SequentialCEnum
+  - Show
+  - StaticSize
+  - Storable
+  - WriteRaw

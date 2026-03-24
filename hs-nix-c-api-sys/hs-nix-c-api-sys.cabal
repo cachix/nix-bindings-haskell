@@ -75,7 +75,6 @@ library
     Generated.Nix.Fetchers.FunPtr
     Generated.Nix.Fetchers.Safe
     Generated.Nix.Fetchers.Unsafe
-    Generated.Nix.Main
     Generated.Nix.Main.FunPtr
     Generated.Nix.Main.Safe
     Generated.Nix.Main.Unsafe

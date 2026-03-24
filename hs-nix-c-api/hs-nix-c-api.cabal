@@ -59,6 +59,8 @@ library
   hs-source-dirs:   src
   build-depends:
     , bytestring
+    , hs-bindgen-runtime
+    , hs-nix-c-api-sys
     , transformers
   exposed-modules:
     Nix
@@ -79,9 +81,7 @@ library
     , nix-expr-c
 
   other-extensions:
-    CApiFFI
     DerivingVia
-    ForeignFunctionInterface
     TypeApplications
 
 test-suite hs-nix-c-api-test

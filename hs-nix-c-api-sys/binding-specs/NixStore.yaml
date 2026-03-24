@@ -1,0 +1,14 @@
+version:
+  hs_bindgen: 0.1.0
+  binding_specification: '1.0'
+hsmodule: Generated.Nix.Store
+ctypes:
+- headers: nix_api_store.h
+  cname: struct Store
+  hsname: Store
+- headers: nix_api_store.h
+  cname: Store
+  hsname: Store
+hstypes:
+- hsname: Store
+  representation: emptydata

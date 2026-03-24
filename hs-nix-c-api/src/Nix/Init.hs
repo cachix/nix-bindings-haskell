@@ -1,5 +1,3 @@
-{-# LANGUAGE CApiFFI #-}
-
 -- | Nix library initialization.
 --
 -- Call 'initNix' once before using any other Nix API functions.
@@ -10,32 +8,22 @@ module Nix.Init
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
-import Foreign (Ptr)
-import Foreign.C (CInt (..), CString)
+import Generated.Nix.Util (Nix_err (..))
+import qualified Generated.Nix.Expr.Safe as SysExpr
+import qualified Generated.Nix.Store.Safe as SysStore
+import qualified Generated.Nix.Util.Safe as SysUtil
+import HsBindgen.Runtime.PtrConst (unsafeToPtr)
 import Nix.Context (withContext)
-import Nix.Internal (CNixContext)
-
-foreign import capi "nix_api_util.h nix_libutil_init"
-  c_nix_libutil_init :: Ptr CNixContext -> IO CInt
-
-foreign import capi "nix_api_store.h nix_libstore_init"
-  c_nix_libstore_init :: Ptr CNixContext -> IO CInt
-
-foreign import capi "nix_api_expr.h nix_libexpr_init"
-  c_nix_libexpr_init :: Ptr CNixContext -> IO CInt
-
-foreign import capi "nix_api_util.h nix_version_get"
-  c_nix_version_get :: IO CString
 
 -- | Initialize all Nix libraries.
 -- This is idempotent and safe to call multiple times.
 -- Throws 'Nix.Context.NixError' on failure.
 initNix :: IO ()
 initNix = do
-  withContext c_nix_libutil_init
-  withContext c_nix_libstore_init
-  withContext c_nix_libexpr_init
+  withContext $ \ctx -> unwrapNix_err <$> SysUtil.nix_libutil_init ctx
+  withContext $ \ctx -> unwrapNix_err <$> SysStore.nix_libstore_init ctx
+  withContext $ \ctx -> unwrapNix_err <$> SysExpr.nix_libexpr_init ctx
 
 -- | Get the Nix version string.
 nixVersion :: IO ByteString
-nixVersion = BS.packCString =<< c_nix_version_get
+nixVersion = BS.packCString . unsafeToPtr =<< SysUtil.nix_version_get
