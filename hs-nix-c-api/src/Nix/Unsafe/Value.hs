@@ -116,12 +116,10 @@ getBool = withTypeCheck TypeBool unsafeGetBool
 -- | Extract a string from a Nix value.
 -- Throws on type mismatch.
 --
--- Note: the C API crashes (assertion failure) on wrong type,
--- so we must check the type before calling the C function.
+-- Note: type check is mandatory — the C API crashes (assertion failure)
+-- on wrong type.
 getString :: EvalState -> Value -> IO ByteString
-getString es val = do
-  checkType TypeString es val
-  unsafeGetString es val
+getString = withTypeCheck TypeString unsafeGetString
 
 -- | Extract a string without checking the value's type.
 -- Caller must ensure the value is 'TypeString', otherwise the
@@ -136,12 +134,9 @@ unsafeGetString es (Value v) = do
 -- | Extract a path string from a Nix value.
 -- Throws on type mismatch.
 --
--- Note: the C API crashes on wrong type,
--- so we must check the type before calling the C function.
+-- Note: type check is mandatory — the C API crashes on wrong type.
 getPathString :: EvalState -> Value -> IO ByteString
-getPathString es val = do
-  checkType TypePath es val
-  unsafeGetPathString es val
+getPathString = withTypeCheck TypePath unsafeGetPathString
 
 -- | Extract a path string without checking the value's type.
 -- Caller must ensure the value is 'TypePath', otherwise the
@@ -309,8 +304,7 @@ instance FromValue Value where
 instance FromValue [Value] where
   unsafeForceGet es val = do
     valueForce es val
-    checkType TypeList es val
-    size <- unsafeGetListSize es val
+    size <- getListSize es val
     mapM (unsafeGetListByIdx es val) [0 .. size - 1]
 
 -- | Force and extract a Haskell value from a Nix value.
