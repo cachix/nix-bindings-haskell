@@ -4,11 +4,15 @@ module Nix.Unsafe.Store
   ( Store
   , StorePath
   , withStore
+  , openStore
+  , closeStore
   , storeUri
   , storeDir
   , storeVersion
   , isValidPath
   , parseStorePath
+  , parseStorePath'
+  , freeStorePath
   , storePathName
   ) where
 
@@ -74,12 +78,20 @@ isValidPath store (StorePath sp) = do
 -- The 'StorePath' is valid only within the callback and freed afterwards.
 parseStorePath :: Store -> ByteString -> (StorePath -> IO a) -> IO a
 parseStorePath store path f =
-  BS.useAsCString path $ \cPath ->
-    bracket
-      (checkNull (storeCtx store)
-        =<< SysStore.nix_store_parse_path (storeCtx store) (storePtr store) (unsafeFromPtr cPath))
-      SysStorePath.nix_store_path_free
-      (f . StorePath)
+  bracket (parseStorePath' store path) freeStorePath f
+
+-- | Parse a store path string into a 'StorePath'.
+-- Must be paired with 'freeStorePath'.
+parseStorePath' :: Store -> ByteString -> IO StorePath
+parseStorePath' store path =
+  BS.useAsCString path $ \cPath -> do
+    ptr <- checkNull (storeCtx store)
+      =<< SysStore.nix_store_parse_path (storeCtx store) (storePtr store) (unsafeFromPtr cPath)
+    pure (StorePath ptr)
+
+-- | Free a 'StorePath'.
+freeStorePath :: StorePath -> IO ()
+freeStorePath (StorePath sp) = SysStorePath.nix_store_path_free sp
 
 -- | Get the name component of a store path.
 storePathName :: StorePath -> IO ByteString

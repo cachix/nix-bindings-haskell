@@ -81,7 +81,7 @@ import Nix.Context (NixError (..), NixErrorKind (..))
 import qualified Nix.Unsafe.Expr as Unsafe
 import qualified Nix.Unsafe.Init as Unsafe
 import Nix.Internal (EvalState, Store, StorePath, Value)
-import Nix.Monad (Nix, liftEitherNix, liftNix, runNix, runNixThrow)
+import Nix.Monad (Nix, liftEitherNix, liftNix, runNix, runNixThrow, withBracketNix)
 import qualified Nix.Unsafe.Store as Unsafe
 import qualified Nix.Unsafe.Value as Unsafe
 import Nix.Unsafe.Value (FromValue (..), NixType (..))
@@ -102,7 +102,7 @@ nixVersion = liftIO Unsafe.nixVersion
 -- | Open a Nix store and run an action with it.
 -- The store is automatically closed when the action completes.
 withStore :: ByteString -> (Store -> Nix a) -> Nix a
-withStore uri f = liftNix $ Unsafe.withStore uri (runNixThrow . f)
+withStore uri f = withBracketNix (Unsafe.openStore uri) Unsafe.closeStore f
 
 -- | Get the URI of the store.
 storeUri :: Store -> Nix ByteString
@@ -124,7 +124,7 @@ isValidPath store sp = liftIO $ Unsafe.isValidPath store sp
 -- The 'StorePath' is valid only within the callback and freed afterwards.
 parseStorePath :: Store -> ByteString -> (StorePath -> Nix a) -> Nix a
 parseStorePath store path f =
-  liftNix $ Unsafe.parseStorePath store path (runNixThrow . f)
+  withBracketNix (Unsafe.parseStorePath' store path) Unsafe.freeStorePath f
 
 -- | Get the name component of a store path.
 storePathName :: StorePath -> Nix ByteString
@@ -135,7 +135,7 @@ storePathName = liftIO . Unsafe.storePathName
 -- | Create an evaluator state and run an action with it.
 -- The state is automatically freed when the action completes.
 withEvalState :: Store -> (EvalState -> Nix a) -> Nix a
-withEvalState store f = liftNix $ Unsafe.withEvalState store (runNixThrow . f)
+withEvalState store f = withBracketNix (Unsafe.createEvalState store) Unsafe.destroyEvalState f
 
 -- | Parse and evaluate a Nix expression from a string.
 --

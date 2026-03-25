@@ -3,6 +3,8 @@
 module Nix.Unsafe.Expr
   ( EvalState
   , withEvalState
+  , createEvalState
+  , destroyEvalState
   , evalFromString
   , valueForce
   , valueForceDeep
@@ -24,19 +26,25 @@ import Nix.Internal (EvalState (..), Store (..), Value (..), castEvalPtr)
 -- The state is automatically freed when the action completes.
 withEvalState :: Store -> (EvalState -> IO a) -> IO a
 withEvalState store f =
-  bracket createState destroyState f
- where
-  createState =
-    bracketOnError SysUtil.nix_c_context_create SysUtil.nix_c_context_free $ \ctx -> do
-      builder <- checkNull ctx
-        =<< SysExpr.nix_eval_state_builder_new ctx (storePtr store)
-      flip finally (SysExpr.nix_eval_state_builder_free builder) $ do
-        checkError ctx . unwrapNix_err =<< SysExpr.nix_eval_state_builder_load ctx builder
-        state <- checkNull ctx =<< SysExpr.nix_eval_state_build ctx builder
-        pure (EvalState state ctx)
-  destroyState es = do
-    SysExpr.nix_state_free (evalPtr es)
-    SysUtil.nix_c_context_free (evalCtx es)
+  bracket (createEvalState store) destroyEvalState f
+
+-- | Create a new evaluator state.
+-- Must be paired with 'destroyEvalState'.
+createEvalState :: Store -> IO EvalState
+createEvalState store =
+  bracketOnError SysUtil.nix_c_context_create SysUtil.nix_c_context_free $ \ctx -> do
+    builder <- checkNull ctx
+      =<< SysExpr.nix_eval_state_builder_new ctx (storePtr store)
+    flip finally (SysExpr.nix_eval_state_builder_free builder) $ do
+      checkError ctx . unwrapNix_err =<< SysExpr.nix_eval_state_builder_load ctx builder
+      state <- checkNull ctx =<< SysExpr.nix_eval_state_build ctx builder
+      pure (EvalState state ctx)
+
+-- | Free an evaluator state and its context.
+destroyEvalState :: EvalState -> IO ()
+destroyEvalState es = do
+  SysExpr.nix_state_free (evalPtr es)
+  SysUtil.nix_c_context_free (evalCtx es)
 
 -- | Parse and evaluate a Nix expression from a string.
 --

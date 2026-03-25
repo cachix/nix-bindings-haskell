@@ -17,9 +17,10 @@ module Nix.Monad
   , runNixThrow
   , liftNix
   , liftEitherNix
+  , withBracketNix
   ) where
 
-import Control.Exception (throwIO, try)
+import Control.Exception (SomeException, mask, throwIO, try)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Except (ExceptT (..))
 import Nix.Context (NixError)
@@ -44,3 +45,25 @@ liftNix = Nix . try @NixError
 -- | Lift an @IO (Either NixError a)@ action into the 'Nix' monad.
 liftEitherNix :: IO (Either NixError a) -> Nix a
 liftEitherNix = Nix
+
+-- | Bracket pattern for the 'Nix' monad.
+--
+-- Unlike @liftNix (bracket open close (runNixThrow . f))@,
+-- this avoids a throw\/catch round-trip: a 'NixError' from @f@ is
+-- returned as 'Left' without being thrown as an exception.
+-- The cleanup action runs in @IO@ and always executes.
+withBracketNix :: IO a -> (a -> IO ()) -> (a -> Nix b) -> Nix b
+withBracketNix open close f = Nix $
+  mask $ \restore -> do
+    resource <- open
+    result <- restore (runNix (f resource))
+      `onException_` close resource
+    close resource
+    pure result
+ where
+  -- Run cleanup on any exception, then re-throw.
+  onException_ action cleanup = do
+    r <- try @SomeException action
+    case r of
+      Left e -> cleanup >> throwIO e
+      Right a -> pure a
