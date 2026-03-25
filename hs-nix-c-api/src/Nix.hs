@@ -102,6 +102,21 @@ module Nix
     -- * Settings
   , getSetting
   , setSetting
+
+    -- * Flake operations
+  , FlakeSettings
+  , FetchersSettings
+  , FlakeReference
+  , LockedFlake
+  , LockMode (..)
+  , withFlakeSettings
+  , withFetchersSettings
+  , withFlakeEvalState
+  , parseFlakeReference
+  , lockFlake
+  , freeLockedFlake
+  , freeFlakeReference
+  , getFlakeOutputs
   ) where
 
 import Control.Monad.IO.Class (liftIO)
@@ -110,13 +125,15 @@ import Data.Int (Int64)
 import Foreign (Ptr)
 import Nix.Context (NixError (..), NixErrorKind (..))
 import qualified Nix.Unsafe.Expr as Unsafe
+import qualified Nix.Unsafe.Flake as Unsafe
 import qualified Nix.Unsafe.GC as Unsafe
 import qualified Nix.Unsafe.Init as Unsafe
 import qualified Nix.Unsafe.Settings as Unsafe
-import Nix.Internal (EvalState, Store, StorePath, Value)
+import Nix.Internal (EvalState, FetchersSettings, FlakeReference, FlakeSettings, LockedFlake, Store, StorePath, Value)
 import Nix.Monad (Nix, liftEitherNix, liftNix, runNix, runNixThrow, withBracketNix)
 import qualified Nix.Unsafe.Store as Unsafe
 import qualified Nix.Unsafe.Value as Unsafe
+import Nix.Unsafe.Flake (LockMode (..))
 import Nix.Unsafe.Value (FromValue (..), NixType (..), ToValue (..))
 
 -- * Initialization
@@ -372,3 +389,55 @@ getSetting = liftNix . Unsafe.getSetting
 -- | Set a Nix setting to a value.
 setSetting :: ByteString -> ByteString -> Nix ()
 setSetting key value = liftNix $ Unsafe.setSetting key value
+
+-- * Flake operations
+
+-- | Run an action with flake settings that are automatically freed afterwards.
+withFlakeSettings :: (FlakeSettings -> Nix a) -> Nix a
+withFlakeSettings f = withBracketNix Unsafe.createFlakeSettings Unsafe.freeFlakeSettings f
+
+-- | Run an action with fetchers settings that are automatically freed afterwards.
+withFetchersSettings :: (FetchersSettings -> Nix a) -> Nix a
+withFetchersSettings f = withBracketNix Unsafe.createFetchersSettings Unsafe.freeFetchersSettings f
+
+-- | Create an evaluator state with flake settings and run an action with it.
+-- The state is automatically freed when the action completes.
+withFlakeEvalState :: Store -> FlakeSettings -> (EvalState -> Nix a) -> Nix a
+withFlakeEvalState store fs f =
+  withBracketNix (Unsafe.createFlakeEvalState store fs) Unsafe.destroyEvalState f
+
+-- | Parse a flake reference string into a 'FlakeReference' and a fragment.
+parseFlakeReference
+  :: FetchersSettings
+  -> FlakeSettings
+  -> Maybe ByteString
+  -- ^ Optional base directory for resolving relative paths.
+  -> ByteString
+  -- ^ Flake reference string (e.g. @".#default"@).
+  -> Nix (FlakeReference, ByteString)
+parseFlakeReference fs flakeS mBaseDir refStr =
+  liftNix $ Unsafe.parseFlakeReference fs flakeS mBaseDir refStr
+
+-- | Lock a flake reference.
+-- The returned 'LockedFlake' must be freed with 'freeLockedFlake'.
+lockFlake
+  :: FetchersSettings
+  -> FlakeSettings
+  -> EvalState
+  -> LockMode
+  -> FlakeReference
+  -> Nix LockedFlake
+lockFlake fs flakeS es mode ref =
+  liftNix $ Unsafe.lockFlake fs flakeS es mode ref
+
+-- | Free a locked flake.
+freeLockedFlake :: LockedFlake -> Nix ()
+freeLockedFlake = liftNix . Unsafe.freeLockedFlake
+
+-- | Free a flake reference.
+freeFlakeReference :: FlakeReference -> Nix ()
+freeFlakeReference = liftNix . Unsafe.freeFlakeReference
+
+-- | Get the output attributes of a locked flake.
+getFlakeOutputs :: FlakeSettings -> EvalState -> LockedFlake -> Nix Value
+getFlakeOutputs flakeS es lf = liftNix $ Unsafe.getFlakeOutputs flakeS es lf

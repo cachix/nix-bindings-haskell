@@ -73,6 +73,7 @@ library
     Nix.Unsafe.Init
     Nix.Unsafe.Settings
     Nix.Unsafe.Store
+    Nix.Unsafe.Flake
     Nix.Unsafe.Value
 
   other-modules:
@@ -82,6 +83,8 @@ library
     , nix-util-c
     , nix-store-c
     , nix-expr-c
+    , nix-flake-c
+    , nix-fetchers-c
 
   other-extensions:
     DerivingVia

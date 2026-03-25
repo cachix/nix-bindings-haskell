@@ -22,10 +22,20 @@ module Nix.C
     -- are re-exported here.
   , module Generated.Nix.Value.Safe
   , ValueType (..)
+    -- * Flake — types and functions
+  , module Generated.Nix.Flake
+  , module Generated.Nix.Flake.Safe
+    -- * Fetchers — types and functions
+  , module Generated.Nix.Fetchers
+  , module Generated.Nix.Fetchers.Safe
   ) where
 
 import Generated.Nix.Expr
 import Generated.Nix.Expr.Safe
+import Generated.Nix.Fetchers
+import Generated.Nix.Fetchers.Safe
+import Generated.Nix.Flake
+import Generated.Nix.Flake.Safe
 import Generated.Nix.Store
 import Generated.Nix.Store.Path
 import Generated.Nix.Store.Path.Safe

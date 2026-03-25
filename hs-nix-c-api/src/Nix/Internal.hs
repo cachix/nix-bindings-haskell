@@ -8,6 +8,10 @@ module Nix.Internal
   , CEvalState
   , CNixValue
   , CEvalStateBuilder
+  , CFlakeSettings
+  , CFetchersSettings
+  , CFlakeReference
+  , CLockedFlake
     -- * Nix value types
   , NixType (..)
   , toNixType
@@ -18,10 +22,16 @@ module Nix.Internal
   , EvalState (..)
   , castEvalPtr
   , Value (..)
+  , FlakeSettings (..)
+  , FetchersSettings (..)
+  , FlakeReference (..)
+  , LockedFlake (..)
   ) where
 
 import Foreign (Ptr, castPtr)
 import qualified Generated.Nix.Expr
+import qualified Generated.Nix.Fetchers
+import qualified Generated.Nix.Flake
 import qualified Generated.Nix.Store
 import qualified Generated.Nix.Store.Path
 import qualified Generated.Nix.Util
@@ -44,6 +54,18 @@ type CNixValue = Generated.Nix.Value.Nix_value
 
 -- | Alias for the C @nix_eval_state_builder@ type from the -sys package.
 type CEvalStateBuilder = Generated.Nix.Expr.Nix_eval_state_builder
+
+-- | Alias for the C @nix_flake_settings@ type from the -sys package.
+type CFlakeSettings = Generated.Nix.Flake.Nix_flake_settings
+
+-- | Alias for the C @nix_fetchers_settings@ type from the -sys package.
+type CFetchersSettings = Generated.Nix.Fetchers.Nix_fetchers_settings
+
+-- | Alias for the C @nix_flake_reference@ type from the -sys package.
+type CFlakeReference = Generated.Nix.Flake.Nix_flake_reference
+
+-- | Alias for the C @nix_locked_flake@ type from the -sys package.
+type CLockedFlake = Generated.Nix.Flake.Nix_locked_flake
 
 -- | The type of a Nix value.
 --
@@ -103,3 +125,15 @@ castEvalPtr = castPtr . evalPtr
 -- | Handle to a Nix value.
 -- Values are reference-counted by the Nix garbage collector.
 newtype Value = Value (Ptr CNixValue)
+
+-- | Handle to Nix flake settings.
+newtype FlakeSettings = FlakeSettings (Ptr CFlakeSettings)
+
+-- | Handle to Nix fetchers settings.
+newtype FetchersSettings = FetchersSettings (Ptr CFetchersSettings)
+
+-- | Handle to a parsed Nix flake reference.
+newtype FlakeReference = FlakeReference (Ptr CFlakeReference)
+
+-- | Handle to a locked Nix flake.
+newtype LockedFlake = LockedFlake (Ptr CLockedFlake)

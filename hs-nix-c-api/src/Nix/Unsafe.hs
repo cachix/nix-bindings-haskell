@@ -18,10 +18,13 @@ module Nix.Unsafe
   , module Nix.Unsafe.GC
     -- * Settings
   , module Nix.Unsafe.Settings
+    -- * Flake operations
+  , module Nix.Unsafe.Flake
   ) where
 
 import Nix.Context (NixError (..), NixErrorKind (..))
 import Nix.Unsafe.Expr
+import Nix.Unsafe.Flake
 import Nix.Unsafe.GC
 import Nix.Unsafe.Init
 import Nix.Unsafe.Settings
