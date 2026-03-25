@@ -53,7 +53,7 @@ import Nix.Context
   , checkNull
   , withCallbackBS
   )
-import Nix.Internal (CEvalState, CNixContext, CNixValue, EvalState (..), Value (..))
+import Nix.Internal (EvalState (..), Value (..))
 
 -- | Cast the EvalState pointer for cross-module -sys type compatibility.
 -- Generated.Nix.Expr and Generated.Nix.Value define separate EvalState types;
@@ -108,6 +108,10 @@ checkType expected es val = do
         ("Type mismatch: expected " <> nixTypeName expected <> ", got " <> nixTypeName actual)
         BS.empty
 
+-- | Run an accessor after checking the value's type.
+withTypeCheck :: NixType -> (EvalState -> Value -> IO a) -> EvalState -> Value -> IO a
+withTypeCheck ty f es val = checkType ty es val >> f es val
+
 -- * Type inspection
 
 -- | Get the type of a Nix value.
@@ -123,23 +127,17 @@ getType es (Value val) = do
 -- | Extract an integer from a Nix value.
 -- Throws on type mismatch.
 getInt :: EvalState -> Value -> IO Int64
-getInt es val = do
-  checkType TypeInt es val
-  unsafeGetInt es val
+getInt = withTypeCheck TypeInt unsafeGetInt
 
 -- | Extract a float from a Nix value.
 -- Throws on type mismatch.
 getFloat :: EvalState -> Value -> IO Double
-getFloat es val = do
-  checkType TypeFloat es val
-  unsafeGetFloat es val
+getFloat = withTypeCheck TypeFloat unsafeGetFloat
 
 -- | Extract a boolean from a Nix value.
 -- Throws on type mismatch.
 getBool :: EvalState -> Value -> IO Bool
-getBool es val = do
-  checkType TypeBool es val
-  unsafeGetBool es val
+getBool = withTypeCheck TypeBool unsafeGetBool
 
 -- | Extract a string from a Nix value.
 -- Throws on type mismatch (via C API error).
@@ -163,16 +161,12 @@ getPathString es (Value v) = do
 -- | Get the number of elements in a Nix list value.
 -- Throws on type mismatch.
 getListSize :: EvalState -> Value -> IO Int
-getListSize es val = do
-  checkType TypeList es val
-  unsafeGetListSize es val
+getListSize = withTypeCheck TypeList unsafeGetListSize
 
 -- | Get the number of attributes in a Nix attribute set value.
 -- Throws on type mismatch.
 getAttrsSize :: EvalState -> Value -> IO Int
-getAttrsSize es val = do
-  checkType TypeAttrs es val
-  unsafeGetAttrsSize es val
+getAttrsSize = withTypeCheck TypeAttrs unsafeGetAttrsSize
 
 -- | Check if an attribute set has an attribute with the given name.
 -- Throws on type mismatch.
