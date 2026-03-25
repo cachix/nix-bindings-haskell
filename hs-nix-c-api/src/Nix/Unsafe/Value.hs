@@ -193,11 +193,12 @@ lookupAttr es val name = do
   unsafeLookupAttr es val name
 
 -- | Get a list element by index.
--- Throws if the index is negative or out of bounds, or on type mismatch.
+-- Throws if the index is out of bounds, or on type mismatch.
 getListByIdx :: EvalState -> Value -> Int -> IO Value
 getListByIdx es val idx = do
   checkType TypeList es val
-  when (idx < 0) $
+  size <- unsafeGetListSize es val
+  when (idx < 0 || idx >= size) $
     throwIO $ NixIndexOutOfBounds idx
   unsafeGetListByIdx es val idx
 
