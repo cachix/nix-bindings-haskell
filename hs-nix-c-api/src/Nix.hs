@@ -166,7 +166,7 @@ storeVersion = liftNix . Unsafe.storeVersion
 
 -- | Check whether a store path is valid (exists in the store).
 isValidPath :: Store -> StorePath -> Nix Bool
-isValidPath store sp = liftIO $ Unsafe.isValidPath store sp
+isValidPath store sp = liftNix $ Unsafe.isValidPath store sp
 
 -- | Parse a store path string into a 'StorePath'.
 -- The returned 'StorePath' is automatically freed when garbage collected.
@@ -175,7 +175,7 @@ parseStorePath store path = liftNix $ Unsafe.parseStorePath' store path
 
 -- | Get the name component of a store path.
 storePathName :: StorePath -> Nix ByteString
-storePathName = liftIO . Unsafe.storePathName
+storePathName = liftNix . Unsafe.storePathName
 
 -- | Build/realise a store path.
 -- Calls the callback for each output (name, output store path).
@@ -240,7 +240,7 @@ valueForceDeep es val = liftNix $ Unsafe.valueForceDeep es val
 
 -- | Get the type of a Nix value.
 getType :: EvalState -> Value -> Nix NixType
-getType es val = liftIO $ Unsafe.getType es val
+getType es val = liftNix $ Unsafe.getType es val
 
 -- | Force and extract a Haskell value from a Nix value.
 -- Short-circuits in the 'Nix' monad on type mismatch or other errors.
