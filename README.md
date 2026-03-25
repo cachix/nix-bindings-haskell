@@ -13,6 +13,8 @@ Haskell bindings to the [Nix C API](https://nix.dev/manual/nix/latest/c-api).
 
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
+import Data.Int (Int64)
 import Nix
 
 main :: IO ()
@@ -21,10 +23,9 @@ main = do
     initNix
     withStore "daemon" $ \store ->
       withEvalState store $ \state -> do
-        val <- evalFromString state "builtins.length [ 1 2 3 ]" "."
-        valueForce state val
-        getInt state val
-  print result -- Right 3
+        val <- evalFromString state "{ a = { b = 42; }; }" "."
+        getAttrPath @Int64 state val ["a", "b"]
+  print result -- Right 42
 ```
 
 ## Building
