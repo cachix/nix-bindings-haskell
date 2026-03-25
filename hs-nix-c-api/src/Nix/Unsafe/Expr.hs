@@ -3,7 +3,9 @@
 module Nix.Unsafe.Expr
   ( EvalState
   , withEvalState
+  , withEvalStateWith
   , createEvalState
+  , createEvalStateWith
   , destroyEvalState
   , evalFromString
   , valueForce
@@ -15,12 +17,12 @@ module Nix.Unsafe.Expr
 import Control.Exception (bracket, bracketOnError, finally)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
-import Foreign (castPtr, withArray)
+import Foreign (Ptr, castPtr, nullPtr, withArray)
 import Generated.Nix.Util (Nix_err (..))
 import qualified Generated.Nix.Expr.Safe as SysExpr
 import qualified Generated.Nix.Util.Safe as SysUtil
 import qualified Generated.Nix.Value.Safe as SysValue
-import HsBindgen.Runtime.PtrConst (unsafeFromPtr)
+import HsBindgen.Runtime.PtrConst (PtrConst, unsafeFromPtr)
 import Nix.Context (checkError, checkNull)
 import Nix.Internal (EvalState (..), Store (..), Value (..), castEvalPtr)
 
@@ -33,20 +35,41 @@ withEvalState store f =
 -- | Create a new evaluator state.
 -- Must be paired with 'destroyEvalState'.
 createEvalState :: Store -> IO EvalState
-createEvalState store =
-  bracketOnError SysUtil.nix_c_context_create SysUtil.nix_c_context_free $ \ctx -> do
-    builder <- checkNull ctx
-      =<< SysExpr.nix_eval_state_builder_new ctx (storePtr store)
-    flip finally (SysExpr.nix_eval_state_builder_free builder) $ do
-      checkError ctx . unwrapNix_err =<< SysExpr.nix_eval_state_builder_load ctx builder
-      state <- checkNull ctx =<< SysExpr.nix_eval_state_build ctx builder
-      pure (EvalState state ctx)
+createEvalState store = createEvalStateWith store []
 
 -- | Free an evaluator state and its context.
 destroyEvalState :: EvalState -> IO ()
 destroyEvalState es = do
   SysExpr.nix_state_free (evalPtr es)
   SysUtil.nix_c_context_free (evalCtx es)
+
+-- | Create an evaluator state with a custom lookup path.
+-- The lookup path entries should be in the form @"name=\/path"@ (e.g. @"nixpkgs=\/nix\/store\/..."@).
+createEvalStateWith :: Store -> [ByteString] -> IO EvalState
+createEvalStateWith store lookupPath =
+  bracketOnError SysUtil.nix_c_context_create SysUtil.nix_c_context_free $ \ctx -> do
+    builder <- checkNull ctx
+      =<< SysExpr.nix_eval_state_builder_new ctx (storePtr store)
+    flip finally (SysExpr.nix_eval_state_builder_free builder) $ do
+      withCStringArray lookupPath $ \arr ->
+        checkError ctx . unwrapNix_err
+          =<< SysExpr.nix_eval_state_builder_set_lookup_path ctx builder arr
+      checkError ctx . unwrapNix_err =<< SysExpr.nix_eval_state_builder_load ctx builder
+      state <- checkNull ctx =<< SysExpr.nix_eval_state_build ctx builder
+      pure (EvalState state ctx)
+
+-- | Create an evaluator state with a custom lookup path and run an action with it.
+-- The state is automatically freed when the action completes.
+withEvalStateWith :: Store -> [ByteString] -> (EvalState -> IO a) -> IO a
+withEvalStateWith store lookupPath f =
+  bracket (createEvalStateWith store lookupPath) destroyEvalState f
+
+-- | Marshal a list of ByteStrings into a null-terminated C string array.
+withCStringArray :: [ByteString] -> (Ptr (PtrConst a) -> IO b) -> IO b
+withCStringArray bss f = go bss []
+ where
+  go [] acc = withArray (reverse (nullPtr : acc)) (f . castPtr)
+  go (b : bs) acc = BS.useAsCString b $ \cstr -> go bs (cstr : acc)
 
 -- | Parse and evaluate a Nix expression from a string.
 --

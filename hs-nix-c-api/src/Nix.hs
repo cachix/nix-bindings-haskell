@@ -48,9 +48,14 @@ module Nix
   , isValidPath
   , parseStorePath
   , storePathName
+  , storeRealise
+  , storeRealise_
+  , copyPath
+  , copyClosure
 
     -- * Expression evaluation
   , withEvalState
+  , withEvalStateWith
   , evalFromString
   , valueForce
   , valueForceDeep
@@ -88,14 +93,26 @@ module Nix
   , copyValue
   , valueCall
   , valueCallMulti
+
+    -- * Garbage collection
+  , gcIncRef
+  , gcDecRef
+  , gcNow
+
+    -- * Settings
+  , getSetting
+  , setSetting
   ) where
 
 import Control.Monad.IO.Class (liftIO)
 import Data.ByteString (ByteString)
 import Data.Int (Int64)
+import Foreign (Ptr)
 import Nix.Context (NixError (..), NixErrorKind (..))
 import qualified Nix.Unsafe.Expr as Unsafe
+import qualified Nix.Unsafe.GC as Unsafe
 import qualified Nix.Unsafe.Init as Unsafe
+import qualified Nix.Unsafe.Settings as Unsafe
 import Nix.Internal (EvalState, Store, StorePath, Value)
 import Nix.Monad (Nix, liftEitherNix, liftNix, runNix, runNixThrow, withBracketNix)
 import qualified Nix.Unsafe.Store as Unsafe
@@ -146,12 +163,50 @@ parseStorePath store path f =
 storePathName :: StorePath -> Nix ByteString
 storePathName = liftIO . Unsafe.storePathName
 
+-- | Build/realise a store path.
+-- Calls the callback for each output (name, output store path).
+--
+-- The 'StorePath' passed to the callback is only valid for the duration
+-- of that callback invocation.
+-- Do not retain it after the callback returns.
+storeRealise :: Store -> StorePath -> ((ByteString, StorePath) -> IO ()) -> Nix ()
+storeRealise store sp callback = liftNix $ Unsafe.storeRealise store sp callback
+
+-- | Build/realise a store path, ignoring output details.
+storeRealise_ :: Store -> StorePath -> Nix ()
+storeRealise_ store sp = liftNix $ Unsafe.storeRealise_ store sp
+
+-- | Copy a store path from one store to another.
+copyPath
+  :: Store
+  -- ^ Source store
+  -> Store
+  -- ^ Destination store
+  -> StorePath
+  -> Bool
+  -- ^ Repair
+  -> Bool
+  -- ^ Check signatures
+  -> Nix ()
+copyPath src dst sp repair checkSigs =
+  liftNix $ Unsafe.copyPath src dst sp repair checkSigs
+
+-- | Copy a store path and all its dependencies from one store to another.
+copyClosure :: Store -> Store -> StorePath -> Nix ()
+copyClosure src dst sp = liftNix $ Unsafe.copyClosure src dst sp
+
 -- * Expression evaluation
 
 -- | Create an evaluator state and run an action with it.
 -- The state is automatically freed when the action completes.
 withEvalState :: Store -> (EvalState -> Nix a) -> Nix a
 withEvalState store f = withBracketNix (Unsafe.createEvalState store) Unsafe.destroyEvalState f
+
+-- | Create an evaluator state with a custom lookup path and run an action with it.
+-- The lookup path entries should be in the form @"name=\/path"@.
+withEvalStateWith :: Store -> [ByteString] -> (EvalState -> Nix a) -> Nix a
+withEvalStateWith store lookupPath f =
+  withBracketNix (Unsafe.createEvalStateWith store lookupPath) Unsafe.destroyEvalState f
 
 -- | Parse and evaluate a Nix expression from a string.
 --
@@ -293,3 +348,27 @@ valueCall es fn arg = liftNix $ Unsafe.valueCall es fn arg
 -- | Call a Nix function with multiple arguments (strict).
 valueCallMulti :: EvalState -> Value -> [Value] -> Nix Value
 valueCallMulti es fn args = liftNix $ Unsafe.valueCallMulti es fn args
+
+-- * Garbage collection
+
+-- | Increment the GC reference count for a Nix object.
+gcIncRef :: Ptr a -> Nix ()
+gcIncRef = liftNix . Unsafe.gcIncRef
+
+-- | Decrement the GC reference count for a Nix object.
+gcDecRef :: Ptr a -> Nix ()
+gcDecRef = liftNix . Unsafe.gcDecRef
+
+-- | Force garbage collection now.
+gcNow :: Nix ()
+gcNow = liftIO Unsafe.gcNow
+
+-- * Settings
+
+-- | Get a Nix setting by key name.
+getSetting :: ByteString -> Nix ByteString
+getSetting = liftNix . Unsafe.getSetting
+
+-- | Set a Nix setting to a value.
+setSetting :: ByteString -> ByteString -> Nix ()
+setSetting key value = liftNix $ Unsafe.setSetting key value

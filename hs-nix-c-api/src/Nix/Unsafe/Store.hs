@@ -14,19 +14,25 @@ module Nix.Unsafe.Store
   , parseStorePath'
   , freeStorePath
   , storePathName
+  , storeRealise
+  , storeRealise_
+  , copyPath
+  , copyClosure
   ) where
 
 import Control.Exception (bracket, bracketOnError)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
-import Foreign (Ptr, castPtr, nullPtr)
+import Foreign (FunPtr, Ptr, castFunPtr, castPtr, freeHaskellFunPtr, nullPtr)
+import Foreign.C (CChar)
+import Foreign.Marshal.Utils (fromBool)
 import Generated.Nix.Util (Nix_err (..), Nix_get_string_callback)
 import qualified Generated.Nix.Store.Safe as SysStore
 import qualified Generated.Nix.Store.Path.Safe as SysStorePath
 import qualified Generated.Nix.Util.Safe as SysUtil
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr)
 import Nix.Context (checkError, checkNull, withCallbackBS)
-import Nix.Internal (CNixContext, CStore, Store (..), StorePath (..))
+import Nix.Internal (CNixContext, CStore, CStorePath, Store (..), StorePath (..))
 
 -- | Open a Nix store and run an action with it.
 -- The store is automatically closed when the action completes.
@@ -98,3 +104,55 @@ storePathName :: StorePath -> IO ByteString
 storePathName (StorePath sp) =
   snd <$> withCallbackBS (\cb ud ->
     SysStorePath.nix_store_path_name (unsafeFromPtr sp) cb (castPtr ud))
+
+type RawRealiseCallback = Ptr () -> Ptr CChar -> Ptr CStorePath -> IO ()
+
+foreign import ccall "wrapper"
+  mkRealiseCallback :: RawRealiseCallback -> IO (FunPtr RawRealiseCallback)
+
+-- | Build/realise a store path.
+-- Calls the callback for each output (name, output store path).
+--
+-- The 'StorePath' passed to the callback is only valid for the duration
+-- of that callback invocation.
+-- Do not retain it after the callback returns.
+storeRealise :: Store -> StorePath -> ((ByteString, StorePath) -> IO ()) -> IO ()
+storeRealise store (StorePath sp) callback =
+  bracket (mkRealiseCallback wrapper) freeHaskellFunPtr $ \cb -> do
+    Nix_err rc <- SysStore.nix_store_realise
+      (storeCtx store) (storePtr store) sp nullPtr (castFunPtr cb)
+    checkError (storeCtx store) rc
+ where
+  wrapper _userData cName cPath = do
+    name <- BS.packCString cName
+    callback (name, StorePath cPath)
+
+-- | Build/realise a store path, ignoring output details.
+storeRealise_ :: Store -> StorePath -> IO ()
+storeRealise_ store sp =
+  storeRealise store sp (\_ -> pure ())
+
+-- | Copy a store path from one store to another.
+copyPath
+  :: Store
+  -- ^ Source store
+  -> Store
+  -- ^ Destination store
+  -> StorePath
+  -> Bool
+  -- ^ Repair
+  -> Bool
+  -- ^ Check signatures
+  -> IO ()
+copyPath src dst (StorePath sp) repair checkSigs = do
+  Nix_err rc <- SysStore.nix_store_copy_path
+    (storeCtx src) (storePtr src) (storePtr dst) (unsafeFromPtr sp)
+    (fromBool repair) (fromBool checkSigs)
+  checkError (storeCtx src) rc
+
+-- | Copy a store path and all its dependencies from one store to another.
+copyClosure :: Store -> Store -> StorePath -> IO ()
+copyClosure src dst (StorePath sp) = do
+  Nix_err rc <- SysStore.nix_store_copy_closure
+    (storeCtx src) (storePtr src) (storePtr dst) sp
+  checkError (storeCtx src) rc

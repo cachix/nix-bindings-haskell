@@ -69,7 +69,9 @@ library
     Nix.Monad
     Nix.Unsafe
     Nix.Unsafe.Expr
+    Nix.Unsafe.GC
     Nix.Unsafe.Init
+    Nix.Unsafe.Settings
     Nix.Unsafe.Store
     Nix.Unsafe.Value
 
