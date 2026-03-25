@@ -114,8 +114,6 @@ module Nix
   , withFlakeEvalState
   , parseFlakeReference
   , lockFlake
-  , freeLockedFlake
-  , freeFlakeReference
   , getFlakeOutputs
   ) where
 
@@ -171,10 +169,9 @@ isValidPath :: Store -> StorePath -> Nix Bool
 isValidPath store sp = liftIO $ Unsafe.isValidPath store sp
 
 -- | Parse a store path string into a 'StorePath'.
--- The 'StorePath' is valid only within the callback and freed afterwards.
-parseStorePath :: Store -> ByteString -> (StorePath -> Nix a) -> Nix a
-parseStorePath store path f =
-  withBracketNix (Unsafe.parseStorePath' store path) Unsafe.freeStorePath f
+-- The returned 'StorePath' is automatically freed when garbage collected.
+parseStorePath :: Store -> ByteString -> Nix StorePath
+parseStorePath store path = liftNix $ Unsafe.parseStorePath' store path
 
 -- | Get the name component of a store path.
 storePathName :: StorePath -> Nix ByteString
@@ -419,7 +416,7 @@ parseFlakeReference fs flakeS mBaseDir refStr =
   liftNix $ Unsafe.parseFlakeReference fs flakeS mBaseDir refStr
 
 -- | Lock a flake reference.
--- The returned 'LockedFlake' must be freed with 'freeLockedFlake'.
+-- The returned 'LockedFlake' is automatically freed when garbage collected.
 lockFlake
   :: FetchersSettings
   -> FlakeSettings
@@ -429,14 +426,6 @@ lockFlake
   -> Nix LockedFlake
 lockFlake fs flakeS es mode ref =
   liftNix $ Unsafe.lockFlake fs flakeS es mode ref
-
--- | Free a locked flake.
-freeLockedFlake :: LockedFlake -> Nix ()
-freeLockedFlake = liftNix . Unsafe.freeLockedFlake
-
--- | Free a flake reference.
-freeFlakeReference :: FlakeReference -> Nix ()
-freeFlakeReference = liftNix . Unsafe.freeFlakeReference
 
 -- | Get the output attributes of a locked flake.
 getFlakeOutputs :: FlakeSettings -> EvalState -> LockedFlake -> Nix Value

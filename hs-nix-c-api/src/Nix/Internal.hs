@@ -28,7 +28,7 @@ module Nix.Internal
   , LockedFlake (..)
   ) where
 
-import Foreign (Ptr, castPtr)
+import Foreign (ForeignPtr, Ptr, castPtr)
 import qualified Generated.Nix.Expr
 import qualified Generated.Nix.Fetchers
 import qualified Generated.Nix.Flake
@@ -107,7 +107,8 @@ data Store = Store
   }
 
 -- | Handle to a Nix store path.
-newtype StorePath = StorePath (Ptr CStorePath)
+-- Automatically freed when garbage collected.
+newtype StorePath = StorePath (ForeignPtr CStorePath)
 
 -- | Handle to a Nix language evaluator state.
 -- Carries a reusable error context to avoid per-call allocation.
@@ -127,13 +128,17 @@ castEvalPtr = castPtr . evalPtr
 newtype Value = Value (Ptr CNixValue)
 
 -- | Handle to Nix flake settings.
-newtype FlakeSettings = FlakeSettings (Ptr CFlakeSettings)
+-- Automatically freed when garbage collected.
+newtype FlakeSettings = FlakeSettings (ForeignPtr CFlakeSettings)
 
 -- | Handle to Nix fetchers settings.
-newtype FetchersSettings = FetchersSettings (Ptr CFetchersSettings)
+-- Automatically freed when garbage collected.
+newtype FetchersSettings = FetchersSettings (ForeignPtr CFetchersSettings)
 
 -- | Handle to a parsed Nix flake reference.
-newtype FlakeReference = FlakeReference (Ptr CFlakeReference)
+-- Automatically freed when garbage collected.
+newtype FlakeReference = FlakeReference (ForeignPtr CFlakeReference)
 
 -- | Handle to a locked Nix flake.
-newtype LockedFlake = LockedFlake (Ptr CLockedFlake)
+-- Automatically freed when garbage collected.
+newtype LockedFlake = LockedFlake (ForeignPtr CLockedFlake)

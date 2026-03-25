@@ -23,7 +23,8 @@ module Nix.Unsafe.Store
 import Control.Exception (bracket, bracketOnError)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
-import Foreign (FunPtr, Ptr, castFunPtr, castPtr, freeHaskellFunPtr, nullPtr)
+import Foreign (FunPtr, Ptr, castFunPtr, castPtr, finalizeForeignPtr, freeHaskellFunPtr, newForeignPtr_, nullPtr, withForeignPtr)
+import qualified Foreign.Concurrent as FC
 import Foreign.C (CChar)
 import Foreign.Marshal.Utils (fromBool)
 import Generated.Nix.Util (Nix_err (..), Nix_get_string_callback)
@@ -76,34 +77,38 @@ storeVersion = getStoreString SysStore.nix_store_get_version
 
 -- | Check whether a store path is valid (exists in the store).
 isValidPath :: Store -> StorePath -> IO Bool
-isValidPath store (StorePath sp) = do
-  result <- SysStore.nix_store_is_valid_path (storeCtx store) (storePtr store) (unsafeFromPtr sp)
-  pure (result /= 0)
+isValidPath store (StorePath spFP) =
+  withForeignPtr spFP $ \sp -> do
+    result <- SysStore.nix_store_is_valid_path (storeCtx store) (storePtr store) (unsafeFromPtr sp)
+    pure (result /= 0)
 
--- | Parse a store path string into a 'StorePath'.
--- The 'StorePath' is valid only within the callback and freed afterwards.
+-- | Parse a store path and run an action with it.
+-- The 'StorePath' is freed immediately after the callback for deterministic cleanup.
 parseStorePath :: Store -> ByteString -> (StorePath -> IO a) -> IO a
 parseStorePath store path f =
   bracket (parseStorePath' store path) freeStorePath f
 
 -- | Parse a store path string into a 'StorePath'.
--- Must be paired with 'freeStorePath'.
+-- The returned 'StorePath' is automatically freed when garbage collected.
+-- Use 'freeStorePath' for immediate deterministic cleanup.
 parseStorePath' :: Store -> ByteString -> IO StorePath
 parseStorePath' store path =
   BS.useAsCString path $ \cPath -> do
     ptr <- checkNull (storeCtx store)
       =<< SysStore.nix_store_parse_path (storeCtx store) (storePtr store) (unsafeFromPtr cPath)
-    pure (StorePath ptr)
+    StorePath <$> FC.newForeignPtr ptr (SysStorePath.nix_store_path_free ptr)
 
--- | Free a 'StorePath'.
+-- | Free a 'StorePath' immediately.
+-- This is optional; the 'StorePath' will be freed by the GC if not called.
 freeStorePath :: StorePath -> IO ()
-freeStorePath (StorePath sp) = SysStorePath.nix_store_path_free sp
+freeStorePath (StorePath sp) = finalizeForeignPtr sp
 
 -- | Get the name component of a store path.
 storePathName :: StorePath -> IO ByteString
-storePathName (StorePath sp) =
-  snd <$> withCallbackBS (\cb ud ->
-    SysStorePath.nix_store_path_name (unsafeFromPtr sp) cb (castPtr ud))
+storePathName (StorePath spFP) =
+  withForeignPtr spFP $ \sp ->
+    snd <$> withCallbackBS (\cb ud ->
+      SysStorePath.nix_store_path_name (unsafeFromPtr sp) cb (castPtr ud))
 
 type RawRealiseCallback = Ptr () -> Ptr CChar -> Ptr CStorePath -> IO ()
 
@@ -117,15 +122,18 @@ foreign import ccall "wrapper"
 -- of that callback invocation.
 -- Do not retain it after the callback returns.
 storeRealise :: Store -> StorePath -> ((ByteString, StorePath) -> IO ()) -> IO ()
-storeRealise store (StorePath sp) callback =
-  bracket (mkRealiseCallback wrapper) freeHaskellFunPtr $ \cb -> do
-    Nix_err rc <- SysStore.nix_store_realise
-      (storeCtx store) (storePtr store) sp nullPtr (castFunPtr cb)
-    checkError (storeCtx store) rc
+storeRealise store (StorePath spFP) callback =
+  withForeignPtr spFP $ \sp ->
+    bracket (mkRealiseCallback wrapper) freeHaskellFunPtr $ \cb -> do
+      Nix_err rc <- SysStore.nix_store_realise
+        (storeCtx store) (storePtr store) sp nullPtr (castFunPtr cb)
+      checkError (storeCtx store) rc
  where
   wrapper _userData cName cPath = do
     name <- BS.packCString cName
-    callback (name, StorePath cPath)
+    -- Borrowed pointer: no finalizer, only valid during callback.
+    borrowed <- newForeignPtr_ cPath
+    callback (name, StorePath borrowed)
 
 -- | Build/realise a store path, ignoring output details.
 storeRealise_ :: Store -> StorePath -> IO ()
@@ -144,15 +152,17 @@ copyPath
   -> Bool
   -- ^ Check signatures
   -> IO ()
-copyPath src dst (StorePath sp) repair checkSigs = do
-  Nix_err rc <- SysStore.nix_store_copy_path
-    (storeCtx src) (storePtr src) (storePtr dst) (unsafeFromPtr sp)
-    (fromBool repair) (fromBool checkSigs)
-  checkError (storeCtx src) rc
+copyPath src dst (StorePath spFP) repair checkSigs =
+  withForeignPtr spFP $ \sp -> do
+    Nix_err rc <- SysStore.nix_store_copy_path
+      (storeCtx src) (storePtr src) (storePtr dst) (unsafeFromPtr sp)
+      (fromBool repair) (fromBool checkSigs)
+    checkError (storeCtx src) rc
 
 -- | Copy a store path and all its dependencies from one store to another.
 copyClosure :: Store -> Store -> StorePath -> IO ()
-copyClosure src dst (StorePath sp) = do
-  Nix_err rc <- SysStore.nix_store_copy_closure
-    (storeCtx src) (storePtr src) (storePtr dst) sp
-  checkError (storeCtx src) rc
+copyClosure src dst (StorePath spFP) =
+  withForeignPtr spFP $ \sp -> do
+    Nix_err rc <- SysStore.nix_store_copy_closure
+      (storeCtx src) (storePtr src) (storePtr dst) sp
+    checkError (storeCtx src) rc
