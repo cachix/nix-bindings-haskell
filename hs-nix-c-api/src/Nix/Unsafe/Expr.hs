@@ -8,12 +8,14 @@ module Nix.Unsafe.Expr
   , evalFromString
   , valueForce
   , valueForceDeep
+  , valueCall
+  , valueCallMulti
   ) where
 
 import Control.Exception (bracket, bracketOnError, finally)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
-import Foreign (castPtr)
+import Foreign (castPtr, withArray)
 import Generated.Nix.Util (Nix_err (..))
 import qualified Generated.Nix.Expr.Safe as SysExpr
 import qualified Generated.Nix.Util.Safe as SysUtil
@@ -69,3 +71,25 @@ valueForceDeep :: EvalState -> Value -> IO ()
 valueForceDeep es (Value val) =
   checkError (evalCtx es) . unwrapNix_err
     =<< SysExpr.nix_value_force_deep (evalCtx es) (evalPtr es) (castPtr val)
+
+-- | Call a Nix function with one argument (strict).
+-- Forces evaluation of the result.
+valueCall :: EvalState -> Value -> Value -> IO Value
+valueCall es (Value fn) (Value arg) = do
+  result <- checkNull (evalCtx es)
+    =<< SysValue.nix_alloc_value (evalCtx es) (castEvalPtr es)
+  checkError (evalCtx es) . unwrapNix_err
+    =<< SysExpr.nix_value_call (evalCtx es) (evalPtr es) (castPtr fn) (castPtr arg) (castPtr result)
+  pure (Value result)
+
+-- | Call a Nix function with multiple arguments (strict).
+-- Equivalent to nested single-argument calls.
+valueCallMulti :: EvalState -> Value -> [Value] -> IO Value
+valueCallMulti es (Value fn) args = do
+  result <- checkNull (evalCtx es)
+    =<< SysValue.nix_alloc_value (evalCtx es) (castEvalPtr es)
+  let argPtrs = map (\(Value v) -> castPtr v) args
+  withArray argPtrs $ \argsArray ->
+    checkError (evalCtx es) . unwrapNix_err
+      =<< SysExpr.nix_value_call_multi (evalCtx es) (evalPtr es) (castPtr fn) (fromIntegral (length argPtrs)) (castPtr argsArray) (castPtr result)
+  pure (Value result)

@@ -72,6 +72,22 @@ module Nix
   , getAttrByName
   , lookupAttr
   , getListByIdx
+
+    -- * Value construction
+  , ToValue (..)
+  , allocValue
+  , mkInt
+  , mkFloat
+  , mkBool
+  , mkNull
+  , mkString
+  , mkPath
+  , mkList
+  , mkAttrs
+  , mkApply
+  , copyValue
+  , valueCall
+  , valueCallMulti
   ) where
 
 import Control.Monad.IO.Class (liftIO)
@@ -84,7 +100,7 @@ import Nix.Internal (EvalState, Store, StorePath, Value)
 import Nix.Monad (Nix, liftEitherNix, liftNix, runNix, runNixThrow, withBracketNix)
 import qualified Nix.Unsafe.Store as Unsafe
 import qualified Nix.Unsafe.Value as Unsafe
-import Nix.Unsafe.Value (FromValue (..), NixType (..))
+import Nix.Unsafe.Value (FromValue (..), NixType (..), ToValue (..))
 
 -- * Initialization
 
@@ -223,3 +239,57 @@ lookupAttr es val name = liftNix $ Unsafe.lookupAttr es val name
 -- | Get a list element by index.
 getListByIdx :: EvalState -> Value -> Int -> Nix Value
 getListByIdx es val idx = liftNix $ Unsafe.getListByIdx es val idx
+
+-- * Value construction
+
+-- | Allocate a fresh, uninitialised Nix value.
+allocValue :: EvalState -> Nix Value
+allocValue es = liftNix $ Unsafe.allocValue es
+
+-- | Construct a Nix integer value.
+mkInt :: EvalState -> Int64 -> Nix Value
+mkInt es n = liftNix $ Unsafe.mkInt es n
+
+-- | Construct a Nix float value.
+mkFloat :: EvalState -> Double -> Nix Value
+mkFloat es d = liftNix $ Unsafe.mkFloat es d
+
+-- | Construct a Nix boolean value.
+mkBool :: EvalState -> Bool -> Nix Value
+mkBool es b = liftNix $ Unsafe.mkBool es b
+
+-- | Construct a Nix null value.
+mkNull :: EvalState -> Nix Value
+mkNull es = liftNix $ Unsafe.mkNull es
+
+-- | Construct a Nix string value.
+mkString :: EvalState -> ByteString -> Nix Value
+mkString es s = liftNix $ Unsafe.mkString es s
+
+-- | Construct a Nix path value.
+mkPath :: EvalState -> ByteString -> Nix Value
+mkPath es s = liftNix $ Unsafe.mkPath es s
+
+-- | Construct a Nix list value from a list of values.
+mkList :: EvalState -> [Value] -> Nix Value
+mkList es elems = liftNix $ Unsafe.mkList es elems
+
+-- | Construct a Nix attribute set from a list of name-value pairs.
+mkAttrs :: EvalState -> [(ByteString, Value)] -> Nix Value
+mkAttrs es pairs = liftNix $ Unsafe.mkAttrs es pairs
+
+-- | Construct a lazy function application value (thunk).
+mkApply :: EvalState -> Value -> Value -> Nix Value
+mkApply es fn arg = liftNix $ Unsafe.mkApply es fn arg
+
+-- | Copy one Nix value into a fresh allocation.
+copyValue :: EvalState -> Value -> Nix Value
+copyValue es val = liftNix $ Unsafe.copyValue es val
+
+-- | Call a Nix function with one argument (strict).
+valueCall :: EvalState -> Value -> Value -> Nix Value
+valueCall es fn arg = liftNix $ Unsafe.valueCall es fn arg
+
+-- | Call a Nix function with multiple arguments (strict).
+valueCallMulti :: EvalState -> Value -> [Value] -> Nix Value
+valueCallMulti es fn args = liftNix $ Unsafe.valueCallMulti es fn args

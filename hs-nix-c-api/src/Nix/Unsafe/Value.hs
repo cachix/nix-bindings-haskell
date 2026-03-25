@@ -17,6 +17,20 @@ module Nix.Unsafe.Value
   , fromValue
   , getAttr
   , getAttrPath
+    -- * @ToValue@ — type-directed construction
+  , ToValue (..)
+    -- * Value construction
+  , allocValue
+  , mkInt
+  , mkFloat
+  , mkBool
+  , mkNull
+  , mkString
+  , mkPath
+  , mkList
+  , mkAttrs
+  , mkApply
+  , copyValue
     -- * Throwing value extraction (type-checked)
   , getInt
   , getFloat
@@ -43,12 +57,12 @@ module Nix.Unsafe.Value
   , unsafeGetListByIdx
   ) where
 
-import Control.Exception (throwIO, try)
-import Control.Monad (when)
+import Control.Exception (finally, throwIO, try)
+import Control.Monad (forM_, when)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import Data.Int (Int64)
-import Foreign (castPtr)
+import Foreign (Ptr, castPtr)
 import Foreign.C (CDouble (..))
 import Generated.Nix.Util (Nix_err (..))
 import qualified Generated.Nix.Value.Safe as SysValue
@@ -60,7 +74,7 @@ import Nix.Context
   , withCallbackBS
   )
 import Nix.Unsafe.Expr (valueForce)
-import Nix.Internal (EvalState (..), NixType (..), Value (..), castEvalPtr, toNixType)
+import Nix.Internal (CNixContext, CNixValue, EvalState (..), NixType (..), Value (..), castEvalPtr, toNixType)
 
 -- | Human-readable name for a Nix type.
 nixTypeName :: NixType -> ByteString
@@ -336,3 +350,122 @@ getAttrPath es val path = try @NixError $ go es val path
     attr <- getAttrByName es' val' name
     valueForce es' attr
     go es' attr rest
+
+-- * Value construction
+
+-- | Allocate a fresh, uninitialised Nix value.
+allocValue :: EvalState -> IO Value
+allocValue es = do
+  val <- checkNull (evalCtx es)
+    =<< SysValue.nix_alloc_value (evalCtx es) (castEvalPtr es)
+  pure (Value val)
+
+-- | Allocate a fresh value and initialise it with a C init function.
+initValue :: EvalState -> (Ptr CNixContext -> Ptr CNixValue -> IO Nix_err) -> IO Value
+initValue es f = do
+  Value val <- allocValue es
+  checkError (evalCtx es) . unwrapNix_err =<< f (evalCtx es) val
+  pure (Value val)
+
+-- | Construct a Nix integer value.
+mkInt :: EvalState -> Int64 -> IO Value
+mkInt es n = initValue es $ \ctx val ->
+  SysValue.nix_init_int ctx val (fromIntegral n)
+
+-- | Construct a Nix float value.
+mkFloat :: EvalState -> Double -> IO Value
+mkFloat es d = initValue es $ \ctx val ->
+  SysValue.nix_init_float ctx val (CDouble d)
+
+-- | Construct a Nix boolean value.
+mkBool :: EvalState -> Bool -> IO Value
+mkBool es b = initValue es $ \ctx val ->
+  SysValue.nix_init_bool ctx val (if b then 1 else 0)
+
+-- | Construct a Nix null value.
+mkNull :: EvalState -> IO Value
+mkNull es = initValue es $ \ctx val ->
+  SysValue.nix_init_null ctx val
+
+-- | Construct a Nix string value.
+mkString :: EvalState -> ByteString -> IO Value
+mkString es s = initValue es $ \ctx val ->
+  BS.useAsCString s $ \cs ->
+    SysValue.nix_init_string ctx val (unsafeFromPtr cs)
+
+-- | Construct a Nix path value.
+mkPath :: EvalState -> ByteString -> IO Value
+mkPath es s = initValue es $ \ctx val ->
+  BS.useAsCString s $ \cs ->
+    SysValue.nix_init_path_string ctx (castEvalPtr es) val (unsafeFromPtr cs)
+
+-- | Construct a Nix list value from a list of values.
+mkList :: EvalState -> [Value] -> IO Value
+mkList es elems = do
+  builder <- checkNull (evalCtx es)
+    =<< SysValue.nix_make_list_builder (evalCtx es) (castEvalPtr es) (fromIntegral (length elems))
+  flip finally (SysValue.nix_list_builder_free builder) $ do
+    forM_ (zip [0 :: Int ..] elems) $ \(i, Value v) ->
+      checkError (evalCtx es) . unwrapNix_err
+        =<< SysValue.nix_list_builder_insert (evalCtx es) builder (fromIntegral i) (castPtr v)
+    initValue es $ \ctx val ->
+      SysValue.nix_make_list ctx builder val
+
+-- | Construct a Nix attribute set from a list of name-value pairs.
+mkAttrs :: EvalState -> [(ByteString, Value)] -> IO Value
+mkAttrs es pairs = do
+  builder <- checkNull (evalCtx es)
+    =<< SysValue.nix_make_bindings_builder (evalCtx es) (castEvalPtr es) (fromIntegral (length pairs))
+  flip finally (SysValue.nix_bindings_builder_free builder) $ do
+    forM_ pairs $ \(name, Value v) ->
+      BS.useAsCString name $ \cName ->
+        checkError (evalCtx es) . unwrapNix_err
+          =<< SysValue.nix_bindings_builder_insert (evalCtx es) builder (unsafeFromPtr cName) (castPtr v)
+    initValue es $ \ctx val ->
+      SysValue.nix_make_attrs ctx val builder
+
+-- | Construct a lazy function application value (thunk).
+-- The function is not called immediately; the result is a thunk
+-- that will be evaluated when forced.
+mkApply :: EvalState -> Value -> Value -> IO Value
+mkApply es (Value fn) (Value arg) = initValue es $ \ctx val ->
+  SysValue.nix_init_apply ctx val (castPtr fn) (castPtr arg)
+
+-- | Copy one Nix value into a fresh allocation.
+copyValue :: EvalState -> Value -> IO Value
+copyValue es (Value src) = initValue es $ \ctx dst ->
+  SysValue.nix_copy_value ctx dst (unsafeFromPtr src)
+
+-- * ToValue — type-directed construction
+
+-- | Type class for constructing Nix values from Haskell values.
+class ToValue a where
+  toValue :: EvalState -> a -> IO Value
+
+instance ToValue Int64 where
+  toValue = mkInt
+
+instance ToValue Double where
+  toValue = mkFloat
+
+instance ToValue Bool where
+  toValue = mkBool
+
+instance ToValue ByteString where
+  toValue = mkString
+
+-- | @()@ maps to Nix @null@.
+instance ToValue () where
+  toValue es () = mkNull es
+
+-- | Identity — return the value as-is.
+instance ToValue Value where
+  toValue _ v = pure v
+
+-- | Construct a Nix list from a list of values.
+instance ToValue [Value] where
+  toValue = mkList
+
+-- | Construct a Nix attribute set from name-value pairs.
+instance ToValue [(ByteString, Value)] where
+  toValue = mkAttrs
