@@ -103,6 +103,7 @@ test-suite hs-nix-c-api-test
     Test.Nix.Value
     Test.Nix.Construction
     Test.Nix.Monad
+    Test.Nix.Settings
 
   build-depends:
     , bytestring

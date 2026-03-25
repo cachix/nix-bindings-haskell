@@ -7,6 +7,7 @@ import Test.Hspec
 import Nix.Context (NixError)
 import Nix.Unsafe.Expr
 import Nix.Unsafe.Init (initNix)
+import Nix.Unsafe.Store (withStore)
 import Nix.Unsafe.Value
 import Test.Nix.Util (eval, withEnv)
 
@@ -99,3 +100,20 @@ spec = describe "Nix.Expr" $ before_ initNix $ do
       withEnv $ \state -> do
         val <- eval state "builtins.length (builtins.map (x: x * 2) [ 1 2 3 ])"
         getInt state val `shouldReturn` 3
+
+  describe "createEvalState/destroyEvalState" $ do
+    it "can manually create and destroy an eval state" $ do
+      withStore "daemon" $ \store -> do
+        state <- createEvalState store
+        val <- evalFromString state "1 + 1" "."
+        valueForce state val
+        getInt state val `shouldReturn` 2
+        destroyEvalState state
+
+  describe "withEvalStateWith" $ do
+    it "creates an eval state with empty lookup path" $ do
+      withStore "daemon" $ \store ->
+        withEvalStateWith store [] $ \state -> do
+          val <- evalFromString state "42" "."
+          valueForce state val
+          getInt state val `shouldReturn` 42

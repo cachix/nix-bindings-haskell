@@ -59,3 +59,25 @@ spec = describe "Nix.Store" $ before_ initNix $ do
         parseStorePath store fakePath $ \sp -> do
           name <- storePathName sp
           name `shouldBe` "test-name"
+
+  describe "openStore/closeStore" $ do
+    it "can manually open and close a store" $ do
+      store <- openStore "daemon"
+      uri <- storeUri store
+      uri `shouldSatisfy` (not . BS.null)
+      closeStore store
+
+  describe "parseStorePath'/freeStorePath" $ do
+    it "parses and frees a store path" $ do
+      withStore "daemon" $ \store -> do
+        dir <- storeDir store
+        let fakePath = dir <> "/00000000000000000000000000000000-test-free"
+        sp <- parseStorePath' store fakePath
+        name <- storePathName sp
+        name `shouldBe` "test-free"
+        freeStorePath sp
+
+    it "rejects invalid store paths" $ do
+      withStore "daemon" $ \store ->
+        parseStorePath' store "not-a-store-path"
+          `shouldThrow` \(_ :: NixError) -> True

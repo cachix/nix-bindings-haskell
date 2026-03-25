@@ -322,3 +322,67 @@ spec = describe "Nix.Value" $ before_ initNix $ do
     it "extracts with empty path (acts as fromValue)" $ withEnv $ \state -> do
       val <- eval state "42"
       getAttrPath @Int64 state val [] `shouldReturn` Right 42
+
+  describe "unsafe accessors" $ do
+    it "unsafeGetInt extracts integers" $ withEnv $ \state -> do
+      val <- eval state "42"
+      unsafeGetInt state val `shouldReturn` 42
+
+    it "unsafeGetInt extracts negative integers" $ withEnv $ \state -> do
+      val <- eval state "-7"
+      unsafeGetInt state val `shouldReturn` (-7)
+
+    it "unsafeGetFloat extracts floats" $ withEnv $ \state -> do
+      val <- eval state "3.14"
+      f <- unsafeGetFloat state val
+      f `shouldSatisfy` (\x -> abs (x - 3.14) < 0.001)
+
+    it "unsafeGetBool extracts true" $ withEnv $ \state -> do
+      val <- eval state "true"
+      unsafeGetBool state val `shouldReturn` True
+
+    it "unsafeGetBool extracts false" $ withEnv $ \state -> do
+      val <- eval state "false"
+      unsafeGetBool state val `shouldReturn` False
+
+    it "unsafeGetString extracts strings" $ withEnv $ \state -> do
+      val <- eval state "\"hello\""
+      unsafeGetString state val `shouldReturn` "hello"
+
+    it "unsafeGetPathString extracts paths" $ withEnv $ \state -> do
+      val <- eval state "/tmp"
+      unsafeGetPathString state val `shouldReturn` "/tmp"
+
+    it "unsafeGetListSize returns list length" $ withEnv $ \state -> do
+      val <- eval state "[ 1 2 3 ]"
+      unsafeGetListSize state val `shouldReturn` 3
+
+    it "unsafeGetAttrsSize returns attrset size" $ withEnv $ \state -> do
+      val <- eval state "{ a = 1; b = 2; }"
+      unsafeGetAttrsSize state val `shouldReturn` 2
+
+    it "unsafeHasAttrByName checks attribute existence" $ withEnv $ \state -> do
+      val <- eval state "{ x = 1; }"
+      unsafeHasAttrByName state val "x" `shouldReturn` True
+      unsafeHasAttrByName state val "z" `shouldReturn` False
+
+    it "unsafeLookupAttr returns Just for existing attrs" $ withEnv $ \state -> do
+      val <- eval state "{ answer = 42; }"
+      result <- unsafeLookupAttr state val "answer"
+      case result of
+        Nothing -> expectationFailure "Expected Just"
+        Just attr -> getInt state attr `shouldReturn` 42
+
+    it "unsafeLookupAttr returns Nothing for missing attrs" $ withEnv $ \state -> do
+      val <- eval state "{ a = 1; }"
+      result <- unsafeLookupAttr state val "missing"
+      case result of
+        Nothing -> pure ()
+        Just _ -> expectationFailure "Expected Nothing for missing attribute"
+
+    it "unsafeGetListByIdx accesses list elements" $ withEnv $ \state -> do
+      val <- eval state "[ 10 20 30 ]"
+      elem0 <- unsafeGetListByIdx state val 0
+      getInt state elem0 `shouldReturn` 10
+      elem2 <- unsafeGetListByIdx state val 2
+      getInt state elem2 `shouldReturn` 30
