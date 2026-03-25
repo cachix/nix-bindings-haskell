@@ -25,8 +25,9 @@ import Control.Exception (bracket, bracketOnError, finally)
 import Control.Monad (forM_)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
-import Foreign (alloca, castPtr, finalizeForeignPtr, peek, withForeignPtr)
-import qualified Foreign.Concurrent as FC
+import Foreign (alloca, castFunPtr, castPtr, finalizeForeignPtr, newForeignPtr, peek, withForeignPtr)
+import qualified Generated.Nix.Fetchers.FunPtr as FPFetchers
+import qualified Generated.Nix.Flake.FunPtr as FPFlake
 import Generated.Nix.Util (Nix_err (..))
 import qualified Generated.Nix.Expr.Safe as SysExpr
 import qualified Generated.Nix.Fetchers.Safe as SysFetchers
@@ -61,7 +62,7 @@ data LockMode
 createFlakeSettings :: IO FlakeSettings
 createFlakeSettings = withContext' $ \ctx -> do
   ptr <- checkNull ctx =<< SysFlake.nix_flake_settings_new ctx
-  FlakeSettings <$> FC.newForeignPtr ptr (SysFlake.nix_flake_settings_free ptr)
+  FlakeSettings <$> newForeignPtr (castFunPtr FPFlake.nix_flake_settings_free) ptr
 
 -- | Free flake settings immediately.
 -- This is optional; the settings will be freed by the GC if not called.
@@ -78,7 +79,7 @@ withFlakeSettings = bracket createFlakeSettings freeFlakeSettings
 createFetchersSettings :: IO FetchersSettings
 createFetchersSettings = withContext' $ \ctx -> do
   ptr <- checkNull ctx =<< SysFetchers.nix_fetchers_settings_new ctx
-  FetchersSettings <$> FC.newForeignPtr ptr (SysFetchers.nix_fetchers_settings_free ptr)
+  FetchersSettings <$> newForeignPtr (castFunPtr FPFetchers.nix_fetchers_settings_free) ptr
 
 -- | Free fetchers settings immediately.
 -- This is optional; the settings will be freed by the GC if not called.
@@ -137,7 +138,7 @@ parseFlakeReference (FetchersSettings fetchFP) (FlakeSettings flakeFP) mBaseDir 
                 SysFlake.nix_flake_reference_and_fragment_from_string ctx fetchS flakeS parseFlags (unsafeFromPtr cStr) (fromIntegral len) (castPtr refOut) cb (castPtr ud)
             checkError ctx rc
             ref <- peek refOut
-            refFP <- FC.newForeignPtr ref (SysFlake.nix_flake_reference_free ref)
+            refFP <- newForeignPtr (castFunPtr FPFlake.nix_flake_reference_free) ref
             pure (FlakeReference refFP, fragment)
 
 -- | Free a flake reference immediately.
@@ -168,7 +169,7 @@ lockFlake (FetchersSettings fetchFP) (FlakeSettings flakeFP) es mode (FlakeRefer
             LockCheck -> SysFlake.nix_flake_lock_flags_set_mode_check ctx lockFlags
           locked <- checkNull ctx
             =<< SysFlake.nix_flake_lock ctx fetchS flakeS (evalPtr es) lockFlags ref
-          LockedFlake <$> FC.newForeignPtr locked (SysFlake.nix_locked_flake_free locked)
+          LockedFlake <$> newForeignPtr (castFunPtr FPFlake.nix_locked_flake_free) locked
 
 -- | Free a locked flake immediately.
 -- This is optional; the locked flake will be freed by the GC if not called.

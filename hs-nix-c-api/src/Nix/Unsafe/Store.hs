@@ -23,8 +23,8 @@ module Nix.Unsafe.Store
 import Control.Exception (bracket, bracketOnError)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
-import Foreign (FunPtr, Ptr, castFunPtr, castPtr, finalizeForeignPtr, freeHaskellFunPtr, newForeignPtr_, nullPtr, withForeignPtr)
-import qualified Foreign.Concurrent as FC
+import Foreign (FunPtr, Ptr, castFunPtr, castPtr, finalizeForeignPtr, freeHaskellFunPtr, newForeignPtr, newForeignPtr_, nullPtr, withForeignPtr)
+import qualified Generated.Nix.Store.Path.FunPtr as FPStorePath
 import Foreign.C (CChar)
 import Foreign.Marshal.Utils (fromBool)
 import Generated.Nix.Util (Nix_err (..), Nix_get_string_callback)
@@ -96,7 +96,7 @@ parseStorePath' store path =
   BS.useAsCString path $ \cPath -> do
     ptr <- checkNull (storeCtx store)
       =<< SysStore.nix_store_parse_path (storeCtx store) (storePtr store) (unsafeFromPtr cPath)
-    StorePath <$> FC.newForeignPtr ptr (SysStorePath.nix_store_path_free ptr)
+    StorePath <$> newForeignPtr (castFunPtr FPStorePath.nix_store_path_free) ptr
 
 -- | Free a 'StorePath' immediately.
 -- This is optional; the 'StorePath' will be freed by the GC if not called.
