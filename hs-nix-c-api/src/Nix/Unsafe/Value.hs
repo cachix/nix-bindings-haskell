@@ -1,11 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
--- | Safe interface to Nix values.
+-- | Throwing interface to Nix values.
 --
--- All accessor functions check the value's type before extracting,
+-- Accessor functions check the value's type before extracting,
 -- throwing 'NixError' on type mismatch.
 -- For unchecked accessors, use the @unsafe@-prefixed variants.
-module Nix.Value
+-- For safe accessors returning 'Either', use 'fromValue', 'getAttr', and 'getAttrPath'.
+module Nix.Unsafe.Value
   ( Value
   , NixType (..)
     -- * Type inspection
@@ -45,7 +46,7 @@ import Control.Monad (when)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import Data.Int (Int64)
-import Foreign (Ptr, castPtr)
+import Foreign (castPtr)
 import Foreign.C (CDouble (..))
 import Generated.Nix.Util (Nix_err (..))
 import Generated.Nix.Value (ValueType (..))
@@ -58,14 +59,8 @@ import Nix.Context
   , checkNull
   , withCallbackBS
   )
-import Nix.Expr (valueForce)
-import Nix.Internal (EvalState (..), Value (..))
-
--- | Cast the EvalState pointer for cross-module -sys type compatibility.
--- Generated.Nix.Expr and Generated.Nix.Value define separate EvalState types;
--- castPtr is safe since they refer to the same C struct.
-castEvalPtr :: EvalState -> Ptr a
-castEvalPtr = castPtr . evalPtr
+import Nix.Unsafe.Expr (valueForce)
+import Nix.Internal (EvalState (..), Value (..), castEvalPtr)
 
 -- | The type of a Nix value.
 data NixType

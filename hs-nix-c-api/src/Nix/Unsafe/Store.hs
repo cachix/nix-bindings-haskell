@@ -1,6 +1,6 @@
--- | Safe interface to the Nix store.
+-- | Throwing interface to the Nix store.
 -- All functions throw 'Nix.Context.NixError' on failure.
-module Nix.Store
+module Nix.Unsafe.Store
   ( Store
   , StorePath
   , withStore
@@ -19,15 +19,10 @@ import Foreign (Ptr, castPtr, nullPtr)
 import Generated.Nix.Util (Nix_err (..), Nix_get_string_callback)
 import qualified Generated.Nix.Store.Safe as SysStore
 import qualified Generated.Nix.Store.Path.Safe as SysStorePath
+import qualified Generated.Nix.Util.Safe as SysUtil
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr)
-import Nix.Context
-  ( c_nix_c_context_create
-  , c_nix_c_context_free
-  , checkError
-  , checkNull
-  , withCallbackBS
-  )
-import Nix.Internal (CNixContext, CStore, CStorePath, Store (..), StorePath (..))
+import Nix.Context (checkError, checkNull, withCallbackBS)
+import Nix.Internal (CNixContext, CStore, Store (..), StorePath (..))
 
 -- | Open a Nix store and run an action with it.
 -- The store is automatically closed when the action completes.
@@ -36,7 +31,7 @@ withStore uri = bracket (openStore uri) closeStore
 
 openStore :: ByteString -> IO Store
 openStore uri =
-  bracketOnError c_nix_c_context_create c_nix_c_context_free $ \ctx -> do
+  bracketOnError SysUtil.nix_c_context_create SysUtil.nix_c_context_free $ \ctx -> do
     ptr <- BS.useAsCString uri $ \cUri ->
       SysStore.nix_store_open ctx (unsafeFromPtr cUri) nullPtr
     p <- checkNull ctx ptr
@@ -45,29 +40,29 @@ openStore uri =
 closeStore :: Store -> IO ()
 closeStore store = do
   SysStore.nix_store_free (storePtr store)
-  c_nix_c_context_free (storeCtx store)
+  SysUtil.nix_c_context_free (storeCtx store)
 
 getStoreString
-  :: (Ptr CNixContext -> Ptr CStore -> Nix_get_string_callback -> Ptr () -> IO Nix_err)
+  :: (Ptr CNixContext -> Ptr CStore -> Nix_get_string_callback -> Ptr a -> IO Nix_err)
   -> Store
   -> IO ByteString
 getStoreString f store = do
   (Nix_err rc, bs) <- withCallbackBS $ \cb ud ->
-    f (storeCtx store) (storePtr store) cb ud
+    f (storeCtx store) (storePtr store) cb (castPtr ud)
   checkError (storeCtx store) rc
   pure bs
 
 -- | Get the URI of the store.
 storeUri :: Store -> IO ByteString
-storeUri = getStoreString (\ctx s cb ud -> SysStore.nix_store_get_uri ctx s cb (castPtr ud))
+storeUri = getStoreString SysStore.nix_store_get_uri
 
 -- | Get the store directory path (typically @"\/nix\/store"@).
 storeDir :: Store -> IO ByteString
-storeDir = getStoreString (\ctx s cb ud -> SysStore.nix_store_get_storedir ctx s cb (castPtr ud))
+storeDir = getStoreString SysStore.nix_store_get_storedir
 
 -- | Get the Nix daemon version for the store.
 storeVersion :: Store -> IO ByteString
-storeVersion = getStoreString (\ctx s cb ud -> SysStore.nix_store_get_version ctx s cb (castPtr ud))
+storeVersion = getStoreString SysStore.nix_store_get_version
 
 -- | Check whether a store path is valid (exists in the store).
 isValidPath :: Store -> StorePath -> IO Bool

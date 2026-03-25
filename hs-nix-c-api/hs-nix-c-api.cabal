@@ -27,23 +27,23 @@ description:
   == Modules
   .
   * "Nix" — safe monadic API via the 'Nix' monad
-  * "Nix.Throw" — throwing IO API (re-exports domain modules)
+  * "Nix.Unsafe" — throwing IO API (re-exports domain modules)
   * "Nix.Monad" — 'Nix' monad type and runners
   * "Nix.Context" — error types ('NixError', 'NixErrorKind')
+  * "Nix.C" — re-export of raw FFI bindings from @hs-nix-c-api-sys@
   .
   == Design
   .
   Three usage styles from a single implementation:
   .
   * @import Nix@ — the 'Nix' monad with automatic error short-circuiting
-  * @import Nix.Throw@ — throwing IO functions for direct use
+  * @import Nix.Unsafe@ — throwing IO functions for direct use
   * @'runNix'@ — get @Either NixError a@ from any 'Nix' computation
   .
   Resources ('Store', 'EvalState') are managed via bracket-style
   @with*@ functions that guarantee cleanup.
   .
-  For raw FFI access to the complete C API surface, depend on
-  @hs-nix-c-api-sys@ directly.
+  For raw FFI access to the complete C API surface, use "Nix.C".
 
 license:       MIT
 license-file:  LICENSE
@@ -64,13 +64,14 @@ library
     , transformers
   exposed-modules:
     Nix
+    Nix.C
     Nix.Context
-    Nix.Init
     Nix.Monad
-    Nix.Store
-    Nix.Expr
-    Nix.Throw
-    Nix.Value
+    Nix.Unsafe
+    Nix.Unsafe.Expr
+    Nix.Unsafe.Init
+    Nix.Unsafe.Store
+    Nix.Unsafe.Value
 
   other-modules:
     Nix.Internal

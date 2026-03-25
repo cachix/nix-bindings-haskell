@@ -12,10 +12,11 @@ module Nix.Internal
   , Store (..)
   , StorePath (..)
   , EvalState (..)
+  , castEvalPtr
   , Value (..)
   ) where
 
-import Foreign (Ptr)
+import Foreign (Ptr, castPtr)
 import qualified Generated.Nix.Expr
 import qualified Generated.Nix.Store
 import qualified Generated.Nix.Store.Path
@@ -56,6 +57,12 @@ data EvalState = EvalState
   { evalPtr :: !(Ptr CEvalState)
   , evalCtx :: !(Ptr CNixContext)
   }
+
+-- | Cast the EvalState pointer for cross-module -sys type compatibility.
+-- Generated.Nix.Expr and Generated.Nix.Value define separate EvalState types;
+-- castPtr is safe since they refer to the same C struct.
+castEvalPtr :: EvalState -> Ptr a
+castEvalPtr = castPtr . evalPtr
 
 -- | Handle to a Nix value.
 -- Values are reference-counted by the Nix garbage collector.

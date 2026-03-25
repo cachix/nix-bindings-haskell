@@ -1,7 +1,7 @@
 -- | Nix library initialization.
 --
 -- Call 'initNix' once before using any other Nix API functions.
-module Nix.Init
+module Nix.Unsafe.Init
   ( initNix
   , nixVersion
   ) where

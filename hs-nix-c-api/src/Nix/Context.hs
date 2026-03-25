@@ -12,8 +12,6 @@ module Nix.Context
   , getErrorMsg
   , getErrorInfoMsg
   , withCallbackBS
-  , c_nix_c_context_create
-  , c_nix_c_context_free
   ) where
 
 import Control.Exception (Exception, bracket, throwIO)
@@ -37,14 +35,6 @@ import qualified Generated.Nix.Util.Safe as Sys
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr, unsafeToPtr)
 import Nix.Internal (CNixContext)
 import System.IO.Unsafe (unsafePerformIO)
-
--- | Allocate a new Nix error context.
-c_nix_c_context_create :: IO (Ptr CNixContext)
-c_nix_c_context_create = Sys.nix_c_context_create
-
--- | Free a Nix error context.
-c_nix_c_context_free :: Ptr CNixContext -> IO ()
-c_nix_c_context_free = Sys.nix_c_context_free
 
 -- Raw callback type matching the C signature.
 type RawCallback = CString -> CUInt -> Ptr () -> IO ()
@@ -123,7 +113,7 @@ withContext f = withContext' $ \ctx -> do
 
 -- | Run an action with a fresh Nix error context, returning its result.
 withContext' :: (Ptr CNixContext -> IO a) -> IO a
-withContext' = bracket c_nix_c_context_create c_nix_c_context_free
+withContext' = bracket Sys.nix_c_context_create Sys.nix_c_context_free
 
 -- | Check the return code and throw if non-zero.
 checkError :: Ptr CNixContext -> CInt -> IO ()

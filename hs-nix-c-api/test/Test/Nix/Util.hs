@@ -11,10 +11,10 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS8
 import Test.Hspec
 
-import Nix.Expr (EvalState, evalFromString, valueForce, withEvalState)
-import Nix.Init (initNix, nixVersion)
-import Nix.Store (withStore)
-import Nix.Value (Value)
+import Nix.Unsafe.Expr (EvalState, evalFromString, valueForce, withEvalState)
+import Nix.Unsafe.Init (initNix, nixVersion)
+import Nix.Unsafe.Store (withStore)
+import Nix.Unsafe.Value (Value)
 
 spec :: Spec
 spec = describe "Nix.Init" $ before_ initNix $ do

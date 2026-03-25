@@ -5,9 +5,9 @@ module Test.Nix.Expr (spec) where
 import Test.Hspec
 
 import Nix.Context (NixError)
-import Nix.Expr
-import Nix.Init (initNix)
-import Nix.Value
+import Nix.Unsafe.Expr
+import Nix.Unsafe.Init (initNix)
+import Nix.Unsafe.Value
 import Test.Nix.Util (eval, withEnv)
 
 spec :: Spec

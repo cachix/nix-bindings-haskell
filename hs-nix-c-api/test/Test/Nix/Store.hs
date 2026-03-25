@@ -6,8 +6,8 @@ import qualified Data.ByteString as BS
 import Test.Hspec
 
 import Nix.Context (NixError)
-import Nix.Init (initNix)
-import Nix.Store
+import Nix.Unsafe.Init (initNix)
+import Nix.Unsafe.Store
 
 spec :: Spec
 spec = describe "Nix.Store" $ before_ initNix $ do

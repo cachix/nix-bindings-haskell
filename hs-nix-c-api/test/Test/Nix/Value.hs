@@ -6,9 +6,9 @@ import qualified Data.ByteString as BS
 import Test.Hspec
 
 import Nix.Context (NixError (..))
-import Nix.Expr (valueForce)
-import Nix.Init (initNix)
-import Nix.Value
+import Nix.Unsafe.Expr (valueForce)
+import Nix.Unsafe.Init (initNix)
+import Nix.Unsafe.Value
 import Test.Nix.Util (eval, withEnv)
 
 spec :: Spec
