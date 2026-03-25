@@ -106,8 +106,9 @@ data NixError
 instance Exception NixError
 
 -- | Build a 'NixError' from a context, optionally using a known error code.
--- Only reads detailed info if the context has a non-empty error message,
--- since @nix_err_info_msg@ crashes on contexts with no error.
+-- Only reads detailed info for 'NIX_ERR_NIX_ERROR' (@-4@),
+-- since @nix_err_info_msg@ crashes on other error types
+-- (the C API only populates the @info@ field for Nix evaluation errors).
 buildError :: Ptr CNixContext -> Maybe CInt -> IO NixError
 buildError ctx mbRc = do
   msg <- getErrorMsg ctx
@@ -115,7 +116,9 @@ buildError ctx mbRc = do
     then pure $ NixCError NixErrUnknown BS.empty BS.empty
     else do
       rc <- maybe (unwrapNix_err <$> Sys.nix_err_code (unsafeFromPtr ctx)) pure mbRc
-      info <- getErrorInfoMsg ctx
+      info <- if toNixErrorKind rc == NixErrNixError
+        then getErrorInfoMsg ctx
+        else pure BS.empty
       pure $ NixCError (toNixErrorKind rc) msg info
 
 -- | Run an action with a fresh Nix error context.
