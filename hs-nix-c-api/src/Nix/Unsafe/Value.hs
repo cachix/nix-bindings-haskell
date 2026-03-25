@@ -34,6 +34,8 @@ module Nix.Unsafe.Value
   , unsafeGetInt
   , unsafeGetFloat
   , unsafeGetBool
+  , unsafeGetString
+  , unsafeGetPathString
   , unsafeGetListSize
   , unsafeGetAttrsSize
   , unsafeHasAttrByName
@@ -120,18 +122,40 @@ getBool :: EvalState -> Value -> IO Bool
 getBool = withTypeCheck TypeBool unsafeGetBool
 
 -- | Extract a string from a Nix value.
--- Throws on type mismatch (via C API error).
+-- Throws on type mismatch.
+--
+-- Note: the C API crashes (assertion failure) on wrong type,
+-- so we must check the type before calling the C function.
 getString :: EvalState -> Value -> IO ByteString
-getString es (Value v) = do
+getString es val = do
+  checkType TypeString es val
+  unsafeGetString es val
+
+-- | Extract a string without checking the value's type.
+-- Caller must ensure the value is 'TypeString', otherwise the
+-- C API may crash (assertion failure).
+unsafeGetString :: EvalState -> Value -> IO ByteString
+unsafeGetString es (Value v) = do
   (Nix_err rc, bs) <- withCallbackBS $ \cb ud ->
     SysValue.nix_get_string (evalCtx es) (unsafeFromPtr v) cb (castPtr ud)
   checkError (evalCtx es) rc
   pure bs
 
 -- | Extract a path string from a Nix value.
--- Throws on type mismatch (via C API error).
+-- Throws on type mismatch.
+--
+-- Note: the C API crashes on wrong type,
+-- so we must check the type before calling the C function.
 getPathString :: EvalState -> Value -> IO ByteString
-getPathString es (Value v) = do
+getPathString es val = do
+  checkType TypePath es val
+  unsafeGetPathString es val
+
+-- | Extract a path string without checking the value's type.
+-- Caller must ensure the value is 'TypePath', otherwise the
+-- C API may crash.
+unsafeGetPathString :: EvalState -> Value -> IO ByteString
+unsafeGetPathString es (Value v) = do
   cstr <- SysValue.nix_get_path_string (evalCtx es) (unsafeFromPtr v)
   p <- checkNull (evalCtx es) (unsafeToPtr cstr)
   BS.packCString p

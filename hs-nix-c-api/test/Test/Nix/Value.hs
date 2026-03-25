@@ -1,8 +1,11 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Test.Nix.Value (spec) where
 
 import qualified Data.ByteString as BS
+import Data.Int (Int64)
 import Test.Hspec
 
 import Nix.Context (NixError (..))
@@ -149,10 +152,12 @@ spec = describe "Nix.Value" $ before_ initNix $ do
       attr <- getAttrByName state val "answer"
       getInt state attr `shouldReturn` 42
 
-    it "throws for missing attributes" $ withEnv $ \state -> do
+    it "throws NixMissingAttr for missing attributes" $ withEnv $ \state -> do
       val <- eval state "{ a = 1; }"
       getAttrByName state val "missing"
-        `shouldThrow` \(_ :: NixError) -> True
+        `shouldThrow` \case
+          NixMissingAttr name -> name == "missing"
+          _ -> False
 
     it "lookupAttr returns Nothing for missing attributes" $ withEnv $ \state -> do
       val <- eval state "{ a = 1; }"
@@ -176,3 +181,67 @@ spec = describe "Nix.Value" $ before_ initNix $ do
       valueForce state b
       c <- getAttrByName state b "c"
       getInt state c `shouldReturn` 99
+
+  describe "type mismatch errors" $ do
+    it "throws NixTypeMismatch with expected and actual types" $ withEnv $ \state -> do
+      val <- eval state "42"
+      getString state val
+        `shouldThrow` \case
+          NixTypeMismatch expected actual ->
+            expected == TypeString && actual == TypeInt
+          _ -> False
+
+  describe "FromValue" $ do
+    it "extracts Int64 via fromValue" $ withEnv $ \state -> do
+      val <- eval state "42"
+      fromValue @Int64 state val `shouldReturn` Right 42
+
+    it "extracts Double via fromValue" $ withEnv $ \state -> do
+      val <- eval state "3.14"
+      result <- fromValue @Double state val
+      case result of
+        Left err -> expectationFailure $ "Expected Right, got Left: " <> show err
+        Right d -> d `shouldSatisfy` (\x -> abs (x - 3.14) < 0.001)
+
+    it "extracts Bool via fromValue" $ withEnv $ \state -> do
+      val <- eval state "true"
+      fromValue @Bool state val `shouldReturn` Right True
+
+    it "extracts ByteString via fromValue" $ withEnv $ \state -> do
+      val <- eval state "\"hello\""
+      fromValue @BS.ByteString state val `shouldReturn` Right "hello"
+
+    it "returns Left on type mismatch" $ withEnv $ \state -> do
+      val <- eval state "42"
+      result <- fromValue @BS.ByteString state val
+      case result of
+        Left (NixTypeMismatch _ _) -> pure ()
+        other -> expectationFailure $ "Expected Left NixTypeMismatch, got: " <> show other
+
+  describe "getAttr" $ do
+    it "extracts a typed attribute" $ withEnv $ \state -> do
+      val <- eval state "{ answer = 42; }"
+      getAttr @Int64 state val "answer" `shouldReturn` Right 42
+
+    it "returns Left for missing attribute" $ withEnv $ \state -> do
+      val <- eval state "{ a = 1; }"
+      result <- getAttr @Int64 state val "missing"
+      case result of
+        Left (NixMissingAttr _) -> pure ()
+        other -> expectationFailure $ "Expected Left NixMissingAttr, got: " <> show other
+
+  describe "getAttrPath" $ do
+    it "extracts a nested attribute" $ withEnv $ \state -> do
+      val <- eval state "{ a = { b = { c = 99; }; }; }"
+      getAttrPath @Int64 state val ["a", "b", "c"] `shouldReturn` Right 99
+
+    it "returns Left for missing intermediate attribute" $ withEnv $ \state -> do
+      val <- eval state "{ a = 1; }"
+      result <- getAttrPath @Int64 state val ["a", "b", "c"]
+      case result of
+        Left _ -> pure ()
+        Right _ -> expectationFailure "Expected Left for missing intermediate"
+
+    it "extracts with empty path (acts as fromValue)" $ withEnv $ \state -> do
+      val <- eval state "42"
+      getAttrPath @Int64 state val [] `shouldReturn` Right 42
