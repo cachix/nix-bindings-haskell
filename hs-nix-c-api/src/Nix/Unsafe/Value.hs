@@ -54,29 +54,12 @@ import qualified Generated.Nix.Value.Safe as SysValue
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr, unsafeToPtr)
 import Nix.Context
   ( NixError (..)
-  , NixErrorKind (..)
   , checkError
   , checkNull
   , withCallbackBS
   )
 import Nix.Unsafe.Expr (valueForce)
-import Nix.Internal (EvalState (..), Value (..), castEvalPtr)
-
--- | The type of a Nix value.
-data NixType
-  = TypeThunk
-  | TypeInt
-  | TypeFloat
-  | TypeBool
-  | TypeString
-  | TypePath
-  | TypeNull
-  | TypeAttrs
-  | TypeList
-  | TypeFunction
-  | TypeExternal
-  | TypeFailed
-  deriving (Show, Eq, Ord, Enum, Bounded)
+import Nix.Internal (EvalState (..), NixType (..), Value (..), castEvalPtr)
 
 -- | Human-readable name for a Nix type.
 nixTypeName :: NixType -> ByteString
@@ -103,11 +86,7 @@ checkType :: NixType -> EvalState -> Value -> IO ()
 checkType expected es val = do
   actual <- getType es val
   when (actual /= expected) $
-    throwIO $
-      NixError
-        NixErrNixError
-        ("Type mismatch: expected " <> nixTypeName expected <> ", got " <> nixTypeName actual)
-        BS.empty
+    throwIO $ NixTypeMismatch expected actual
 
 -- | Run an accessor after checking the value's type.
 withTypeCheck :: NixType -> (EvalState -> Value -> IO a) -> EvalState -> Value -> IO a
@@ -184,7 +163,7 @@ getAttrByName es val name = do
   result <- lookupAttr es val name
   case result of
     Just v -> pure v
-    Nothing -> throwIO $ NixError NixErrKey ("Attribute not found: " <> name) BS.empty
+    Nothing -> throwIO $ NixMissingAttr name
 
 -- | Look up an attribute by name, returning 'Nothing' if absent.
 -- Only throws on genuine errors (e.g. type mismatch), not for missing attributes.
@@ -203,7 +182,7 @@ getListByIdx :: EvalState -> Value -> Int -> IO Value
 getListByIdx es val idx = do
   checkType TypeList es val
   when (idx < 0) $
-    throwIO $ NixError NixErrUnknown "List index out of bounds" BS.empty
+    throwIO $ NixIndexOutOfBounds idx
   unsafeGetListByIdx es val idx
 
 -- * Unchecked value extraction

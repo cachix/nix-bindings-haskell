@@ -33,7 +33,7 @@ import Generated.Nix.Util
   )
 import qualified Generated.Nix.Util.Safe as Sys
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr, unsafeToPtr)
-import Nix.Internal (CNixContext)
+import Nix.Internal (CNixContext, NixType)
 import System.IO.Unsafe (unsafePerformIO)
 
 -- Raw callback type matching the C signature.
@@ -80,13 +80,27 @@ toNixErrorKind (-5) = NixErrRecoverable
 toNixErrorKind _ = NixErrUnknown
 
 -- | Error thrown when a Nix C API call fails.
-data NixError = NixError
-  { nixErrorKind :: !NixErrorKind
-  , nixErrorMessage :: !ByteString
-  , nixErrorInfo :: !ByteString
-  -- ^ Additional context (stack trace, source location).
-  -- Empty if not available.
-  }
+data NixError
+  = -- | Type mismatch: expected one type, got another.
+    NixTypeMismatch
+      { nixExpectedType :: !NixType
+      , nixActualType :: !NixType
+      }
+  | -- | Attribute not found in an attribute set.
+    NixMissingAttr
+      { nixMissingAttrName :: !ByteString
+      }
+  | -- | List index out of bounds.
+    NixIndexOutOfBounds
+      { nixOutOfBoundsIndex :: !Int
+      }
+  | -- | Error from the Nix C API.
+    NixCError
+      { nixCErrorKind :: !NixErrorKind
+      , nixCErrorMessage :: !ByteString
+      , nixCErrorInfo :: !ByteString
+      -- ^ Stack trace, source location. Empty if not available.
+      }
   deriving (Show, Eq)
 
 instance Exception NixError
@@ -98,11 +112,11 @@ buildError :: Ptr CNixContext -> Maybe CInt -> IO NixError
 buildError ctx mbRc = do
   msg <- getErrorMsg ctx
   if BS.null msg
-    then pure $ NixError NixErrUnknown BS.empty BS.empty
+    then pure $ NixCError NixErrUnknown BS.empty BS.empty
     else do
       rc <- maybe (unwrapNix_err <$> Sys.nix_err_code (unsafeFromPtr ctx)) pure mbRc
       info <- getErrorInfoMsg ctx
-      pure $ NixError (toNixErrorKind rc) msg info
+      pure $ NixCError (toNixErrorKind rc) msg info
 
 -- | Run an action with a fresh Nix error context.
 -- If the action returns a non-zero error code, throw a 'NixError'.

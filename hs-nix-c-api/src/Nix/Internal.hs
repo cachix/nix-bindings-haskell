@@ -8,6 +8,8 @@ module Nix.Internal
   , CEvalState
   , CNixValue
   , CEvalStateBuilder
+    -- * Nix value types
+  , NixType (..)
     -- * Haskell wrapper types
   , Store (..)
   , StorePath (..)
@@ -40,6 +42,22 @@ type CNixValue = Generated.Nix.Value.Nix_value
 
 -- | Alias for the C @nix_eval_state_builder@ type from the -sys package.
 type CEvalStateBuilder = Generated.Nix.Expr.Nix_eval_state_builder
+
+-- | The type of a Nix value.
+data NixType
+  = TypeThunk
+  | TypeInt
+  | TypeFloat
+  | TypeBool
+  | TypeString
+  | TypePath
+  | TypeNull
+  | TypeAttrs
+  | TypeList
+  | TypeFunction
+  | TypeExternal
+  | TypeFailed
+  deriving (Show, Eq, Ord, Enum, Bounded)
 
 -- | Handle to an open Nix store.
 -- Carries a reusable error context to avoid per-call allocation.
