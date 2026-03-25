@@ -51,7 +51,6 @@ import Data.Int (Int64)
 import Foreign (castPtr)
 import Foreign.C (CDouble (..))
 import Generated.Nix.Util (Nix_err (..))
-import Generated.Nix.Value (ValueType (..))
 import qualified Generated.Nix.Value.Safe as SysValue
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr, unsafeToPtr)
 import Nix.Context
@@ -61,7 +60,7 @@ import Nix.Context
   , withCallbackBS
   )
 import Nix.Unsafe.Expr (valueForce)
-import Nix.Internal (EvalState (..), NixType (..), Value (..), castEvalPtr)
+import Nix.Internal (EvalState (..), NixType (..), Value (..), castEvalPtr, toNixType)
 
 -- | Human-readable name for a Nix type.
 nixTypeName :: NixType -> ByteString
@@ -77,11 +76,6 @@ nixTypeName TypeList = "list"
 nixTypeName TypeFunction = "function"
 nixTypeName TypeExternal = "external"
 nixTypeName TypeFailed = "failed"
-
-toNixType :: Int -> NixType
-toNixType n
-  | n >= 0 && n <= fromEnum (maxBound :: NixType) = toEnum n
-  | otherwise = TypeFailed
 
 -- | Throw a type mismatch error if the value is not the expected type.
 checkType :: NixType -> EvalState -> Value -> IO ()
@@ -100,9 +94,7 @@ withTypeCheck ty f es val = checkType ty es val >> f es val
 getType :: EvalState -> Value -> IO NixType
 getType es (Value val) = do
   vt <- SysValue.nix_get_type (evalCtx es) (unsafeFromPtr val)
-  -- ValueType is a newtype over CUInt; extract and convert
-  let n = fromIntegral (unwrapValueType vt)
-  pure (toNixType n)
+  pure (toNixType vt)
 
 -- * Safe value extraction (type-checked)
 

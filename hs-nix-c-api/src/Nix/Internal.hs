@@ -10,6 +10,8 @@ module Nix.Internal
   , CEvalStateBuilder
     -- * Nix value types
   , NixType (..)
+  , toNixType
+  , fromNixType
     -- * Haskell wrapper types
   , Store (..)
   , StorePath (..)
@@ -44,6 +46,9 @@ type CNixValue = Generated.Nix.Value.Nix_value
 type CEvalStateBuilder = Generated.Nix.Expr.Nix_eval_state_builder
 
 -- | The type of a Nix value.
+--
+-- Constructor order must match the C enum @ValueType@ (0 = Thunk, ..., 11 = Failed).
+-- 'toNixType' and 'fromNixType' convert between this and the generated 'ValueType'.
 data NixType
   = TypeThunk
   | TypeInt
@@ -58,6 +63,19 @@ data NixType
   | TypeExternal
   | TypeFailed
   deriving (Show, Eq, Ord, Enum, Bounded)
+
+-- | Convert a generated 'ValueType' to a 'NixType'.
+-- Returns 'TypeFailed' for unknown values.
+toNixType :: Generated.Nix.Value.ValueType -> NixType
+toNixType (Generated.Nix.Value.ValueType n)
+  | n' >= 0 && n' <= fromEnum (maxBound :: NixType) = toEnum n'
+  | otherwise = TypeFailed
+ where
+  n' = fromIntegral n
+
+-- | Convert a 'NixType' to a generated 'ValueType'.
+fromNixType :: NixType -> Generated.Nix.Value.ValueType
+fromNixType = Generated.Nix.Value.ValueType . fromIntegral . fromEnum
 
 -- | Handle to an open Nix store.
 -- Carries a reusable error context to avoid per-call allocation.
