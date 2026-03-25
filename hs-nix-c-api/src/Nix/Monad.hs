@@ -16,6 +16,7 @@ module Nix.Monad
   , runNix
   , runNixThrow
   , liftNix
+  , liftEitherNix
   ) where
 
 import Control.Exception (throwIO, try)
@@ -39,3 +40,7 @@ runNixThrow m = either throwIO pure =<< runNix m
 -- Catches any 'NixError' exception and converts it to 'Left'.
 liftNix :: IO a -> Nix a
 liftNix = Nix . try @NixError
+
+-- | Lift an @IO (Either NixError a)@ action into the 'Nix' monad.
+liftEitherNix :: IO (Either NixError a) -> Nix a
+liftEitherNix = Nix

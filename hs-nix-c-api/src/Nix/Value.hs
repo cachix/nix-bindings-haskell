@@ -11,13 +11,18 @@ module Nix.Value
     -- * Type inspection
   , getType
   , nixTypeName
-    -- * Safe value extraction (type-checked)
+    -- * @FromValue@ — type-directed extraction
+  , FromValue (..)
+  , fromValue
+  , getAttr
+  , getAttrPath
+    -- * Throwing value extraction (type-checked)
   , getInt
   , getFloat
   , getBool
   , getString
   , getPathString
-    -- * Safe collection accessors (type-checked)
+    -- * Throwing collection accessors (type-checked)
   , getListSize
   , getAttrsSize
   , hasAttrByName
@@ -35,7 +40,7 @@ module Nix.Value
   , unsafeGetListByIdx
   ) where
 
-import Control.Exception (throwIO)
+import Control.Exception (throwIO, try)
 import Control.Monad (when)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
@@ -53,6 +58,7 @@ import Nix.Context
   , checkNull
   , withCallbackBS
   )
+import Nix.Expr (valueForce)
 import Nix.Internal (EvalState (..), Value (..))
 
 -- | Cast the EvalState pointer for cross-module -sys type compatibility.
@@ -271,3 +277,61 @@ unsafeGetListByIdx es (Value val) idx = do
   result <- checkNull (evalCtx es)
     =<< SysValue.nix_get_list_byidx (evalCtx es) (unsafeFromPtr val) (castEvalPtr es) (fromIntegral idx)
   pure (Value result)
+
+-- * FromValue — type-directed extraction
+
+-- | Type class for extracting Haskell values from Nix values.
+--
+-- Use 'fromValue' for a safe API returning 'Either', or 'forceGet' directly
+-- for a throwing variant.
+--
+-- @
+-- n <- fromValue \@Int64 state val    -- Right 42
+-- s <- fromValue \@ByteString state val  -- Left (NixError ...)
+-- @
+class FromValue a where
+  -- | Force a Nix value and extract it as a Haskell value.
+  -- Throws 'NixError' on type mismatch.
+  forceGet :: EvalState -> Value -> IO a
+
+instance FromValue Int64 where
+  forceGet es val = valueForce es val >> getInt es val
+
+instance FromValue Double where
+  forceGet es val = valueForce es val >> getFloat es val
+
+instance FromValue Bool where
+  forceGet es val = valueForce es val >> getBool es val
+
+instance FromValue ByteString where
+  forceGet es val = valueForce es val >> getString es val
+
+-- | Force and extract a Haskell value from a Nix value.
+-- Returns 'Left' on type mismatch or other errors.
+fromValue :: FromValue a => EvalState -> Value -> IO (Either NixError a)
+fromValue es val = try @NixError $ forceGet es val
+
+-- | Extract a typed value from an attribute set by name.
+-- Forces the attribute before extraction.
+-- Returns 'Left' if the attribute is missing, the value is not an attrset,
+-- or the attribute has the wrong type.
+getAttr :: FromValue a => EvalState -> Value -> ByteString -> IO (Either NixError a)
+getAttr es val name = try @NixError $ do
+  attr <- getAttrByName es val name
+  forceGet es attr
+
+-- | Extract a typed value from a nested attribute path.
+-- Forces each intermediate attribute set.
+-- Returns 'Left' if any attribute is missing or has the wrong type.
+--
+-- @
+-- n <- getAttrPath \@Int64 state val [\"a\", \"b\", \"c\"]
+-- @
+getAttrPath :: FromValue a => EvalState -> Value -> [ByteString] -> IO (Either NixError a)
+getAttrPath es val path = try @NixError $ go es val path
+ where
+  go es' val' [] = forceGet es' val'
+  go es' val' (name : rest) = do
+    attr <- getAttrByName es' val' name
+    valueForce es' attr
+    go es' attr rest

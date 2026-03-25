@@ -57,6 +57,10 @@ module Nix
 
     -- * Value extraction
   , getType
+  , FromValue (..)
+  , fromValue
+  , getAttr
+  , getAttrPath
   , getInt
   , getFloat
   , getBool
@@ -77,10 +81,10 @@ import Nix.Context (NixError (..), NixErrorKind (..))
 import qualified Nix.Expr as Throw
 import qualified Nix.Init as Throw
 import Nix.Internal (EvalState, Store, StorePath, Value)
-import Nix.Monad (Nix, liftNix, runNix, runNixThrow)
+import Nix.Monad (Nix, liftEitherNix, liftNix, runNix, runNixThrow)
 import qualified Nix.Store as Throw
 import qualified Nix.Value as Throw
-import Nix.Value (NixType (..))
+import Nix.Value (FromValue (..), NixType (..))
 
 -- * Initialization
 
@@ -152,6 +156,21 @@ valueForceDeep es val = liftNix $ Throw.valueForceDeep es val
 -- | Get the type of a Nix value.
 getType :: EvalState -> Value -> Nix NixType
 getType es val = liftIO $ Throw.getType es val
+
+-- | Force and extract a Haskell value from a Nix value.
+-- Short-circuits in the 'Nix' monad on type mismatch or other errors.
+fromValue :: FromValue a => EvalState -> Value -> Nix a
+fromValue es val = liftEitherNix $ Throw.fromValue es val
+
+-- | Extract a typed value from an attribute set by name.
+-- Forces the attribute before extraction.
+getAttr :: FromValue a => EvalState -> Value -> ByteString -> Nix a
+getAttr es val name = liftEitherNix $ Throw.getAttr es val name
+
+-- | Extract a typed value from a nested attribute path.
+-- Forces each intermediate attribute set.
+getAttrPath :: FromValue a => EvalState -> Value -> [ByteString] -> Nix a
+getAttrPath es val path = liftEitherNix $ Throw.getAttrPath es val path
 
 -- | Extract an integer from a Nix value.
 -- Fails on type mismatch.
