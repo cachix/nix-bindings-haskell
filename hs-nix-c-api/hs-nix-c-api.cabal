@@ -96,6 +96,7 @@ test-suite hs-nix-c-api-test
     Test.Nix.Store
     Test.Nix.Expr
     Test.Nix.Value
+    Test.Nix.Monad
 
   build-depends:
     , bytestring

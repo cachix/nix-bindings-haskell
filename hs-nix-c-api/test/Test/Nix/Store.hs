@@ -42,3 +42,20 @@ spec = describe "Nix.Store" $ before_ initNix $ do
       withStore "daemon" $ \store ->
         parseStorePath store "not-a-store-path" (\_ -> pure ())
           `shouldThrow` \(_ :: NixError) -> True
+
+  describe "isValidPath" $ do
+    it "returns False for a non-existent store path" $ do
+      withStore "daemon" $ \store -> do
+        dir <- storeDir store
+        let fakePath = dir <> "/00000000000000000000000000000000-nonexistent"
+        parseStorePath store fakePath $ \sp ->
+          isValidPath store sp `shouldReturn` False
+
+  describe "storePathName" $ do
+    it "extracts the name component of a store path" $ do
+      withStore "daemon" $ \store -> do
+        dir <- storeDir store
+        let fakePath = dir <> "/00000000000000000000000000000000-test-name"
+        parseStorePath store fakePath $ \sp -> do
+          name <- storePathName sp
+          name `shouldBe` "test-name"

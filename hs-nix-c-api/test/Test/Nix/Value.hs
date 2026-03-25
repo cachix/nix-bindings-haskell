@@ -9,7 +9,7 @@ import Data.Int (Int64)
 import Test.Hspec
 
 import Nix.Context (NixError (..))
-import Nix.Unsafe.Expr (valueForce)
+import Nix.Unsafe.Expr (evalFromString, valueForce)
 import Nix.Unsafe.Init (initNix)
 import Nix.Unsafe.Value
 import Test.Nix.Util (eval, withEnv)
@@ -191,6 +191,57 @@ spec = describe "Nix.Value" $ before_ initNix $ do
             expected == TypeString && actual == TypeInt
           _ -> False
 
+    it "throws NixTypeMismatch for getInt on string" $ withEnv $ \state -> do
+      val <- eval state "\"hello\""
+      getInt state val
+        `shouldThrow` \case
+          NixTypeMismatch TypeInt TypeString -> True
+          _ -> False
+
+    it "throws NixTypeMismatch for getListSize on non-list" $ withEnv $ \state -> do
+      val <- eval state "42"
+      getListSize state val
+        `shouldThrow` \case
+          NixTypeMismatch TypeList TypeInt -> True
+          _ -> False
+
+    it "throws NixTypeMismatch for getAttrsSize on non-attrset" $ withEnv $ \state -> do
+      val <- eval state "[ 1 ]"
+      getAttrsSize state val
+        `shouldThrow` \case
+          NixTypeMismatch TypeAttrs TypeList -> True
+          _ -> False
+
+    it "throws NixTypeMismatch for hasAttrByName on non-attrset" $ withEnv $ \state -> do
+      val <- eval state "42"
+      hasAttrByName state val "x"
+        `shouldThrow` \case
+          NixTypeMismatch TypeAttrs TypeInt -> True
+          _ -> False
+
+    it "throws NixTypeMismatch for getPathString on non-path" $ withEnv $ \state -> do
+      val <- eval state "42"
+      getPathString state val
+        `shouldThrow` \case
+          NixTypeMismatch TypePath TypeInt -> True
+          _ -> False
+
+  describe "index out of bounds" $ do
+    it "throws NixIndexOutOfBounds for negative index" $ withEnv $ \state -> do
+      val <- eval state "[ 1 2 3 ]"
+      getListByIdx state val (-1)
+        `shouldThrow` \case
+          NixIndexOutOfBounds idx -> idx == -1
+          _ -> False
+
+  describe "C API errors" $ do
+    it "throws NixCError for evaluation errors" $ withEnv $ \state ->
+      (do val <- evalFromString state "throw \"test error\"" "."
+          valueForce state val
+      ) `shouldThrow` \case
+          NixCError {} -> True
+          _ -> False
+
   describe "FromValue" $ do
     it "extracts Int64 via fromValue" $ withEnv $ \state -> do
       val <- eval state "42"
@@ -218,6 +269,11 @@ spec = describe "Nix.Value" $ before_ initNix $ do
         Left (NixTypeMismatch _ _) -> pure ()
         other -> expectationFailure $ "Expected Left NixTypeMismatch, got: " <> show other
 
+    it "auto-forces thunks" $ withEnv $ \state -> do
+      -- evalFromString without valueForce — value is a thunk
+      val <- evalFromString state "1 + 2" "."
+      fromValue @Int64 state val `shouldReturn` Right 3
+
   describe "getAttr" $ do
     it "extracts a typed attribute" $ withEnv $ \state -> do
       val <- eval state "{ answer = 42; }"
@@ -230,6 +286,13 @@ spec = describe "Nix.Value" $ before_ initNix $ do
         Left (NixMissingAttr _) -> pure ()
         other -> expectationFailure $ "Expected Left NixMissingAttr, got: " <> show other
 
+    it "returns Left NixTypeMismatch for wrong leaf type" $ withEnv $ \state -> do
+      val <- eval state "{ x = \"hello\"; }"
+      result <- getAttr @Int64 state val "x"
+      case result of
+        Left (NixTypeMismatch _ _) -> pure ()
+        other -> expectationFailure $ "Expected Left NixTypeMismatch, got: " <> show other
+
   describe "getAttrPath" $ do
     it "extracts a nested attribute" $ withEnv $ \state -> do
       val <- eval state "{ a = { b = { c = 99; }; }; }"
@@ -241,6 +304,20 @@ spec = describe "Nix.Value" $ before_ initNix $ do
       case result of
         Left _ -> pure ()
         Right _ -> expectationFailure "Expected Left for missing intermediate"
+
+    it "returns Left NixTypeMismatch for wrong leaf type in path" $ withEnv $ \state -> do
+      val <- eval state "{ a = { b = \"hello\"; }; }"
+      result <- getAttrPath @Int64 state val ["a", "b"]
+      case result of
+        Left (NixTypeMismatch _ _) -> pure ()
+        other -> expectationFailure $ "Expected Left NixTypeMismatch, got: " <> show other
+
+    it "returns Left when intermediate is not an attrset" $ withEnv $ \state -> do
+      val <- eval state "{ a = 42; }"
+      result <- getAttrPath @Int64 state val ["a", "b"]
+      case result of
+        Left (NixTypeMismatch TypeAttrs TypeInt) -> pure ()
+        other -> expectationFailure $ "Expected Left NixTypeMismatch, got: " <> show other
 
     it "extracts with empty path (acts as fromValue)" $ withEnv $ \state -> do
       val <- eval state "42"
