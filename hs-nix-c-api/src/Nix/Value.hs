@@ -282,8 +282,8 @@ unsafeGetListByIdx es (Value val) idx = do
 
 -- | Type class for extracting Haskell values from Nix values.
 --
--- Use 'fromValue' for a safe API returning 'Either', or 'forceGet' directly
--- for a throwing variant.
+-- Use 'fromValue' for a safe API returning 'Either', or 'unsafeForceGet'
+-- directly for a throwing variant.
 --
 -- @
 -- n <- fromValue \@Int64 state val    -- Right 42
@@ -291,25 +291,25 @@ unsafeGetListByIdx es (Value val) idx = do
 -- @
 class FromValue a where
   -- | Force a Nix value and extract it as a Haskell value.
-  -- Throws 'NixError' on type mismatch.
-  forceGet :: EvalState -> Value -> IO a
+  -- Caller must handle 'NixError' exceptions; prefer 'fromValue' instead.
+  unsafeForceGet :: EvalState -> Value -> IO a
 
 instance FromValue Int64 where
-  forceGet es val = valueForce es val >> getInt es val
+  unsafeForceGet es val = valueForce es val >> getInt es val
 
 instance FromValue Double where
-  forceGet es val = valueForce es val >> getFloat es val
+  unsafeForceGet es val = valueForce es val >> getFloat es val
 
 instance FromValue Bool where
-  forceGet es val = valueForce es val >> getBool es val
+  unsafeForceGet es val = valueForce es val >> getBool es val
 
 instance FromValue ByteString where
-  forceGet es val = valueForce es val >> getString es val
+  unsafeForceGet es val = valueForce es val >> getString es val
 
 -- | Force and extract a Haskell value from a Nix value.
 -- Returns 'Left' on type mismatch or other errors.
 fromValue :: FromValue a => EvalState -> Value -> IO (Either NixError a)
-fromValue es val = try @NixError $ forceGet es val
+fromValue es val = try @NixError $ unsafeForceGet es val
 
 -- | Extract a typed value from an attribute set by name.
 -- Forces the attribute before extraction.
@@ -318,7 +318,7 @@ fromValue es val = try @NixError $ forceGet es val
 getAttr :: FromValue a => EvalState -> Value -> ByteString -> IO (Either NixError a)
 getAttr es val name = try @NixError $ do
   attr <- getAttrByName es val name
-  forceGet es attr
+  unsafeForceGet es attr
 
 -- | Extract a typed value from a nested attribute path.
 -- Forces each intermediate attribute set.
@@ -330,7 +330,7 @@ getAttr es val name = try @NixError $ do
 getAttrPath :: FromValue a => EvalState -> Value -> [ByteString] -> IO (Either NixError a)
 getAttrPath es val path = try @NixError $ go es val path
  where
-  go es' val' [] = forceGet es' val'
+  go es' val' [] = unsafeForceGet es' val'
   go es' val' (name : rest) = do
     attr <- getAttrByName es' val' name
     valueForce es' attr
