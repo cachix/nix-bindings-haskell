@@ -297,6 +297,22 @@ instance FromValue Bool where
 instance FromValue ByteString where
   unsafeForceGet es val = valueForce es val >> getString es val
 
+-- | Assert that a value is null. Throws on type mismatch.
+instance FromValue () where
+  unsafeForceGet es val = valueForce es val >> checkType TypeNull es val
+
+-- | Force a value and return it. Useful in generic code.
+instance FromValue Value where
+  unsafeForceGet es val = valueForce es val >> pure val
+
+-- | Extract all elements of a Nix list as unforced 'Value's.
+instance FromValue [Value] where
+  unsafeForceGet es val = do
+    valueForce es val
+    checkType TypeList es val
+    size <- unsafeGetListSize es val
+    mapM (unsafeGetListByIdx es val) [0 .. size - 1]
+
 -- | Force and extract a Haskell value from a Nix value.
 -- Returns 'Left' on type mismatch or other errors.
 fromValue :: FromValue a => EvalState -> Value -> IO (Either NixError a)
