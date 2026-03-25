@@ -20,7 +20,7 @@ module Nix.Monad
   , withBracketNix
   ) where
 
-import Control.Exception (SomeException, mask, throwIO, try)
+import Control.Exception (mask, onException, throwIO, try)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Except (ExceptT (..))
 import Nix.Context (NixError)
@@ -57,13 +57,6 @@ withBracketNix open close f = Nix $
   mask $ \restore -> do
     resource <- open
     result <- restore (runNix (f resource))
-      `onException_` close resource
+      `onException` close resource
     close resource
     pure result
- where
-  -- Run cleanup on any exception, then re-throw.
-  onException_ action cleanup = do
-    r <- try @SomeException action
-    case r of
-      Left e -> cleanup >> throwIO e
-      Right a -> pure a
