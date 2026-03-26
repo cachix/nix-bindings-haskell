@@ -110,7 +110,7 @@ data Store = Store
 -- | Handle to a Nix store path.
 -- Automatically freed when garbage collected.
 newtype StorePath = StorePath (ForeignPtr CStorePath)
-  deriving (Eq)
+  deriving (Eq, Show)
 
 -- | Pointer-based ordering. Stable within a process lifetime.
 instance Ord StorePath where
