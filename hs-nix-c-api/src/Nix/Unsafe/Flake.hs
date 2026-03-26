@@ -97,7 +97,7 @@ createFlakeEvalState store (FlakeSettings fsFP) =
   withForeignPtr fsFP $ \fs ->
     bracketOnError SysUtil.nix_c_context_create SysUtil.nix_c_context_free $ \ctx -> do
       builder <- checkNull ctx
-        =<< SysExpr.nix_eval_state_builder_new ctx (storePtr store)
+        =<< SysExpr.nix_eval_state_builder_new ctx (castPtr (storePtr store))
       flip finally (SysExpr.nix_eval_state_builder_free builder) $ do
         checkError ctx . unwrapNix_err
           =<< SysFlake.nix_flake_settings_add_to_eval_state_builder ctx fs builder
