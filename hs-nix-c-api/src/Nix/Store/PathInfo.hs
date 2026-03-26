@@ -12,17 +12,24 @@ module Nix.Store.PathInfo
     PathInfo (..)
     -- * Format version
   , PathInfoJsonFormat (..)
-    -- * Sub-types
+    -- * Hash
   , HashAlgo (..)
   , Hash (..)
+  , hashAlgoText
+  , hashToSRI
+    -- * Sub-types
   , ContentAddress (..)
   , Signature (..)
   ) where
 
-import Data.Aeson (FromJSON (..), withObject, withText, (.!=), (.:), (.:?))
-import Data.Aeson.Types (Value (Object, String))
+import Data.Aeson (FromJSON (..), ToJSON (..), withObject, withText, (.!=), (.:), (.:?))
+import Data.Aeson.Types (Value (String))
+import Data.ByteString (ByteString)
+import Data.ByteString.Base64 qualified as Base64
 import Data.Int (Int64)
 import Data.Text (Text)
+import Data.Text qualified as T
+import Data.Text.Encoding qualified as T
 import Data.Word (Word64)
 
 -- | JSON format version for path info serialization.
@@ -58,29 +65,53 @@ data HashAlgo
   deriving (Show, Eq, Ord)
 
 instance FromJSON HashAlgo where
-  parseJSON = withText "HashAlgo" $ \t -> pure $ case t of
-    "md5" -> MD5
-    "sha1" -> SHA1
-    "sha256" -> SHA256
-    "sha512" -> SHA512
-    "blake3" -> BLAKE3
-    other -> HashAlgoUnknown other
+  parseJSON = withText "HashAlgo" $ \t -> pure (parseHashAlgo t)
 
--- | A cryptographic hash, either as an SRI string (V1) or structured (V2/V3).
-data Hash
-  = -- | SRI-format hash string (e.g. @"sha256-..."@).
-    HashSRI !Text
-  | -- | Structured hash with algorithm and value.
-    HashStructured
-      { hashAlgo :: !HashAlgo
-      , hashValue :: !Text
-      }
-  deriving (Show, Eq)
+-- | Render a 'HashAlgo' as its canonical text form (e.g. @"sha256"@).
+hashAlgoText :: HashAlgo -> Text
+hashAlgoText MD5 = "md5"
+hashAlgoText SHA1 = "sha1"
+hashAlgoText SHA256 = "sha256"
+hashAlgoText SHA512 = "sha512"
+hashAlgoText BLAKE3 = "blake3"
+hashAlgoText (HashAlgoUnknown t) = t
+
+parseHashAlgo :: Text -> HashAlgo
+parseHashAlgo "md5" = MD5
+parseHashAlgo "sha1" = SHA1
+parseHashAlgo "sha256" = SHA256
+parseHashAlgo "sha512" = SHA512
+parseHashAlgo "blake3" = BLAKE3
+parseHashAlgo other = HashAlgoUnknown other
+
+-- | A parsed cryptographic hash with algorithm and raw digest bytes.
+--
+-- Nix always serializes hashes as SRI strings in JSON (@\"sha256-...\"@).
+-- This type parses the SRI string into its components for structured access.
+--
+-- Use 'hashToSRI' to render back to SRI format.
+data Hash = Hash
+  { hashAlgo :: !HashAlgo
+  , hashDigest :: !ByteString
+  -- ^ Raw digest bytes (e.g. 32 bytes for SHA-256).
+  } deriving (Show, Eq, Ord)
+
+-- | Render a hash in SRI format: @\"sha256-\<base64\>=\"@
+hashToSRI :: Hash -> Text
+hashToSRI (Hash algo digest) =
+  hashAlgoText algo <> "-" <> T.decodeUtf8 (Base64.encode digest)
 
 instance FromJSON Hash where
-  parseJSON (String s) = pure (HashSRI s)
-  parseJSON (Object o) = HashStructured <$> o .: "algo" <*> o .: "hash"
-  parseJSON _ = fail "expected string or object for hash"
+  parseJSON = withText "Hash" $ \t ->
+    case T.breakOnEnd "-" t of
+      ("", _) -> fail $ "invalid SRI hash (missing '-'): " <> show t
+      (algoWithDash, b64) ->
+        case Base64.decode (T.encodeUtf8 b64) of
+          Left err -> fail $ "invalid base64 in SRI hash: " <> err
+          Right bytes -> pure (Hash (parseHashAlgo (T.dropEnd 1 algoWithDash)) bytes)
+
+instance ToJSON Hash where
+  toJSON = String . hashToSRI
 
 -- | Content address of a store object.
 data ContentAddress
@@ -95,8 +126,8 @@ data ContentAddress
 
 instance FromJSON ContentAddress where
   parseJSON (String s) = pure (ContentAddressText s)
-  parseJSON (Object o) = ContentAddressStructured <$> o .: "method" <*> o .: "hash"
-  parseJSON _ = fail "expected string or object for content address"
+  parseJSON v = flip (withObject "ContentAddress") v $ \o ->
+    ContentAddressStructured <$> o .: "method" <*> o .: "hash"
 
 -- | A signature on a store path.
 data Signature
@@ -111,8 +142,8 @@ data Signature
 
 instance FromJSON Signature where
   parseJSON (String s) = pure (SignatureText s)
-  parseJSON (Object o) = SignatureStructured <$> o .: "keyName" <*> o .: "sig"
-  parseJSON _ = fail "expected string or object for signature"
+  parseJSON v = flip (withObject "Signature") v $ \o ->
+    SignatureStructured <$> o .: "keyName" <*> o .: "sig"
 
 -- | Store path metadata returned by @nix store query-path-info@.
 --

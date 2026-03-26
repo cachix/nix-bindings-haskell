@@ -62,6 +62,8 @@ module Nix
   , PathInfoJsonFormat (..)
   , HashAlgo (..)
   , Hash (..)
+  , hashAlgoText
+  , hashToSRI
   , ContentAddress (..)
   , Signature (..)
 
@@ -140,7 +142,7 @@ import qualified Nix.Unsafe.GC as Unsafe
 import qualified Nix.Unsafe.Init as Unsafe
 import qualified Nix.Unsafe.Settings as Unsafe
 import Nix.Internal (EvalState, FetchersSettings, FlakeReference, FlakeSettings, LockedFlake, Store, StorePath, Value)
-import Nix.Store.PathInfo (ContentAddress (..), Hash (..), HashAlgo (..), PathInfo (..), PathInfoJsonFormat (..), Signature (..))
+import Nix.Store.PathInfo (ContentAddress (..), Hash (..), HashAlgo (..), PathInfo (..), PathInfoJsonFormat (..), Signature (..), hashAlgoText, hashToSRI)
 import Nix.Monad (Nix, liftEitherNix, liftNix, runNix, runNixThrow, withBracketNix)
 import qualified Nix.Unsafe.Store as Unsafe
 import qualified Nix.Unsafe.Value as Unsafe

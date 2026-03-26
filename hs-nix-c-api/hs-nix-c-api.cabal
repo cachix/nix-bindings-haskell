@@ -59,6 +59,7 @@ library
   hs-source-dirs:   src
   build-depends:
     , aeson
+    , base64-bytestring
     , bytestring
     , hs-bindgen-runtime
     , hs-nix-c-api-sys
