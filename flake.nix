@@ -44,11 +44,7 @@
               (drv: {
                 pkg-configDepends = nixCApiPkgs;
               })
-              (
-                hlib.generateBindings ./hs-nix-c-api-sys/generate-bindings (
-                  hpkgs.callCabal2nix "hs-nix-c-api-sys" ./hs-nix-c-api-sys { }
-                )
-              );
+              (hpkgs.callCabal2nix "hs-nix-c-api-sys" ./hs-nix-c-api-sys { });
 
           hs-nix-c-api = hlib.overrideCabal
             (drv: {

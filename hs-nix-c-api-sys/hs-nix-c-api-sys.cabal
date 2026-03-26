@@ -27,7 +27,7 @@ description:
   handling, see the @hs-nix-c-api@ package.
 
 license:       MIT
-license-file:  ../LICENSE
+license-file:  LICENSE
 build-type:    Simple
 
 common common
