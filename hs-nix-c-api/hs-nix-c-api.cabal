@@ -112,3 +112,4 @@ test-suite hs-nix-c-api-test
     , bytestring
     , hs-nix-c-api
     , hspec
+    , temporary
