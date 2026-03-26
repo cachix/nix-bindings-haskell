@@ -28,7 +28,8 @@ module Nix.Internal
   , LockedFlake (..)
   ) where
 
-import Foreign (ForeignPtr, Ptr, castPtr)
+import Foreign (ForeignPtr, Ptr, castPtr, withForeignPtr)
+import System.IO.Unsafe (unsafePerformIO)
 import qualified Generated.Nix.Expr
 import qualified Generated.Nix.Fetchers
 import qualified Generated.Nix.Flake
@@ -109,6 +110,15 @@ data Store = Store
 -- | Handle to a Nix store path.
 -- Automatically freed when garbage collected.
 newtype StorePath = StorePath (ForeignPtr CStorePath)
+  deriving (Eq)
+
+-- | Pointer-based ordering. Stable within a process lifetime.
+instance Ord StorePath where
+  compare (StorePath a) (StorePath b) =
+    unsafePerformIO $
+      withForeignPtr a $ \pa ->
+        withForeignPtr b $ \pb ->
+          pure (compare pa pb)
 
 -- | Handle to a Nix language evaluator state.
 -- Carries a reusable error context to avoid per-call allocation.

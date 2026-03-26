@@ -20,6 +20,9 @@ module Nix.Unsafe.Store
   , storeRealise_
   , copyPath
   , copyClosure
+  , storeRealPath
+  , storePathHash
+  , computeFSClosure
   , queryPathInfoJson
   ) where
 
@@ -27,19 +30,22 @@ import Control.Exception (bracket, bracketOnError, throwIO)
 import qualified Data.Aeson as Aeson
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
-import Foreign (FunPtr, Ptr, castFunPtr, castPtr, finalizeForeignPtr, freeHaskellFunPtr, newForeignPtr, newForeignPtr_, nullPtr, withForeignPtr)
+import Data.IORef (IORef, modifyIORef', newIORef, readIORef)
+import Foreign (FunPtr, Ptr, alloca, castFunPtr, castPtr, finalizeForeignPtr, freeHaskellFunPtr, newForeignPtr, newForeignPtr_, nullPtr, peek, withForeignPtr)
 import qualified Generated.Nix.Store.Path.FunPtr as FPStorePath
 import Foreign.C (CChar)
 import Foreign.Marshal.Utils (fromBool)
+import Generated.Nix.Store.Path (Nix_store_path_hash_part (..))
 import Generated.Nix.Store.PathInfo (Nix_path_info_json_format, pattern NIX_PATH_INFO_JSON_FORMAT_V1, pattern NIX_PATH_INFO_JSON_FORMAT_V2, pattern NIX_PATH_INFO_JSON_FORMAT_V3)
 import Generated.Nix.Util (Nix_err (..), Nix_get_string_callback)
 import qualified Generated.Nix.Store.PathInfo.Safe as SysPathInfo
 import qualified Generated.Nix.Store.Safe as SysStore
 import qualified Generated.Nix.Store.Path.Safe as SysStorePath
 import qualified Generated.Nix.Util.Safe as SysUtil
+import qualified HsBindgen.Runtime.ConstantArray as CA
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr)
 import qualified Data.ByteString.Char8 as BS8
-import Nix.Context (NixError (..), NixErrorKind (..), checkError, checkNull, withCallbackBS)
+import Nix.Context (NixError (..), NixErrorKind (..), checkError, checkNull, withCallbackBS, withContext')
 import Nix.Internal (CNixContext, CStore, CStorePath, Store (..), StorePath (..))
 import Nix.Store.PathInfo (PathInfo, PathInfoJsonFormat (..))
 
@@ -191,3 +197,61 @@ queryPathInfoJson store (StorePath spFP) fmt =
   toCFormat PathInfoJsonFormatV1 = NIX_PATH_INFO_JSON_FORMAT_V1
   toCFormat PathInfoJsonFormatV2 = NIX_PATH_INFO_JSON_FORMAT_V2
   toCFormat PathInfoJsonFormatV3 = NIX_PATH_INFO_JSON_FORMAT_V3
+
+-- | Get the real (resolved) filesystem path of a store path.
+--
+-- For a local store, this returns the full path such as
+-- @\/nix\/store\/abc...-name@.
+storeRealPath :: Store -> StorePath -> IO ByteString
+storeRealPath store (StorePath spFP) =
+  withForeignPtr spFP $ \sp -> do
+    (Nix_err rc, bs) <- withCallbackBS $ \cb ud ->
+      SysStore.nix_store_real_path
+        (storeCtx store) (storePtr store) sp cb (castPtr ud)
+    checkError (storeCtx store) rc
+    pure bs
+
+-- | Get the raw hash bytes (20 bytes) of a store path.
+--
+-- This is the binary hash, not the nix-base32 encoded version.
+-- Use @System.Nix.Base32.encode@ from @hnix-store-core@ to get
+-- the human-readable nix-base32 representation.
+storePathHash :: StorePath -> IO ByteString
+storePathHash (StorePath spFP) =
+  withForeignPtr spFP $ \sp ->
+    withContext' $ \ctx ->
+      alloca $ \hashOut -> do
+        Nix_err rc <- SysStorePath.nix_store_path_hash ctx (unsafeFromPtr sp) hashOut
+        checkError ctx rc
+        Nix_store_path_hash_part rawBytes <- peek hashOut
+        pure $ BS.pack $ CA.toList rawBytes
+
+type RawClosureCallback = Ptr CNixContext -> Ptr () -> Ptr CStorePath -> IO ()
+
+foreign import ccall "wrapper"
+  mkClosureCallback :: RawClosureCallback -> IO (FunPtr RawClosureCallback)
+
+-- | Compute the transitive closure of a store path's dependencies.
+--
+-- Returns all store paths reachable from the given path,
+-- following the references graph.
+computeFSClosure :: Store -> StorePath -> IO [StorePath]
+computeFSClosure store (StorePath spFP) =
+  withForeignPtr spFP $ \sp -> do
+    ref <- newIORef []
+    bracket (mkClosureCallback (closureHandler ref)) freeHaskellFunPtr $ \cb -> do
+      Nix_err rc <- SysStore.nix_store_get_fs_closure
+        (storeCtx store) (storePtr store) (unsafeFromPtr sp)
+        0 -- flip_direction
+        0 -- include_outputs
+        0 -- include_derivers
+        nullPtr
+        (castFunPtr cb)
+      checkError (storeCtx store) rc
+    readIORef ref
+ where
+  closureHandler :: IORef [StorePath] -> RawClosureCallback
+  closureHandler ref _ctx _ud spPtr = do
+    cloned <- SysStorePath.nix_store_path_clone (unsafeFromPtr spPtr)
+    sp <- StorePath <$> newForeignPtr (castFunPtr FPStorePath.nix_store_path_free) cloned
+    modifyIORef' ref (sp :)

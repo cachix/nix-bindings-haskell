@@ -48,6 +48,9 @@ module Nix
   , isValidPath
   , parseStorePath
   , storePathName
+  , storeRealPath
+  , storePathHash
+  , computeFSClosure
   , storeRealise
   , storeRealise_
   , copyPath
@@ -186,6 +189,18 @@ parseStorePath store path = liftNix $ Unsafe.parseStorePath' store path
 -- | Get the name component of a store path.
 storePathName :: StorePath -> Nix ByteString
 storePathName = liftNix . Unsafe.storePathName
+
+-- | Get the real (resolved) filesystem path of a store path.
+storeRealPath :: Store -> StorePath -> Nix ByteString
+storeRealPath store sp = liftNix $ Unsafe.storeRealPath store sp
+
+-- | Get the raw hash bytes (20 bytes) of a store path.
+storePathHash :: StorePath -> Nix ByteString
+storePathHash = liftNix . Unsafe.storePathHash
+
+-- | Compute the transitive closure of a store path's dependencies.
+computeFSClosure :: Store -> StorePath -> Nix [StorePath]
+computeFSClosure store sp = liftNix $ Unsafe.computeFSClosure store sp
 
 -- | Build/realise a store path.
 -- Calls the callback for each output (name, output store path).
