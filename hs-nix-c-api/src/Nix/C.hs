@@ -12,6 +12,8 @@ module Nix.C
   , module Generated.Nix.Store.Safe
   , module Generated.Nix.Store.Path
   , module Generated.Nix.Store.Path.Safe
+  , Nix_path_info_json_format (..)
+  , nix_store_query_path_info_json
     -- * Expr — types and functions
   , module Generated.Nix.Expr
   , module Generated.Nix.Expr.Safe
@@ -39,6 +41,8 @@ import Generated.Nix.Flake.Safe
 import Generated.Nix.Store
 import Generated.Nix.Store.Path
 import Generated.Nix.Store.Path.Safe
+import Generated.Nix.Store.PathInfo (Nix_path_info_json_format (..))
+import Generated.Nix.Store.PathInfo.Safe (nix_store_query_path_info_json)
 import Generated.Nix.Store.Safe
 import Generated.Nix.Util
 import Generated.Nix.Util.Safe

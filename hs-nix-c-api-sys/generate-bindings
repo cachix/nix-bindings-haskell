@@ -45,6 +45,7 @@ generate Generated.Nix.Util nix_api_util.h
 generate Generated.Nix.Store.Path nix_api_store/store_path.h
 generate Generated.Nix.Store.Derivation nix_api_store/derivation.h
 generate Generated.Nix.Store nix_api_store.h
+generate Generated.Nix.Store.PathInfo nix_api_store/path_info.h
 
 # --- Layer 3: libexpr-c (depends on util, store) ---
 

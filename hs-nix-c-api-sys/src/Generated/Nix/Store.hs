@@ -7,7 +7,7 @@ module Generated.Nix.Store
 
 {-| __C declaration:__ @struct Store@
 
-    __defined at:__ @nix_api_store.h 25:16@
+    __defined at:__ @nix_api_store\/path_info.h 22:16@
 
     __exported by:__ @nix_api_store.h@
 -}

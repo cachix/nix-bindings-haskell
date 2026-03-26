@@ -52,6 +52,15 @@ module Nix
   , storeRealise_
   , copyPath
   , copyClosure
+  , queryPathInfoJson
+
+    -- * Path info types
+  , PathInfo (..)
+  , PathInfoJsonFormat (..)
+  , HashAlgo (..)
+  , Hash (..)
+  , ContentAddress (..)
+  , Signature (..)
 
     -- * Expression evaluation
   , withEvalState
@@ -128,6 +137,7 @@ import qualified Nix.Unsafe.GC as Unsafe
 import qualified Nix.Unsafe.Init as Unsafe
 import qualified Nix.Unsafe.Settings as Unsafe
 import Nix.Internal (EvalState, FetchersSettings, FlakeReference, FlakeSettings, LockedFlake, Store, StorePath, Value)
+import Nix.Store.PathInfo (ContentAddress (..), Hash (..), HashAlgo (..), PathInfo (..), PathInfoJsonFormat (..), Signature (..))
 import Nix.Monad (Nix, liftEitherNix, liftNix, runNix, runNixThrow, withBracketNix)
 import qualified Nix.Unsafe.Store as Unsafe
 import qualified Nix.Unsafe.Value as Unsafe
@@ -208,6 +218,10 @@ copyPath src dst sp repair checkSigs =
 -- | Copy a store path and all its dependencies from one store to another.
 copyClosure :: Store -> Store -> StorePath -> Nix ()
 copyClosure src dst sp = liftNix $ Unsafe.copyClosure src dst sp
+
+-- | Query store path metadata and return it as a parsed 'PathInfo'.
+queryPathInfoJson :: Store -> StorePath -> PathInfoJsonFormat -> Nix PathInfo
+queryPathInfoJson store sp fmt = liftNix $ Unsafe.queryPathInfoJson store sp fmt
 
 -- * Expression evaluation
 

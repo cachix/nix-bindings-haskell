@@ -23,7 +23,7 @@ module Generated.Nix.Expr.Unsafe
     )
   where
 
-import qualified Generated.Nix.Store
+import qualified Generated.Nix.Store.PathInfo
 import qualified Generated.Nix.Util
 import qualified HsBindgen.Runtime.Internal.CAPI
 import qualified HsBindgen.Runtime.Internal.Prelude as RIP
@@ -388,7 +388,7 @@ foreign import ccall unsafe "hs_bindgen_2aa3ffccc5092999" hs_bindgen_2aa3ffccc50
 -- __unique:__ @org_cachix_hsnixcapi_generatednixexpr_Generated.Nix.Expr_Unsafe_nix_eval_state_builder_new@
 hs_bindgen_2aa3ffccc5092999 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
-  -> RIP.Ptr Generated.Nix.Store.Store
+  -> RIP.Ptr Generated.Nix.Store.PathInfo.Store
   -> IO (RIP.Ptr Nix_eval_state_builder)
 hs_bindgen_2aa3ffccc5092999 =
   RIP.fromFFIType hs_bindgen_2aa3ffccc5092999_base
@@ -402,7 +402,7 @@ hs_bindgen_2aa3ffccc5092999 =
 nix_eval_state_builder_new ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
-  -> RIP.Ptr Generated.Nix.Store.Store
+  -> RIP.Ptr Generated.Nix.Store.PathInfo.Store
      -- ^ __C declaration:__ @store@
   -> IO (RIP.Ptr Nix_eval_state_builder)
 nix_eval_state_builder_new =
@@ -534,7 +534,7 @@ foreign import ccall unsafe "hs_bindgen_6d51d642f8f4da44" hs_bindgen_6d51d642f8f
 hs_bindgen_6d51d642f8f4da44 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> RIP.Ptr (PtrConst.PtrConst RIP.CChar)
-  -> RIP.Ptr Generated.Nix.Store.Store
+  -> RIP.Ptr Generated.Nix.Store.PathInfo.Store
   -> IO (RIP.Ptr EvalState)
 hs_bindgen_6d51d642f8f4da44 =
   RIP.fromFFIType hs_bindgen_6d51d642f8f4da44_base
@@ -550,7 +550,7 @@ nix_state_create ::
      -- ^ __C declaration:__ @context@
   -> RIP.Ptr (PtrConst.PtrConst RIP.CChar)
      -- ^ __C declaration:__ @lookupPath@
-  -> RIP.Ptr Generated.Nix.Store.Store
+  -> RIP.Ptr Generated.Nix.Store.PathInfo.Store
      -- ^ __C declaration:__ @store@
   -> IO (RIP.Ptr EvalState)
 nix_state_create = hs_bindgen_6d51d642f8f4da44

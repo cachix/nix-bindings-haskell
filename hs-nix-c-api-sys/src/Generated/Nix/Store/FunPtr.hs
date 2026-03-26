@@ -246,7 +246,7 @@ hs_bindgen_02d00187661efbbc =
 {-# NOINLINE nix_libstore_init #-}
 {-| __C declaration:__ @nix_libstore_init@
 
-    __defined at:__ @nix_api_store.h 36:9@
+    __defined at:__ @nix_api_store.h 37:9@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -266,7 +266,7 @@ hs_bindgen_f55266f611791460 =
 {-# NOINLINE nix_libstore_init_no_load_config #-}
 {-| __C declaration:__ @nix_libstore_init_no_load_config@
 
-    __defined at:__ @nix_api_store.h 43:9@
+    __defined at:__ @nix_api_store.h 44:9@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -286,7 +286,7 @@ hs_bindgen_860ac600475b6304 =
 {-# NOINLINE nix_store_open #-}
 {-| __C declaration:__ @nix_store_open@
 
-    __defined at:__ @nix_api_store.h 74:9@
+    __defined at:__ @nix_api_store.h 75:9@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -306,7 +306,7 @@ hs_bindgen_c3589b4c0572e634 =
 {-# NOINLINE nix_store_free #-}
 {-| __C declaration:__ @nix_store_free@
 
-    __defined at:__ @nix_api_store.h 83:6@
+    __defined at:__ @nix_api_store.h 84:6@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -326,7 +326,7 @@ hs_bindgen_21b2883e24a41379 =
 {-# NOINLINE nix_store_get_uri #-}
 {-| __C declaration:__ @nix_store_get_uri@
 
-    __defined at:__ @nix_api_store.h 94:9@
+    __defined at:__ @nix_api_store.h 95:9@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -346,7 +346,7 @@ hs_bindgen_6b8e9a9f40467b82 =
 {-# NOINLINE nix_store_get_storedir #-}
 {-| __C declaration:__ @nix_store_get_storedir@
 
-    __defined at:__ @nix_api_store.h 106:1@
+    __defined at:__ @nix_api_store.h 107:1@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -366,7 +366,7 @@ hs_bindgen_80b0befda3dc2f98 =
 {-# NOINLINE nix_store_parse_path #-}
 {-| __C declaration:__ @nix_store_parse_path@
 
-    __defined at:__ @nix_api_store.h 117:13@
+    __defined at:__ @nix_api_store.h 118:13@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -386,7 +386,7 @@ hs_bindgen_ad2e100d8fa2ff42 =
 {-# NOINLINE nix_store_is_valid_path #-}
 {-| __C declaration:__ @nix_store_is_valid_path@
 
-    __defined at:__ @nix_api_store.h 127:6@
+    __defined at:__ @nix_api_store.h 128:6@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -406,7 +406,7 @@ hs_bindgen_7de1a1e634b70a4f =
 {-# NOINLINE nix_store_real_path #-}
 {-| __C declaration:__ @nix_store_real_path@
 
-    __defined at:__ @nix_api_store.h 145:9@
+    __defined at:__ @nix_api_store.h 146:9@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -426,7 +426,7 @@ hs_bindgen_7b102a9612771b1a =
 {-# NOINLINE nix_store_realise #-}
 {-| __C declaration:__ @nix_store_realise@
 
-    __defined at:__ @nix_api_store.h 166:9@
+    __defined at:__ @nix_api_store.h 167:9@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -446,7 +446,7 @@ hs_bindgen_8e52916baf3065a9 =
 {-# NOINLINE nix_store_get_version #-}
 {-| __C declaration:__ @nix_store_get_version@
 
-    __defined at:__ @nix_api_store.h 186:1@
+    __defined at:__ @nix_api_store.h 187:1@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -466,7 +466,7 @@ hs_bindgen_76c33540361534d2 =
 {-# NOINLINE nix_derivation_from_json #-}
 {-| __C declaration:__ @nix_derivation_from_json@
 
-    __defined at:__ @nix_api_store.h 202:18@
+    __defined at:__ @nix_api_store.h 203:18@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -486,7 +486,7 @@ hs_bindgen_46fa3826a4b54a2c =
 {-# NOINLINE nix_add_derivation #-}
 {-| __C declaration:__ @nix_add_derivation@
 
-    __defined at:__ @nix_api_store.h 211:13@
+    __defined at:__ @nix_api_store.h 212:13@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -506,7 +506,7 @@ hs_bindgen_38805e4c5673664c =
 {-# NOINLINE nix_store_copy_closure #-}
 {-| __C declaration:__ @nix_store_copy_closure@
 
-    __defined at:__ @nix_api_store.h 221:9@
+    __defined at:__ @nix_api_store.h 222:9@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -526,7 +526,7 @@ hs_bindgen_55b3518ab78ae1f5 =
 {-# NOINLINE nix_store_get_fs_closure #-}
 {-| __C declaration:__ @nix_store_get_fs_closure@
 
-    __defined at:__ @nix_api_store.h 242:9@
+    __defined at:__ @nix_api_store.h 243:9@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -546,7 +546,7 @@ hs_bindgen_16455b5c3928ab8a =
 {-# NOINLINE nix_store_drv_from_store_path #-}
 {-| __C declaration:__ @nix_store_drv_from_store_path@
 
-    __defined at:__ @nix_api_store.h 260:18@
+    __defined at:__ @nix_api_store.h 261:18@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -566,7 +566,7 @@ hs_bindgen_5b25692f7fab62ef =
 {-# NOINLINE nix_store_query_path_from_hash_part #-}
 {-| __C declaration:__ @nix_store_query_path_from_hash_part@
 
-    __defined at:__ @nix_api_store.h 271:13@
+    __defined at:__ @nix_api_store.h 272:13@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -586,7 +586,7 @@ hs_bindgen_55c1bcc80d48edc4 =
 {-# NOINLINE nix_store_copy_path #-}
 {-| __C declaration:__ @nix_store_copy_path@
 
-    __defined at:__ @nix_api_store.h 283:9@
+    __defined at:__ @nix_api_store.h 284:9@
 
     __exported by:__ @nix_api_store.h@
 -}

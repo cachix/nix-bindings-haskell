@@ -55,6 +55,10 @@ library
     Generated.Nix.Store.Derivation.FunPtr
     Generated.Nix.Store.Derivation.Safe
     Generated.Nix.Store.Derivation.Unsafe
+    Generated.Nix.Store.PathInfo
+    Generated.Nix.Store.PathInfo.FunPtr
+    Generated.Nix.Store.PathInfo.Safe
+    Generated.Nix.Store.PathInfo.Unsafe
     Generated.Nix.Expr
     Generated.Nix.Expr.FunPtr
     Generated.Nix.Expr.Safe

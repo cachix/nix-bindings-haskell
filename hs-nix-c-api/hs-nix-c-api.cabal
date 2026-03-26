@@ -58,15 +58,18 @@ library
   import:           common
   hs-source-dirs:   src
   build-depends:
+    , aeson
     , bytestring
     , hs-bindgen-runtime
     , hs-nix-c-api-sys
+    , text
     , transformers
   exposed-modules:
     Nix
     Nix.C
     Nix.Context
     Nix.Monad
+    Nix.Store.PathInfo
     Nix.Unsafe
     Nix.Unsafe.Expr
     Nix.Unsafe.GC

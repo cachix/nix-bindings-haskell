@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternSynonyms #-}
+
 -- | Throwing interface to the Nix store.
 -- All functions throw 'Nix.Context.NixError' on failure.
 module Nix.Unsafe.Store
@@ -18,22 +20,28 @@ module Nix.Unsafe.Store
   , storeRealise_
   , copyPath
   , copyClosure
+  , queryPathInfoJson
   ) where
 
-import Control.Exception (bracket, bracketOnError)
+import Control.Exception (bracket, bracketOnError, throwIO)
+import qualified Data.Aeson as Aeson
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import Foreign (FunPtr, Ptr, castFunPtr, castPtr, finalizeForeignPtr, freeHaskellFunPtr, newForeignPtr, newForeignPtr_, nullPtr, withForeignPtr)
 import qualified Generated.Nix.Store.Path.FunPtr as FPStorePath
 import Foreign.C (CChar)
 import Foreign.Marshal.Utils (fromBool)
+import Generated.Nix.Store.PathInfo (Nix_path_info_json_format, pattern NIX_PATH_INFO_JSON_FORMAT_V1, pattern NIX_PATH_INFO_JSON_FORMAT_V2, pattern NIX_PATH_INFO_JSON_FORMAT_V3)
 import Generated.Nix.Util (Nix_err (..), Nix_get_string_callback)
+import qualified Generated.Nix.Store.PathInfo.Safe as SysPathInfo
 import qualified Generated.Nix.Store.Safe as SysStore
 import qualified Generated.Nix.Store.Path.Safe as SysStorePath
 import qualified Generated.Nix.Util.Safe as SysUtil
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr)
-import Nix.Context (checkError, checkNull, withCallbackBS)
+import qualified Data.ByteString.Char8 as BS8
+import Nix.Context (NixError (..), NixErrorKind (..), checkError, checkNull, withCallbackBS)
 import Nix.Internal (CNixContext, CStore, CStorePath, Store (..), StorePath (..))
+import Nix.Store.PathInfo (PathInfo, PathInfoJsonFormat (..))
 
 -- | Open a Nix store and run an action with it.
 -- The store is automatically closed when the action completes.
@@ -166,3 +174,20 @@ copyClosure src dst (StorePath spFP) =
     Nix_err rc <- SysStore.nix_store_copy_closure
       (storeCtx src) (storePtr src) (storePtr dst) sp
     checkError (storeCtx src) rc
+
+-- | Query store path metadata and return it as a parsed 'PathInfo'.
+queryPathInfoJson :: Store -> StorePath -> PathInfoJsonFormat -> IO PathInfo
+queryPathInfoJson store (StorePath spFP) fmt =
+  withForeignPtr spFP $ \sp -> do
+    (Nix_err rc, bs) <- withCallbackBS $ \cb ud ->
+      SysPathInfo.nix_store_query_path_info_json
+        (storeCtx store) (castPtr (storePtr store)) (unsafeFromPtr sp) (toCFormat fmt) cb (castPtr ud)
+    checkError (storeCtx store) rc
+    case Aeson.eitherDecodeStrict' bs of
+      Left err -> throwIO $ NixCError NixErrUnknown (BS8.pack $ "queryPathInfoJson: " <> err) BS.empty
+      Right info -> pure info
+ where
+  toCFormat :: PathInfoJsonFormat -> Nix_path_info_json_format
+  toCFormat PathInfoJsonFormatV1 = NIX_PATH_INFO_JSON_FORMAT_V1
+  toCFormat PathInfoJsonFormatV2 = NIX_PATH_INFO_JSON_FORMAT_V2
+  toCFormat PathInfoJsonFormatV3 = NIX_PATH_INFO_JSON_FORMAT_V3

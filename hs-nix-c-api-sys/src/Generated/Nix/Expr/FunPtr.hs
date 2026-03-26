@@ -23,7 +23,7 @@ module Generated.Nix.Expr.FunPtr
     )
   where
 
-import qualified Generated.Nix.Store
+import qualified Generated.Nix.Store.PathInfo
 import qualified Generated.Nix.Util
 import qualified HsBindgen.Runtime.Internal.CAPI
 import qualified HsBindgen.Runtime.Internal.Prelude as RIP
@@ -325,7 +325,7 @@ foreign import ccall unsafe "hs_bindgen_6c86602f016ad59f" hs_bindgen_6c86602f016
      IO (RIP.FunPtr RIP.Void)
 
 -- __unique:__ @org_cachix_hsnixcapi_generatednixexpr_Generated.Nix.Expr_get_nix_eval_state_builder_new@
-hs_bindgen_6c86602f016ad59f :: IO (RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr Generated.Nix.Store.Store) -> IO (RIP.Ptr Nix_eval_state_builder)))
+hs_bindgen_6c86602f016ad59f :: IO (RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr Generated.Nix.Store.PathInfo.Store) -> IO (RIP.Ptr Nix_eval_state_builder)))
 hs_bindgen_6c86602f016ad59f =
   RIP.fromFFIType hs_bindgen_6c86602f016ad59f_base
 
@@ -336,7 +336,7 @@ hs_bindgen_6c86602f016ad59f =
 
     __exported by:__ @nix_api_expr.h@
 -}
-nix_eval_state_builder_new :: RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr Generated.Nix.Store.Store) -> IO (RIP.Ptr Nix_eval_state_builder))
+nix_eval_state_builder_new :: RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr Generated.Nix.Store.PathInfo.Store) -> IO (RIP.Ptr Nix_eval_state_builder))
 nix_eval_state_builder_new =
   RIP.unsafePerformIO hs_bindgen_6c86602f016ad59f
 
@@ -425,7 +425,7 @@ foreign import ccall unsafe "hs_bindgen_622da5cba48e2c43" hs_bindgen_622da5cba48
      IO (RIP.FunPtr RIP.Void)
 
 -- __unique:__ @org_cachix_hsnixcapi_generatednixexpr_Generated.Nix.Expr_get_nix_state_create@
-hs_bindgen_622da5cba48e2c43 :: IO (RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr (PtrConst.PtrConst RIP.CChar)) -> (RIP.Ptr Generated.Nix.Store.Store) -> IO (RIP.Ptr EvalState)))
+hs_bindgen_622da5cba48e2c43 :: IO (RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr (PtrConst.PtrConst RIP.CChar)) -> (RIP.Ptr Generated.Nix.Store.PathInfo.Store) -> IO (RIP.Ptr EvalState)))
 hs_bindgen_622da5cba48e2c43 =
   RIP.fromFFIType hs_bindgen_622da5cba48e2c43_base
 
@@ -436,7 +436,7 @@ hs_bindgen_622da5cba48e2c43 =
 
     __exported by:__ @nix_api_expr.h@
 -}
-nix_state_create :: RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr (PtrConst.PtrConst RIP.CChar)) -> (RIP.Ptr Generated.Nix.Store.Store) -> IO (RIP.Ptr EvalState))
+nix_state_create :: RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr (PtrConst.PtrConst RIP.CChar)) -> (RIP.Ptr Generated.Nix.Store.PathInfo.Store) -> IO (RIP.Ptr EvalState))
 nix_state_create =
   RIP.unsafePerformIO hs_bindgen_622da5cba48e2c43
 
