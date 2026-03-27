@@ -28,6 +28,7 @@ generate() {
     --unique-id="${unique_id}" \
     --hs-output-dir="${OUTDIR}" \
     --enable-program-slicing \
+    --overwrite-files \
     --select-except-deprecated \
     "${EXTERNAL_SPECS[@]}" \
     --gen-binding-spec="${SPECDIR}/${spec_name}.yaml" \

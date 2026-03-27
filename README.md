@@ -38,10 +38,26 @@ cabal build all
 cabal test all
 ```
 
+## Flake outputs
+
+| Package | Description |
+|---|---|
+| `hs-nix-c-api` (default) | High-level library built from committed bindings |
+| `hs-nix-c-api-sys` | Low-level FFI bindings built from committed source |
+| `hs-nix-c-api-regenerated` | High-level library built from regenerated bindings |
+| `hs-nix-c-api-sys-regenerated` | Low-level FFI bindings regenerated from Nix C API headers at build time |
+
+The `-regenerated` variants use [hs-bindgen](https://github.com/well-typed/hs-bindgen) to regenerate bindings from Nix C API headers at build time.
+Override the `nix` flake input to generate bindings for a different Nix version:
+
+```bash
+nix build .#hs-nix-c-api-regenerated --override-input nix github:NixOS/nix/2.26.0
+```
+
 ## Regenerating FFI bindings
 
 The raw bindings in `hs-nix-c-api-sys` are generated from Nix C API headers and committed to the repository.
-To regenerate:
+To regenerate manually:
 
 ```bash
 nix develop

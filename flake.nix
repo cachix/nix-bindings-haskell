@@ -59,10 +59,32 @@
               inherit hs-nix-c-api-sys;
               inherit (hpkgs) hs-bindgen-runtime;
             });
+
+          hs-nix-c-api-sys-regenerated =
+            hlib.overrideCabal
+              (drv: {
+                pkg-configDepends = nixCApiPkgs;
+              })
+              (hlib.generateBindings
+                ./hs-nix-c-api-sys/generate-bindings
+                (hpkgs.callCabal2nix "hs-nix-c-api-sys" ./hs-nix-c-api-sys { }));
+
+          hs-nix-c-api-regenerated = hlib.overrideCabal
+            (drv: {
+              pkg-configDepends = nixCApiPkgs;
+            })
+            (hpkgs.callCabal2nix "hs-nix-c-api" ./hs-nix-c-api {
+              hs-nix-c-api-sys = hs-nix-c-api-sys-regenerated;
+              inherit (hpkgs) hs-bindgen-runtime;
+            });
         in
         {
           packages = {
-            inherit hs-nix-c-api hs-nix-c-api-sys;
+            inherit
+              hs-nix-c-api
+              hs-nix-c-api-sys
+              hs-nix-c-api-sys-regenerated
+              hs-nix-c-api-regenerated;
             default = hs-nix-c-api;
           };
 
