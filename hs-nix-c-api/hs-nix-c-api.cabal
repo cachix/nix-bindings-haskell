@@ -47,9 +47,17 @@ description:
   .
   For raw FFI access to the complete C API surface, use "Nix.C".
 
-license:       MIT
-license-file:  LICENSE
-build-type:    Simple
+license:          MIT
+license-file:     LICENSE
+author:           Cachix
+maintainer:       support@cachix.org
+category:         Nix, System
+homepage:         https://github.com/cachix/hs-nix-c-api
+bug-reports:      https://github.com/cachix/hs-nix-c-api/issues
+build-type:       Simple
+extra-doc-files:
+  CHANGELOG.md
+  README.md
 
 common common
   default-language: GHC2021

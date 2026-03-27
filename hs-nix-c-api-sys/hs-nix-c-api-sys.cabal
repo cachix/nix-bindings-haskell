@@ -26,9 +26,17 @@ description:
   For a safe, idiomatic Haskell API with resource management and error
   handling, see the @hs-nix-c-api@ package.
 
-license:       MIT
-license-file:  LICENSE
-build-type:    Simple
+license:          MIT
+license-file:     LICENSE
+author:           Cachix
+maintainer:       support@cachix.org
+category:         Nix, FFI
+homepage:         https://github.com/cachix/hs-nix-c-api
+bug-reports:      https://github.com/cachix/hs-nix-c-api/issues
+build-type:       Simple
+extra-doc-files:
+  CHANGELOG.md
+  README.md
 
 common common
   default-language: GHC2021
