@@ -1,6 +1,6 @@
 -- | Throwing interface to Nix garbage collection.
--- All fallible functions throw 'Nix.Context.NixError' on failure.
-module Nix.Unsafe.GC
+-- All fallible functions throw 'Nix.C.Context.NixError' on failure.
+module Nix.C.Unsafe.GC
   ( gcIncRef
   , gcDecRef
   , gcNow

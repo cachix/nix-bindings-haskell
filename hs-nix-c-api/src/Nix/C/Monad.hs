@@ -4,14 +4,13 @@
 -- | The 'Nix' monad for safe, composable Nix operations.
 --
 -- @
--- result <- 'runNix' $ 'Nix.withStore' "local" $ \\store ->
---   'Nix.withEvalState' store $ \\state -> do
---     val <- 'Nix.evalFromString' state "1 + 2" [osp|.|]
---     'Nix.valueForce' state val
---     'Nix.getInt' state val
+-- result <- 'runNix' $ 'Nix.C.withStore' "local" $ \\store ->
+--   'Nix.C.withEvalState' store $ \\state -> do
+--     val <- 'Nix.C.evalFromString' state "1 + 2" [osp|.|]
+--     'Nix.C.fromValue' \@Int64 state val
 -- -- result :: Either NixError Int64
 -- @
-module Nix.Monad
+module Nix.C.Monad
   ( Nix
   , runNix
   , runNixThrow
@@ -23,7 +22,7 @@ module Nix.Monad
 import Control.Exception (mask, onException, throwIO, try)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Except (ExceptT (..))
-import Nix.Context (NixError)
+import Nix.C.Context (NixError)
 
 -- | A monad for composing Nix operations with automatic error handling.
 --

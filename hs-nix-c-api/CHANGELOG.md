@@ -20,4 +20,4 @@ management and structured error handling.
 - Query store path metadata (hashes, signatures, content addresses).
 - Parse flake references, lock flakes, and access flake outputs.
 - Manage garbage collection and Nix settings.
-- Three API styles: `Nix` monad, throwing IO (`Nix.Unsafe`), and `Either`-based (`runNix`).
+- Three API styles: `Nix` monad, throwing IO (`Nix.C.Unsafe`), and `Either`-based (`runNix`).

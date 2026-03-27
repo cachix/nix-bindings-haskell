@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Test.Nix.Store (spec) where
+module Test.Nix.C.Store (spec) where
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS8
@@ -11,9 +11,9 @@ import System.Info (os)
 import System.OsPath (decodeUtf, osp, (</>))
 import Test.Hspec
 
-import Nix.Context (NixError)
-import Nix.Unsafe.Init (initNix)
-import Nix.Unsafe.Store
+import Nix.C.Context (NixError)
+import Nix.C.Unsafe.Init (initNix)
+import Nix.C.Unsafe.Store
 
 -- | Open a test store. On macOS uses the daemon; on Linux uses a
 -- temporary local store so tests work inside the Nix sandbox.
@@ -33,7 +33,7 @@ withTestStoreUri f
         f (BS8.pack $ "local?root=" <> tmp)
 
 spec :: Spec
-spec = describe "Nix.Store" $ before_ initNix $ do
+spec = describe "Nix.C.Store" $ before_ initNix $ do
   describe "withStore" $ do
     it "can open and close a store" $ do
       withTestStore $ \_ -> pure ()

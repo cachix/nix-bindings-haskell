@@ -1,6 +1,6 @@
 -- | Throwing interface to the Nix flake API.
--- All fallible functions throw 'Nix.Context.NixError' on failure.
-module Nix.Unsafe.Flake
+-- All fallible functions throw 'Nix.C.Context.NixError' on failure.
+module Nix.C.Unsafe.Flake
   ( FlakeSettings
   , FetchersSettings
   , FlakeReference
@@ -34,8 +34,8 @@ import qualified Generated.Nix.Fetchers.Safe as SysFetchers
 import qualified Generated.Nix.Flake.Safe as SysFlake
 import qualified Generated.Nix.Util.Safe as SysUtil
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr)
-import Nix.Context (checkError, checkNull, withCallbackBS, withContext')
-import Nix.Internal
+import Nix.C.Context (checkError, checkNull, withCallbackBS, withContext')
+import Nix.C.Internal
   ( EvalState (..)
   , FetchersSettings (..)
   , FlakeReference (..)
@@ -44,7 +44,7 @@ import Nix.Internal
   , Store (..)
   , Value (..)
   )
-import qualified Nix.Unsafe.Expr as Expr
+import qualified Nix.C.Unsafe.Expr as Expr
 
 -- | Flake lock mode.
 data LockMode
@@ -91,7 +91,7 @@ withFetchersSettings :: (FetchersSettings -> IO a) -> IO a
 withFetchersSettings = bracket createFetchersSettings freeFetchersSettings
 
 -- | Create an evaluator state with flake settings added to the builder.
--- Must be paired with 'Nix.Unsafe.Expr.destroyEvalState'.
+-- Must be paired with 'Nix.C.Unsafe.Expr.destroyEvalState'.
 createFlakeEvalState :: Store -> FlakeSettings -> IO EvalState
 createFlakeEvalState store (FlakeSettings fsFP) =
   withForeignPtr fsFP $ \fs ->

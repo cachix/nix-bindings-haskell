@@ -1,20 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Test.Nix.Expr (spec) where
+module Test.Nix.C.Expr (spec) where
 
 import System.OsPath (osp)
 import Test.Hspec
 
-import Nix.Context (NixError)
-import Nix.Unsafe.Expr
-import Nix.Unsafe.Init (initNix)
-import Nix.Unsafe.Store (withStore)
-import Nix.Unsafe.Value
-import Test.Nix.Util (eval, withEnv)
+import Nix.C.Context (NixError)
+import Nix.C.Unsafe.Expr
+import Nix.C.Unsafe.Init (initNix)
+import Nix.C.Unsafe.Store (withStore)
+import Nix.C.Unsafe.Value
+import Test.Nix.C.Util (eval, withEnv)
 
 spec :: Spec
-spec = describe "Nix.Expr" $ before_ initNix $ do
+spec = describe "Nix.C.Expr" $ before_ initNix $ do
   describe "withEvalState" $ do
     it "creates and destroys an eval state" $ do
       withEnv $ \_ -> pure ()

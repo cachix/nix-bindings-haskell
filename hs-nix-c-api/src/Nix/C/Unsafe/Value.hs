@@ -6,7 +6,7 @@
 -- throwing 'NixError' on type mismatch.
 -- For unchecked accessors, use the @unsafe@-prefixed variants.
 -- For safe accessors returning 'Either', use 'fromValue', 'getAttr', and 'getAttrPath'.
-module Nix.Unsafe.Value
+module Nix.C.Unsafe.Value
   ( Value
   , NixType (..)
     -- * Type inspection
@@ -69,15 +69,15 @@ import Foreign.C (CDouble (..))
 import Generated.Nix.Util (Nix_err (..))
 import qualified Generated.Nix.Value.Safe as SysValue
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr, unsafeToPtr)
-import Nix.Context
+import Nix.C.Context
   ( NixError (..)
   , NixErrorKind (..)
   , checkError
   , checkNull
   , withCallbackBS
   )
-import Nix.Unsafe.Expr (valueForce)
-import Nix.Internal (CNixContext, CNixValue, EvalState (..), NixType (..), Value (..), byteStringToOsPath, castEvalPtr, osPathToByteString, toNixType)
+import Nix.C.Unsafe.Expr (valueForce)
+import Nix.C.Internal (CNixContext, CNixValue, EvalState (..), NixType (..), Value (..), byteStringToOsPath, castEvalPtr, osPathToByteString, toNixType)
 import System.OsPath (OsPath)
 
 -- | Human-readable name for a Nix type.

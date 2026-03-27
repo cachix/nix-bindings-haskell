@@ -6,7 +6,7 @@ Built on top of [hs-nix-c-api-sys](../hs-nix-c-api-sys/) (auto-generated raw FFI
 
 ## Three usage styles
 
-### The Nix monad (`import Nix`)
+### The Nix monad (`import Nix.C`)
 
 Errors short-circuit automatically.
 Use `runNix` to get `Either NixError a`, or `runNixThrow` to re-throw.
@@ -14,7 +14,7 @@ Use `runNix` to get `Either NixError a`, or `runNixThrow` to re-throw.
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
-import Nix
+import Nix.C
 import System.OsPath (osp)
 
 main :: IO ()
@@ -29,7 +29,7 @@ main = do
   print result -- Right 3
 ```
 
-### Throwing IO (`import Nix.Unsafe`)
+### Throwing IO (`import Nix.C.Unsafe`)
 
 Direct IO functions that throw `NixError` on failure.
 Works naturally with `bracket`, `shouldThrow`, and other exception-based code.
@@ -37,7 +37,7 @@ Works naturally with `bracket`, `shouldThrow`, and other exception-based code.
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
-import Nix.Unsafe
+import Nix.C.Unsafe
 import System.OsPath (osp)
 
 main :: IO ()
@@ -109,18 +109,18 @@ getInt state val     -- OK: returns 42
 getString state val  -- throws: NixTypeMismatch TypeInt TypeString
 ```
 
-Unchecked variants (`unsafeGetInt`, `unsafeGetFloat`, etc.) are available via `import Nix.Unsafe.Value` for performance-sensitive code.
+Unchecked variants (`unsafeGetInt`, `unsafeGetFloat`, etc.) are available via `import Nix.C.Unsafe.Value` for performance-sensitive code.
 
 ## Modules
 
 | Module | Purpose |
 |---|---|
-| `Nix` | Nix monad API (recommended) |
-| `Nix.Unsafe` | Throwing IO API (re-exports `Nix.Unsafe.*`) |
-| `Nix.Unsafe.Expr` | Expression evaluation (throwing) |
-| `Nix.Unsafe.Init` | Library initialization (throwing) |
-| `Nix.Unsafe.Store` | Store operations (throwing) |
-| `Nix.Unsafe.Value` | Value extraction, `FromValue` (throwing + `Either`) |
-| `Nix.Monad` | `Nix` type, `runNix`, `runNixThrow`, `liftNix` |
-| `Nix.Context` | `NixError`, `NixErrorKind` |
-| `Nix.C` | Raw FFI re-exports from `hs-nix-c-api-sys` |
+| `Nix.C` | Nix monad API (recommended) |
+| `Nix.C.Unsafe` | Throwing IO API (re-exports `Nix.C.Unsafe.*`) |
+| `Nix.C.Unsafe.Expr` | Expression evaluation (throwing) |
+| `Nix.C.Unsafe.Init` | Library initialization (throwing) |
+| `Nix.C.Unsafe.Store` | Store operations (throwing) |
+| `Nix.C.Unsafe.Value` | Value extraction, `FromValue` (throwing + `Either`) |
+| `Nix.C.Monad` | `Nix` type, `runNix`, `runNixThrow`, `liftNix` |
+| `Nix.C.Context` | `NixError`, `NixErrorKind` |
+| `Nix.C.Sys` | Raw FFI re-exports from `hs-nix-c-api-sys` |

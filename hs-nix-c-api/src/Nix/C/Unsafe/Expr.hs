@@ -1,6 +1,6 @@
 -- | Throwing interface to the Nix expression evaluator.
--- All fallible functions throw 'Nix.Context.NixError' on failure.
-module Nix.Unsafe.Expr
+-- All fallible functions throw 'Nix.C.Context.NixError' on failure.
+module Nix.C.Unsafe.Expr
   ( EvalState
   , withEvalState
   , withEvalStateWith
@@ -23,8 +23,8 @@ import qualified Generated.Nix.Expr.Safe as SysExpr
 import qualified Generated.Nix.Util.Safe as SysUtil
 import qualified Generated.Nix.Value.Safe as SysValue
 import HsBindgen.Runtime.PtrConst (PtrConst, unsafeFromPtr)
-import Nix.Context (checkError, checkNull)
-import Nix.Internal (EvalState (..), Store (..), Value (..), castEvalPtr, osPathToByteString)
+import Nix.C.Context (checkError, checkNull)
+import Nix.C.Internal (EvalState (..), Store (..), Value (..), castEvalPtr, osPathToByteString)
 import System.OsPath (OsPath)
 
 -- | Create an evaluator state and run an action with it.

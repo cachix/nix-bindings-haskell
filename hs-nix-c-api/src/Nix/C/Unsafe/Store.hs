@@ -1,8 +1,8 @@
 {-# LANGUAGE PatternSynonyms #-}
 
 -- | Throwing interface to the Nix store.
--- All functions throw 'Nix.Context.NixError' on failure.
-module Nix.Unsafe.Store
+-- All functions throw 'Nix.C.Context.NixError' on failure.
+module Nix.C.Unsafe.Store
   ( Store
   , StorePath
   , withStore
@@ -45,9 +45,9 @@ import qualified Generated.Nix.Util.Safe as SysUtil
 import qualified HsBindgen.Runtime.ConstantArray as CA
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr)
 import qualified Data.ByteString.Char8 as BS8
-import Nix.Context (NixError (..), NixErrorKind (..), checkError, checkNull, withCallbackBS, withContext')
-import Nix.Internal (CNixContext, CStore, CStorePath, Store (..), StorePath (..), byteStringToOsPath, osPathToByteString)
-import Nix.Store.PathInfo (PathInfo, PathInfoJsonFormat (..))
+import Nix.C.Context (NixError (..), NixErrorKind (..), checkError, checkNull, withCallbackBS, withContext')
+import Nix.C.Internal (CNixContext, CStore, CStorePath, Store (..), StorePath (..), byteStringToOsPath, osPathToByteString)
+import Nix.C.Store.PathInfo (PathInfo, PathInfoJsonFormat (..))
 import System.OsPath (OsPath)
 
 -- | Open a Nix store and run an action with it.

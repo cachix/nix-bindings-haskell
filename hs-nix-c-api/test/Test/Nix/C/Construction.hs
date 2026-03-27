@@ -3,20 +3,20 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Test.Nix.Construction (spec) where
+module Test.Nix.C.Construction (spec) where
 
 import Data.ByteString (ByteString)
 import Data.Int (Int64)
 import System.OsPath (osp)
 import Test.Hspec
 
-import Nix.Unsafe.Expr (valueCall, valueCallMulti, valueForce)
-import Nix.Unsafe.Init (initNix)
-import Nix.Unsafe.Value
-import Test.Nix.Util (eval, withEnv)
+import Nix.C.Unsafe.Expr (valueCall, valueCallMulti, valueForce)
+import Nix.C.Unsafe.Init (initNix)
+import Nix.C.Unsafe.Value
+import Test.Nix.C.Util (eval, withEnv)
 
 spec :: Spec
-spec = describe "Nix.Value construction" $ before_ initNix $ do
+spec = describe "Nix.C.Value construction" $ before_ initNix $ do
   describe "mkInt" $ do
     it "constructs an integer" $ withEnv $ \state -> do
       val <- mkInt state 42

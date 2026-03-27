@@ -3,21 +3,21 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Test.Nix.Value (spec) where
+module Test.Nix.C.Value (spec) where
 
 import qualified Data.ByteString as BS
 import Data.Int (Int64)
 import System.OsPath (osp)
 import Test.Hspec
 
-import Nix.Context (NixError (..))
-import Nix.Unsafe.Expr (evalFromString, valueForce)
-import Nix.Unsafe.Init (initNix)
-import Nix.Unsafe.Value
-import Test.Nix.Util (eval, withEnv)
+import Nix.C.Context (NixError (..))
+import Nix.C.Unsafe.Expr (evalFromString, valueForce)
+import Nix.C.Unsafe.Init (initNix)
+import Nix.C.Unsafe.Value
+import Test.Nix.C.Util (eval, withEnv)
 
 spec :: Spec
-spec = describe "Nix.Value" $ before_ initNix $ do
+spec = describe "Nix.C.Value" $ before_ initNix $ do
   describe "type inspection" $ do
     it "identifies integer type" $ withEnv $ \state -> do
       val <- eval state "42"

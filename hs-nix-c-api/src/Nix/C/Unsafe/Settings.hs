@@ -1,6 +1,6 @@
 -- | Throwing interface to Nix settings.
--- All fallible functions throw 'Nix.Context.NixError' on failure.
-module Nix.Unsafe.Settings
+-- All fallible functions throw 'Nix.C.Context.NixError' on failure.
+module Nix.C.Unsafe.Settings
   ( getSetting
   , setSetting
   ) where
@@ -11,7 +11,7 @@ import Foreign (castPtr)
 import Generated.Nix.Util (Nix_err (..))
 import qualified Generated.Nix.Util.Safe as SysUtil
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr)
-import Nix.Context (checkError, withCallbackBS, withContext')
+import Nix.C.Context (checkError, withCallbackBS, withContext')
 
 -- | Get a Nix setting by key name.
 getSetting :: ByteString -> IO ByteString

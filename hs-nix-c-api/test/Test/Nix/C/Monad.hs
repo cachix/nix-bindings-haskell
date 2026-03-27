@@ -3,7 +3,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
 
-module Test.Nix.Monad (spec) where
+module Test.Nix.C.Monad (spec) where
 
 import Control.Monad.IO.Class (liftIO)
 import Data.IORef (newIORef, readIORef, writeIORef)
@@ -12,10 +12,10 @@ import Data.Int (Int64)
 import System.OsPath (osp)
 import Test.Hspec
 
-import Nix
+import Nix.C
 
 spec :: Spec
-spec = describe "Nix monad" $ do
+spec = describe "Nix.C monad" $ do
   describe "runNix" $ do
     it "returns Right on success" $ do
       result <- runNix $ do

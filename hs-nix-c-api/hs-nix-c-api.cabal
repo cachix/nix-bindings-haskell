@@ -11,7 +11,7 @@ description:
   @
   {-# LANGUAGE OverloadedStrings #-}
   {-# LANGUAGE QuasiQuotes #-}
-  import Nix
+  import Nix.C
   import System.OsPath (osp)
   .
   main :: IO ()
@@ -28,24 +28,24 @@ description:
   .
   == Modules
   .
-  * "Nix" — safe monadic API via the 'Nix' monad
-  * "Nix.Unsafe" — throwing IO API (re-exports domain modules)
-  * "Nix.Monad" — 'Nix' monad type and runners
-  * "Nix.Context" — error types ('NixError', 'NixErrorKind')
-  * "Nix.C" — re-export of raw FFI bindings from @hs-nix-c-api-sys@
+  * "Nix.C" — safe monadic API via the 'Nix' monad
+  * "Nix.C.Unsafe" — throwing IO API (re-exports domain modules)
+  * "Nix.C.Monad" — 'Nix' monad type and runners
+  * "Nix.C.Context" — error types ('NixError', 'NixErrorKind')
+  * "Nix.C.Sys" — re-export of raw FFI bindings from @hs-nix-c-api-sys@
   .
   == Design
   .
   Three usage styles from a single implementation:
   .
-  * @import Nix@ — the 'Nix' monad with automatic error short-circuiting
-  * @import Nix.Unsafe@ — throwing IO functions for direct use
+  * @import Nix.C@ — the 'Nix' monad with automatic error short-circuiting
+  * @import Nix.C.Unsafe@ — throwing IO functions for direct use
   * @'runNix'@ — get @Either NixError a@ from any 'Nix' computation
   .
   Resources ('Store', 'EvalState') are managed via bracket-style
   @with*@ functions that guarantee cleanup.
   .
-  For raw FFI access to the complete C API surface, use "Nix.C".
+  For raw FFI access to the complete C API surface, use "Nix.C.Sys".
 
 license:          MIT
 license-file:     LICENSE
@@ -78,22 +78,22 @@ library
     , text
     , transformers
   exposed-modules:
-    Nix
     Nix.C
-    Nix.Context
-    Nix.Monad
-    Nix.Store.PathInfo
-    Nix.Unsafe
-    Nix.Unsafe.Expr
-    Nix.Unsafe.GC
-    Nix.Unsafe.Init
-    Nix.Unsafe.Settings
-    Nix.Unsafe.Store
-    Nix.Unsafe.Flake
-    Nix.Unsafe.Value
+    Nix.C.Context
+    Nix.C.Monad
+    Nix.C.Store.PathInfo
+    Nix.C.Sys
+    Nix.C.Unsafe
+    Nix.C.Unsafe.Expr
+    Nix.C.Unsafe.Flake
+    Nix.C.Unsafe.GC
+    Nix.C.Unsafe.Init
+    Nix.C.Unsafe.Settings
+    Nix.C.Unsafe.Store
+    Nix.C.Unsafe.Value
 
   other-modules:
-    Nix.Internal
+    Nix.C.Internal
 
   pkgconfig-depends:
     , nix-util-c
@@ -113,13 +113,13 @@ test-suite hs-nix-c-api-test
   main-is:          Main.hs
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   other-modules:
-    Test.Nix.Util
-    Test.Nix.Store
-    Test.Nix.Expr
-    Test.Nix.Value
-    Test.Nix.Construction
-    Test.Nix.Monad
-    Test.Nix.Settings
+    Test.Nix.C.Construction
+    Test.Nix.C.Expr
+    Test.Nix.C.Monad
+    Test.Nix.C.Settings
+    Test.Nix.C.Store
+    Test.Nix.C.Util
+    Test.Nix.C.Value
 
   build-depends:
     , bytestring

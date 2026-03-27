@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Test.Nix.Util
+module Test.Nix.C.Util
   ( spec
   , withEnv
   , eval
@@ -13,13 +13,13 @@ import qualified Data.ByteString.Char8 as BS8
 import System.OsPath (osp)
 import Test.Hspec
 
-import Nix.Unsafe.Expr (EvalState, evalFromString, valueForce, withEvalState)
-import Nix.Unsafe.Init (initNix, nixVersion)
-import Nix.Unsafe.Store (withStore)
-import Nix.Unsafe.Value (Value)
+import Nix.C.Unsafe.Expr (EvalState, evalFromString, valueForce, withEvalState)
+import Nix.C.Unsafe.Init (initNix, nixVersion)
+import Nix.C.Unsafe.Store (withStore)
+import Nix.C.Unsafe.Value (Value)
 
 spec :: Spec
-spec = describe "Nix.Init" $ before_ initNix $ do
+spec = describe "Nix.C.Init" $ before_ initNix $ do
   it "initializes without error" $ do
     -- initNix is idempotent; calling it again should succeed
     initNix

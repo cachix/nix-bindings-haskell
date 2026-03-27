@@ -7,7 +7,7 @@
 -- All versions share a common structure captured by 'PathInfo', with
 -- format-specific differences handled by the 'Hash', 'ContentAddress',
 -- and 'Signature' types.
-module Nix.Store.PathInfo
+module Nix.C.Store.PathInfo
   ( -- * Path info
     PathInfo (..)
     -- * Format version

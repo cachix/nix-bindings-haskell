@@ -4,7 +4,7 @@
 --
 -- Provides managed error contexts that capture errors from C API calls
 -- and translate them into Haskell exceptions.
-module Nix.Context
+module Nix.C.Context
   ( NixErrorKind (..)
   , NixError (..)
   , withContext
@@ -40,7 +40,7 @@ import Generated.Nix.Util
   )
 import qualified Generated.Nix.Util.Safe as Sys
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr, unsafeToPtr)
-import Nix.Internal (CNixContext, NixType)
+import Nix.C.Internal (CNixContext, NixType)
 import System.IO.Unsafe (unsafePerformIO)
 
 -- Raw callback type matching the C signature.

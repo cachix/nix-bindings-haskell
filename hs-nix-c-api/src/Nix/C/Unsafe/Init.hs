@@ -1,7 +1,7 @@
 -- | Nix library initialization.
 --
 -- Call 'initNix' once before using any other Nix API functions.
-module Nix.Unsafe.Init
+module Nix.C.Unsafe.Init
   ( initNix
   , nixVersion
   ) where
@@ -13,11 +13,11 @@ import qualified Generated.Nix.Expr.Safe as SysExpr
 import qualified Generated.Nix.Store.Safe as SysStore
 import qualified Generated.Nix.Util.Safe as SysUtil
 import HsBindgen.Runtime.PtrConst (unsafeToPtr)
-import Nix.Context (withContext)
+import Nix.C.Context (withContext)
 
 -- | Initialize all Nix libraries.
 -- This is idempotent and safe to call multiple times.
--- Throws 'Nix.Context.NixError' on failure.
+-- Throws 'Nix.C.Context.NixError' on failure.
 initNix :: IO ()
 initNix = do
   withContext $ \ctx -> unwrapNix_err <$> SysUtil.nix_libutil_init ctx
