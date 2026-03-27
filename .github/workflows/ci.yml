@@ -33,17 +33,39 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v6
 
       - uses: cachix/install-nix-action@v31
 
+      - uses: taiki-e/install-action@parse-changelog
+
       - uses: sol/haskell-autotag@v1
+        id: autotag
         with:
           package-path: ./hs-nix-c-api
           prefix: "v"
 
+      - name: Create release for hs-nix-c-api
+        if: steps.autotag.outputs.created
+        run: |
+          notes=$(parse-changelog hs-nix-c-api/CHANGELOG.md "${{ steps.autotag.outputs.version }}")
+          gh release create "${{ steps.autotag.outputs.name }}" --title "${{ steps.autotag.outputs.name }}" --notes "$notes"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - uses: sol/haskell-autotag@v1
+        id: autotag-sys
         with:
           package-path: ./hs-nix-c-api-sys
           prefix: "sys-v"
+
+      - name: Create release for hs-nix-c-api-sys
+        if: steps.autotag-sys.outputs.created
+        run: |
+          notes=$(parse-changelog hs-nix-c-api-sys/CHANGELOG.md "${{ steps.autotag-sys.outputs.version }}")
+          gh release create "${{ steps.autotag-sys.outputs.name }}" --title "${{ steps.autotag-sys.outputs.name }}" --notes "$notes"
+        env:
+          GH_TOKEN: ${{ github.token }}
