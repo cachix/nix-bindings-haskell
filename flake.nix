@@ -1,6 +1,11 @@
 {
   description = "Haskell bindings to the Nix C API";
 
+  nixConfig = {
+    extra-substituters = "https://hs-nix-c-api.cachix.org";
+    extra-trusted-public-keys = "hs-nix-c-api.cachix.org-1:jvt7+t6raQmCgk+cQIEp6zgtSR7vScLH/Nk3HRbUZd8=";
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     hs-bindgen = {
