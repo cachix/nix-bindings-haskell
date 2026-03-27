@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Test.Nix.Monad (spec) where
@@ -8,6 +9,7 @@ import Control.Monad.IO.Class (liftIO)
 import Data.IORef (newIORef, readIORef, writeIORef)
 import Data.ByteString (ByteString)
 import Data.Int (Int64)
+import System.OsPath (osp)
 import Test.Hspec
 
 import Nix
@@ -20,7 +22,7 @@ spec = describe "Nix monad" $ do
         initNix
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
-            val <- evalFromString state "1 + 2" "."
+            val <- evalFromString state "1 + 2" [osp|.|]
             fromValue @Int64 state val
       result `shouldBe` Right 3
 
@@ -29,7 +31,7 @@ spec = describe "Nix monad" $ do
         initNix
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
-            val <- evalFromString state "42" "."
+            val <- evalFromString state "42" [osp|.|]
             getString state val
       case result of
         Left (NixTypeMismatch TypeString TypeInt) -> pure ()
@@ -40,7 +42,7 @@ spec = describe "Nix monad" $ do
         initNix
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
-            val <- evalFromString state "throw \"boom\"" "."
+            val <- evalFromString state "throw \"boom\"" [osp|.|]
             valueForce state val
       case result of
         Left (NixCError {}) -> pure ()
@@ -53,7 +55,7 @@ spec = describe "Nix monad" $ do
         initNix
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
-            val <- evalFromString state "throw \"fail\"" "."
+            val <- evalFromString state "throw \"fail\"" [osp|.|]
             valueForce state val
             -- Should not reach here
             liftIO $ writeIORef ref True
@@ -68,7 +70,7 @@ spec = describe "Nix monad" $ do
         initNix
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
-            val <- evalFromString state "\"hello\"" "."
+            val <- evalFromString state "\"hello\"" [osp|.|]
             fromValue @ByteString state val
       result `shouldBe` Right "hello"
 
@@ -77,7 +79,7 @@ spec = describe "Nix monad" $ do
         initNix
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
-            val <- evalFromString state "{ answer = 42; }" "."
+            val <- evalFromString state "{ answer = 42; }" [osp|.|]
             getAttr @Int64 state val "answer"
       result `shouldBe` Right 42
 
@@ -86,7 +88,7 @@ spec = describe "Nix monad" $ do
         initNix
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
-            val <- evalFromString state "{ a = { b = { c = 99; }; }; }" "."
+            val <- evalFromString state "{ a = { b = { c = 99; }; }; }" [osp|.|]
             getAttrPath @Int64 state val ["a", "b", "c"]
       result `shouldBe` Right 99
 
@@ -95,7 +97,7 @@ spec = describe "Nix monad" $ do
         initNix
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
-            val <- evalFromString state "{ a = 1; }" "."
+            val <- evalFromString state "{ a = 1; }" [osp|.|]
             getAttrPath @Int64 state val ["a", "b"]
       case result of
         Left _ -> pure ()

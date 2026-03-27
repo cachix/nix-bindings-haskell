@@ -26,10 +26,16 @@ module Nix.Internal
   , FetchersSettings (..)
   , FlakeReference (..)
   , LockedFlake (..)
+    -- * OsPath conversion (POSIX)
+  , osPathToByteString
+  , byteStringToOsPath
   ) where
 
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Short as SBS
 import Foreign (ForeignPtr, Ptr, castPtr, withForeignPtr)
 import System.IO.Unsafe (unsafePerformIO)
+import System.OsString.Internal.Types (OsString (..), PosixString (..))
 import qualified Generated.Nix.Expr
 import qualified Generated.Nix.Fetchers
 import qualified Generated.Nix.Flake
@@ -102,6 +108,8 @@ fromNixType = Generated.Nix.Value.ValueType . fromIntegral . fromEnum
 
 -- | Handle to an open Nix store.
 -- Carries a reusable error context to avoid per-call allocation.
+--
+-- __Not thread-safe.__ Do not use concurrently from multiple threads.
 data Store = Store
   { storePtr :: !(Ptr CStore)
   , storeCtx :: !(Ptr CNixContext)
@@ -122,6 +130,8 @@ instance Ord StorePath where
 
 -- | Handle to a Nix language evaluator state.
 -- Carries a reusable error context to avoid per-call allocation.
+--
+-- __Not thread-safe.__ Do not use concurrently from multiple threads.
 data EvalState = EvalState
   { evalPtr :: !(Ptr CEvalState)
   , evalCtx :: !(Ptr CNixContext)
@@ -152,3 +162,15 @@ newtype FlakeReference = FlakeReference (ForeignPtr CFlakeReference)
 -- | Handle to a locked Nix flake.
 -- Automatically freed when garbage collected.
 newtype LockedFlake = LockedFlake (ForeignPtr CLockedFlake)
+
+-- * OsPath conversion (POSIX)
+
+-- | Convert an 'OsPath' to a 'ByteString'.
+-- On POSIX this is a byte-for-byte copy with no encoding.
+osPathToByteString :: OsString -> ByteString
+osPathToByteString (OsString (PosixString sbs)) = SBS.fromShort sbs
+
+-- | Convert a 'ByteString' to an 'OsPath'.
+-- On POSIX this is a byte-for-byte copy with no encoding.
+byteStringToOsPath :: ByteString -> OsString
+byteStringToOsPath = OsString . PosixString . SBS.toShort

@@ -1,11 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Test.Nix.Store (spec) where
 
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS8
+import Data.List (isInfixOf)
 import System.IO.Temp (withSystemTempDirectory)
 import System.Info (os)
+import System.OsPath (decodeUtf, osp, (</>))
 import Test.Hspec
 
 import Nix.Context (NixError)
@@ -45,8 +48,9 @@ spec = describe "Nix.Store" $ before_ initNix $ do
     it "returns the store directory" $ do
       withTestStore $ \store -> do
         dir <- storeDir store
-        dir `shouldSatisfy` (not . BS.null)
-        dir `shouldSatisfy` ("nix" `BS.isInfixOf`)
+        dirStr <- decodeUtf dir
+        dirStr `shouldSatisfy` (not . null)
+        dirStr `shouldSatisfy` ("nix" `isInfixOf`)
 
   describe "storeVersion" $ do
     it "returns a version string" $ do
@@ -57,14 +61,14 @@ spec = describe "Nix.Store" $ before_ initNix $ do
   describe "parseStorePath" $ do
     it "rejects invalid store paths" $ do
       withTestStore $ \store ->
-        parseStorePath store "not-a-store-path" (\_ -> pure ())
+        parseStorePath store [osp|not-a-store-path|] (\_ -> pure ())
           `shouldThrow` \(_ :: NixError) -> True
 
   describe "isValidPath" $ do
     it "returns False for a non-existent store path" $ do
       withTestStore $ \store -> do
         dir <- storeDir store
-        let fakePath = dir <> "/00000000000000000000000000000000-nonexistent"
+        let fakePath = dir </> [osp|00000000000000000000000000000000-nonexistent|]
         parseStorePath store fakePath $ \sp ->
           isValidPath store sp `shouldReturn` False
 
@@ -72,7 +76,7 @@ spec = describe "Nix.Store" $ before_ initNix $ do
     it "extracts the name component of a store path" $ do
       withTestStore $ \store -> do
         dir <- storeDir store
-        let fakePath = dir <> "/00000000000000000000000000000000-test-name"
+        let fakePath = dir </> [osp|00000000000000000000000000000000-test-name|]
         parseStorePath store fakePath $ \sp -> do
           name <- storePathName sp
           name `shouldBe` "test-name"
@@ -89,7 +93,7 @@ spec = describe "Nix.Store" $ before_ initNix $ do
     it "parses and frees a store path" $ do
       withTestStore $ \store -> do
         dir <- storeDir store
-        let fakePath = dir <> "/00000000000000000000000000000000-test-free"
+        let fakePath = dir </> [osp|00000000000000000000000000000000-test-free|]
         sp <- parseStorePath' store fakePath
         name <- storePathName sp
         name `shouldBe` "test-free"
@@ -97,5 +101,5 @@ spec = describe "Nix.Store" $ before_ initNix $ do
 
     it "rejects invalid store paths" $ do
       withTestStore $ \store ->
-        parseStorePath' store "not-a-store-path"
+        parseStorePath' store [osp|not-a-store-path|]
           `shouldThrow` \(_ :: NixError) -> True

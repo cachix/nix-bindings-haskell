@@ -1,7 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Test.Nix.Expr (spec) where
 
+import System.OsPath (osp)
 import Test.Hspec
 
 import Nix.Context (NixError)
@@ -81,13 +83,13 @@ spec = describe "Nix.Expr" $ before_ initNix $ do
 
     it "reports errors for invalid expressions" $ do
       withEnv $ \state ->
-        (do val <- evalFromString state "let in" "."
+        (do val <- evalFromString state "let in" [osp|.|]
             valueForce state val
         ) `shouldThrow` \(_ :: NixError) -> True
 
     it "can deeply force a nested structure" $ do
       withEnv $ \state -> do
-        val <- evalFromString state "{ a = { b = 1; }; c = [ 2 3 ]; }" "."
+        val <- evalFromString state "{ a = { b = 1; }; c = [ 2 3 ]; }" [osp|.|]
         valueForceDeep state val
         getType state val `shouldReturn` TypeAttrs
 
@@ -105,7 +107,7 @@ spec = describe "Nix.Expr" $ before_ initNix $ do
     it "can manually create and destroy an eval state" $ do
       withStore "daemon" $ \store -> do
         state <- createEvalState store
-        val <- evalFromString state "1 + 1" "."
+        val <- evalFromString state "1 + 1" [osp|.|]
         valueForce state val
         getInt state val `shouldReturn` 2
         destroyEvalState state
@@ -114,6 +116,6 @@ spec = describe "Nix.Expr" $ before_ initNix $ do
     it "creates an eval state with empty lookup path" $ do
       withStore "daemon" $ \store ->
         withEvalStateWith store [] $ \state -> do
-          val <- evalFromString state "42" "."
+          val <- evalFromString state "42" [osp|.|]
           valueForce state val
           getInt state val `shouldReturn` 42

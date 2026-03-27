@@ -6,7 +6,7 @@
 -- @
 -- result <- 'runNix' $ 'Nix.withStore' "local" $ \\store ->
 --   'Nix.withEvalState' store $ \\state -> do
---     val <- 'Nix.evalFromString' state "1 + 2" "."
+--     val <- 'Nix.evalFromString' state "1 + 2" [osp|.|]
 --     'Nix.valueForce' state val
 --     'Nix.getInt' state val
 -- -- result :: Either NixError Int64

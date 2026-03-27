@@ -1,11 +1,13 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Test.Nix.Value (spec) where
 
 import qualified Data.ByteString as BS
 import Data.Int (Int64)
+import System.OsPath (osp)
 import Test.Hspec
 
 import Nix.Context (NixError (..))
@@ -115,7 +117,7 @@ spec = describe "Nix.Value" $ before_ initNix $ do
     it "extracts paths" $ withEnv $ \state -> do
       val <- eval state "/tmp"
       s <- getPathString state val
-      s `shouldBe` "/tmp"
+      s `shouldBe` [osp|/tmp|]
 
   describe "list operations" $ do
     it "gets list size" $ withEnv $ \state -> do
@@ -236,7 +238,7 @@ spec = describe "Nix.Value" $ before_ initNix $ do
 
   describe "C API errors" $ do
     it "throws NixCError for evaluation errors" $ withEnv $ \state ->
-      (do val <- evalFromString state "throw \"test error\"" "."
+      (do val <- evalFromString state "throw \"test error\"" [osp|.|]
           valueForce state val
       ) `shouldThrow` \case
           NixCError {} -> True
@@ -271,7 +273,7 @@ spec = describe "Nix.Value" $ before_ initNix $ do
 
     it "auto-forces thunks" $ withEnv $ \state -> do
       -- evalFromString without valueForce — value is a thunk
-      val <- evalFromString state "1 + 2" "."
+      val <- evalFromString state "1 + 2" [osp|.|]
       fromValue @Int64 state val `shouldReturn` Right 3
 
   describe "getAttr" $ do
@@ -351,7 +353,7 @@ spec = describe "Nix.Value" $ before_ initNix $ do
 
     it "unsafeGetPathString extracts paths" $ withEnv $ \state -> do
       val <- eval state "/tmp"
-      unsafeGetPathString state val `shouldReturn` "/tmp"
+      unsafeGetPathString state val `shouldReturn` [osp|/tmp|]
 
     it "unsafeGetListSize returns list length" $ withEnv $ \state -> do
       val <- eval state "[ 1 2 3 ]"

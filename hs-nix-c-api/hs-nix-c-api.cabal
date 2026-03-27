@@ -10,7 +10,9 @@ description:
   .
   @
   {-# LANGUAGE OverloadedStrings #-}
+  {-# LANGUAGE QuasiQuotes #-}
   import Nix
+  import System.OsPath (osp)
   .
   main :: IO ()
   main = do
@@ -18,7 +20,7 @@ description:
       'initNix'
       'withStore' "local" $ \\store ->
         'withEvalState' store $ \\state -> do
-          val <- 'evalFromString' state "1 + 2" "."
+          val <- 'evalFromString' state "1 + 2" [osp|.|]
           'valueForce' state val
           'getInt' state val
     print result  -- Right 3
@@ -61,8 +63,10 @@ library
     , aeson
     , base64-bytestring
     , bytestring
+    , filepath          >=1.4.200
     , hs-bindgen-runtime
     , hs-nix-c-api-sys
+    , os-string         >=2.0
     , text
     , transformers
   exposed-modules:
@@ -111,6 +115,7 @@ test-suite hs-nix-c-api-test
 
   build-depends:
     , bytestring
+    , filepath    >=1.4.200
     , hs-nix-c-api
     , hspec
     , temporary

@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Test.Nix.Util
   ( spec
@@ -9,6 +10,7 @@ module Test.Nix.Util
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BS8
+import System.OsPath (osp)
 import Test.Hspec
 
 import Nix.Unsafe.Expr (EvalState, evalFromString, valueForce, withEvalState)
@@ -38,6 +40,6 @@ withEnv f = withStore "daemon" $ \store -> withEvalState store f
 -- | Evaluate and force a Nix expression string.
 eval :: EvalState -> ByteString -> IO Value
 eval state expr = do
-  val <- evalFromString state expr "."
+  val <- evalFromString state expr [osp|.|]
   valueForce state val
   pure val

@@ -24,10 +24,14 @@ import qualified Generated.Nix.Util.Safe as SysUtil
 import qualified Generated.Nix.Value.Safe as SysValue
 import HsBindgen.Runtime.PtrConst (PtrConst, unsafeFromPtr)
 import Nix.Context (checkError, checkNull)
-import Nix.Internal (EvalState (..), Store (..), Value (..), castEvalPtr)
+import Nix.Internal (EvalState (..), Store (..), Value (..), castEvalPtr, osPathToByteString)
+import System.OsPath (OsPath)
 
 -- | Create an evaluator state and run an action with it.
 -- The state is automatically freed when the action completes.
+--
+-- The 'EvalState' handle is __not thread-safe__.
+-- Do not use it concurrently from multiple threads.
 withEvalState :: Store -> (EvalState -> IO a) -> IO a
 withEvalState store f =
   bracket (createEvalState store) destroyEvalState f
@@ -73,12 +77,13 @@ withCStringArray bss f = go bss []
 
 -- | Parse and evaluate a Nix expression from a string.
 --
--- The @path@ argument is used to resolve relative paths in the expression.
-evalFromString :: EvalState -> ByteString -> ByteString -> IO Value
+-- The @path@ argument is a filesystem path used to resolve relative
+-- paths in the expression.
+evalFromString :: EvalState -> ByteString -> OsPath -> IO Value
 evalFromString es expr path = do
   val <- checkNull (evalCtx es) =<< SysValue.nix_alloc_value (evalCtx es) (castEvalPtr es)
   Nix_err rc <- BS.useAsCString expr $ \cExpr ->
-    BS.useAsCString path $ \cPath ->
+    BS.useAsCString (osPathToByteString path) $ \cPath ->
       SysExpr.nix_expr_eval_from_string (evalCtx es) (evalPtr es) (unsafeFromPtr cExpr) (unsafeFromPtr cPath) (castPtr val)
   checkError (evalCtx es) rc
   pure (Value val)

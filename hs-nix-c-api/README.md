@@ -13,7 +13,9 @@ Use `runNix` to get `Either NixError a`, or `runNixThrow` to re-throw.
 
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 import Nix
+import System.OsPath (osp)
 
 main :: IO ()
 main = do
@@ -21,7 +23,7 @@ main = do
     initNix
     withStore "daemon" $ \store ->
       withEvalState store $ \state -> do
-        val <- evalFromString state "1 + 2" "."
+        val <- evalFromString state "1 + 2" [osp|.|]
         valueForce state val
         getInt state val
   print result -- Right 3
@@ -34,14 +36,16 @@ Works naturally with `bracket`, `shouldThrow`, and other exception-based code.
 
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 import Nix.Unsafe
+import System.OsPath (osp)
 
 main :: IO ()
 main = do
   initNix
   withStore "daemon" $ \store ->
     withEvalState store $ \state -> do
-      val <- evalFromString state "1 + 2" "."
+      val <- evalFromString state "1 + 2" [osp|.|]
       valueForce state val
       n <- getInt state val
       print n -- 3
@@ -50,7 +54,7 @@ main = do
 ### Either via `runNix`
 
 ```haskell
-result <- runNix $ evalFromString state expr "."
+result <- runNix $ evalFromString state expr [osp|.|]
 case result of
   Left err -> handleError err
   Right val -> useValue val
@@ -99,7 +103,7 @@ case err of
 Value extraction functions check the type before accessing:
 
 ```haskell
-val <- evalFromString state "42" "."
+val <- evalFromString state "42" [osp|.|]
 valueForce state val
 getInt state val     -- OK: returns 42
 getString state val  -- throws: NixTypeMismatch TypeInt TypeString

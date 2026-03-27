@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternSynonyms #-}
+
 -- | Internal module for Nix C API error handling.
 --
 -- Provides managed error contexts that capture errors from C API calls
@@ -30,6 +32,11 @@ import Foreign.StablePtr
 import Generated.Nix.Util
   ( Nix_err (..)
   , Nix_get_string_callback (..)
+  , pattern NIX_ERR_KEY
+  , pattern NIX_ERR_NIX_ERROR
+  , pattern NIX_ERR_OVERFLOW
+  , pattern NIX_ERR_RECOVERABLE
+  , pattern NIX_ERR_UNKNOWN
   )
 import qualified Generated.Nix.Util.Safe as Sys
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr, unsafeToPtr)
@@ -70,13 +77,13 @@ data NixErrorKind
   -- ^ Recoverable error.
   deriving (Show, Eq, Ord, Bounded, Enum)
 
--- | Convert a raw C error code to a 'NixErrorKind'.
-toNixErrorKind :: CInt -> NixErrorKind
-toNixErrorKind (-1) = NixErrUnknown
-toNixErrorKind (-2) = NixErrOverflow
-toNixErrorKind (-3) = NixErrKey
-toNixErrorKind (-4) = NixErrNixError
-toNixErrorKind (-5) = NixErrRecoverable
+-- | Convert a C error code to a 'NixErrorKind'.
+toNixErrorKind :: Nix_err -> NixErrorKind
+toNixErrorKind NIX_ERR_UNKNOWN = NixErrUnknown
+toNixErrorKind NIX_ERR_OVERFLOW = NixErrOverflow
+toNixErrorKind NIX_ERR_KEY = NixErrKey
+toNixErrorKind NIX_ERR_NIX_ERROR = NixErrNixError
+toNixErrorKind NIX_ERR_RECOVERABLE = NixErrRecoverable
 toNixErrorKind _ = NixErrUnknown
 
 -- | Error thrown when a Nix C API call fails.
@@ -109,13 +116,13 @@ instance Exception NixError
 -- Only reads detailed info for 'NIX_ERR_NIX_ERROR' (@-4@),
 -- since @nix_err_info_msg@ crashes on other error types
 -- (the C API only populates the @info@ field for Nix evaluation errors).
-buildError :: Ptr CNixContext -> Maybe CInt -> IO NixError
+buildError :: Ptr CNixContext -> Maybe Nix_err -> IO NixError
 buildError ctx mbRc = do
   msg <- getErrorMsg ctx
   if BS.null msg
     then pure $ NixCError NixErrUnknown BS.empty BS.empty
     else do
-      rc <- maybe (unwrapNix_err <$> Sys.nix_err_code (unsafeFromPtr ctx)) pure mbRc
+      rc <- maybe (Sys.nix_err_code (unsafeFromPtr ctx)) pure mbRc
       info <- if toNixErrorKind rc == NixErrNixError
         then getErrorInfoMsg ctx
         else pure BS.empty
@@ -136,7 +143,7 @@ withContext' = bracket Sys.nix_c_context_create Sys.nix_c_context_free
 checkError :: Ptr CNixContext -> CInt -> IO ()
 checkError ctx rc
   | rc == 0 = pure ()
-  | otherwise = throwIO =<< buildError ctx (Just rc)
+  | otherwise = throwIO =<< buildError ctx (Just (Nix_err rc))
 
 -- | Check a pointer for null and throw if null.
 -- Reads the error information from the context.

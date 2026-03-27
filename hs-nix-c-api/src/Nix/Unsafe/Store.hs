@@ -26,11 +26,11 @@ module Nix.Unsafe.Store
   , queryPathInfoJson
   ) where
 
-import Control.Exception (bracket, bracketOnError, throwIO)
+import Control.Exception (SomeException, bracket, bracketOnError, throwIO, try)
 import qualified Data.Aeson as Aeson
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
-import Data.IORef (IORef, modifyIORef', newIORef, readIORef)
+import Data.IORef (IORef, modifyIORef', newIORef, readIORef, writeIORef)
 import Foreign (FunPtr, Ptr, alloca, castFunPtr, castPtr, finalizeForeignPtr, freeHaskellFunPtr, newForeignPtr, newForeignPtr_, nullPtr, peek, withForeignPtr)
 import qualified Generated.Nix.Store.Path.FunPtr as FPStorePath
 import Foreign.C (CChar)
@@ -46,11 +46,15 @@ import qualified HsBindgen.Runtime.ConstantArray as CA
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr)
 import qualified Data.ByteString.Char8 as BS8
 import Nix.Context (NixError (..), NixErrorKind (..), checkError, checkNull, withCallbackBS, withContext')
-import Nix.Internal (CNixContext, CStore, CStorePath, Store (..), StorePath (..))
+import Nix.Internal (CNixContext, CStore, CStorePath, Store (..), StorePath (..), byteStringToOsPath, osPathToByteString)
 import Nix.Store.PathInfo (PathInfo, PathInfoJsonFormat (..))
+import System.OsPath (OsPath)
 
 -- | Open a Nix store and run an action with it.
 -- The store is automatically closed when the action completes.
+--
+-- The 'Store' handle is __not thread-safe__.
+-- Do not use it concurrently from multiple threads.
 withStore :: ByteString -> (Store -> IO a) -> IO a
 withStore uri = bracket (openStore uri) closeStore
 
@@ -82,8 +86,8 @@ storeUri :: Store -> IO ByteString
 storeUri = getStoreString SysStore.nix_store_get_uri
 
 -- | Get the store directory path (typically @"\/nix\/store"@).
-storeDir :: Store -> IO ByteString
-storeDir = getStoreString SysStore.nix_store_get_storedir
+storeDir :: Store -> IO OsPath
+storeDir store = byteStringToOsPath <$> getStoreString SysStore.nix_store_get_storedir store
 
 -- | Get the Nix daemon version for the store.
 storeVersion :: Store -> IO ByteString
@@ -98,16 +102,16 @@ isValidPath store (StorePath spFP) =
 
 -- | Parse a store path and run an action with it.
 -- The 'StorePath' is freed immediately after the callback for deterministic cleanup.
-parseStorePath :: Store -> ByteString -> (StorePath -> IO a) -> IO a
+parseStorePath :: Store -> OsPath -> (StorePath -> IO a) -> IO a
 parseStorePath store path f =
   bracket (parseStorePath' store path) freeStorePath f
 
 -- | Parse a store path string into a 'StorePath'.
 -- The returned 'StorePath' is automatically freed when garbage collected.
 -- Use 'freeStorePath' for immediate deterministic cleanup.
-parseStorePath' :: Store -> ByteString -> IO StorePath
+parseStorePath' :: Store -> OsPath -> IO StorePath
 parseStorePath' store path =
-  BS.useAsCString path $ \cPath -> do
+  BS.useAsCString (osPathToByteString path) $ \cPath -> do
     ptr <- checkNull (storeCtx store)
       =<< SysStore.nix_store_parse_path (storeCtx store) (storePtr store) (unsafeFromPtr cPath)
     StorePath <$> newForeignPtr (castFunPtr FPStorePath.nix_store_path_free) ptr
@@ -135,19 +139,33 @@ foreign import ccall "wrapper"
 -- The 'StorePath' passed to the callback is only valid for the duration
 -- of that callback invocation.
 -- Do not retain it after the callback returns.
+--
+-- Exceptions from the callback are caught (to prevent propagation through
+-- C frames) and re-thrown after the C call returns.
+-- After the first callback failure, subsequent callbacks are skipped.
 storeRealise :: Store -> StorePath -> ((ByteString, StorePath) -> IO ()) -> IO ()
 storeRealise store (StorePath spFP) callback =
-  withForeignPtr spFP $ \sp ->
-    bracket (mkRealiseCallback wrapper) freeHaskellFunPtr $ \cb -> do
+  withForeignPtr spFP $ \sp -> do
+    errRef <- newIORef (Nothing :: Maybe SomeException)
+    bracket (mkRealiseCallback (wrapper errRef)) freeHaskellFunPtr $ \cb -> do
       Nix_err rc <- SysStore.nix_store_realise
         (storeCtx store) (storePtr store) sp nullPtr (castFunPtr cb)
       checkError (storeCtx store) rc
+      readIORef errRef >>= mapM_ throwIO
  where
-  wrapper _userData cName cPath = do
-    name <- BS.packCString cName
-    -- Borrowed pointer: no finalizer, only valid during callback.
-    borrowed <- newForeignPtr_ cPath
-    callback (name, StorePath borrowed)
+  wrapper errRef _userData cName cPath = do
+    prev <- readIORef errRef
+    case prev of
+      Just _ -> pure ()
+      Nothing -> do
+        result <- try @SomeException $ do
+          name <- BS.packCString cName
+          borrowed <- newForeignPtr_ cPath
+          callback (name, StorePath borrowed)
+        case result of
+          Left ex -> writeIORef errRef (Just ex)
+          Right () -> pure ()
+
 
 -- | Build/realise a store path, ignoring output details.
 storeRealise_ :: Store -> StorePath -> IO ()
@@ -202,14 +220,14 @@ queryPathInfoJson store (StorePath spFP) fmt =
 --
 -- For a local store, this returns the full path such as
 -- @\/nix\/store\/abc...-name@.
-storeRealPath :: Store -> StorePath -> IO ByteString
+storeRealPath :: Store -> StorePath -> IO OsPath
 storeRealPath store (StorePath spFP) =
   withForeignPtr spFP $ \sp -> do
     (Nix_err rc, bs) <- withCallbackBS $ \cb ud ->
       SysStore.nix_store_real_path
         (storeCtx store) (storePtr store) sp cb (castPtr ud)
     checkError (storeCtx store) rc
-    pure bs
+    pure (byteStringToOsPath bs)
 
 -- | Get the raw hash bytes (20 bytes) of a store path.
 --

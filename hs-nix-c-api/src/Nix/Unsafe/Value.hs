@@ -62,6 +62,8 @@ import Control.Monad (forM_, when)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import Data.Int (Int64)
+import Data.Text (Text)
+import qualified Data.Text.Encoding as T
 import Foreign (Ptr, castPtr)
 import Foreign.C (CDouble (..))
 import Generated.Nix.Util (Nix_err (..))
@@ -69,12 +71,14 @@ import qualified Generated.Nix.Value.Safe as SysValue
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr, unsafeToPtr)
 import Nix.Context
   ( NixError (..)
+  , NixErrorKind (..)
   , checkError
   , checkNull
   , withCallbackBS
   )
 import Nix.Unsafe.Expr (valueForce)
-import Nix.Internal (CNixContext, CNixValue, EvalState (..), NixType (..), Value (..), castEvalPtr, toNixType)
+import Nix.Internal (CNixContext, CNixValue, EvalState (..), NixType (..), Value (..), byteStringToOsPath, castEvalPtr, osPathToByteString, toNixType)
+import System.OsPath (OsPath)
 
 -- | Human-readable name for a Nix type.
 nixTypeName :: NixType -> ByteString
@@ -145,21 +149,21 @@ unsafeGetString es (Value v) = do
   checkError (evalCtx es) rc
   pure bs
 
--- | Extract a path string from a Nix value.
+-- | Extract a path from a Nix value as an 'OsPath'.
 -- Throws on type mismatch.
 --
 -- Note: type check is mandatory — the C API crashes on wrong type.
-getPathString :: EvalState -> Value -> IO ByteString
+getPathString :: EvalState -> Value -> IO OsPath
 getPathString = withTypeCheck TypePath unsafeGetPathString
 
--- | Extract a path string without checking the value's type.
+-- | Extract a path without checking the value's type.
 -- Caller must ensure the value is 'TypePath', otherwise the
 -- C API may crash.
-unsafeGetPathString :: EvalState -> Value -> IO ByteString
+unsafeGetPathString :: EvalState -> Value -> IO OsPath
 unsafeGetPathString es (Value v) = do
   cstr <- SysValue.nix_get_path_string (evalCtx es) (unsafeFromPtr v)
   p <- checkNull (evalCtx es) (unsafeToPtr cstr)
-  BS.packCString p
+  byteStringToOsPath <$> BS.packCString p
 
 -- * Safe collection accessors (type-checked)
 
@@ -306,6 +310,19 @@ instance FromValue Bool where
 instance FromValue ByteString where
   unsafeForceGet es val = valueForce es val >> getString es val
 
+-- | Force and decode a Nix string as UTF-8 'Text'.
+-- Throws 'NixCError' if the string is not valid UTF-8.
+instance FromValue Text where
+  unsafeForceGet es val = do
+    bs <- unsafeForceGet es val
+    case T.decodeUtf8' bs of
+      Right t -> pure t
+      Left _err -> throwIO $ NixCError NixErrUnknown "Nix string is not valid UTF-8" BS.empty
+
+-- | Force and extract a Nix path value as an 'OsPath'.
+instance FromValue OsPath where
+  unsafeForceGet es val = valueForce es val >> getPathString es val
+
 -- | Assert that a value is null. Throws on type mismatch.
 instance FromValue () where
   unsafeForceGet es val = valueForce es val >> checkType TypeNull es val
@@ -393,10 +410,10 @@ mkString es s = initValue es $ \ctx val ->
   BS.useAsCString s $ \cs ->
     SysValue.nix_init_string ctx val (unsafeFromPtr cs)
 
--- | Construct a Nix path value.
-mkPath :: EvalState -> ByteString -> IO Value
-mkPath es s = initValue es $ \ctx val ->
-  BS.useAsCString s $ \cs ->
+-- | Construct a Nix path value from an 'OsPath'.
+mkPath :: EvalState -> OsPath -> IO Value
+mkPath es p = initValue es $ \ctx val ->
+  BS.useAsCString (osPathToByteString p) $ \cs ->
     SysValue.nix_init_path_string ctx (castEvalPtr es) val (unsafeFromPtr cs)
 
 -- | Construct a Nix list value from a list of values.
@@ -453,6 +470,14 @@ instance ToValue Bool where
 
 instance ToValue ByteString where
   toValue = mkString
+
+-- | Encode 'Text' as UTF-8 and construct a Nix string value.
+instance ToValue Text where
+  toValue es t = mkString es (T.encodeUtf8 t)
+
+-- | Construct a Nix path value from an 'OsPath'.
+instance ToValue OsPath where
+  toValue = mkPath
 
 -- | @()@ maps to Nix @null@.
 instance ToValue () where

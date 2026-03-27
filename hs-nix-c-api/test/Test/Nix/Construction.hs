@@ -1,11 +1,13 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
 
 module Test.Nix.Construction (spec) where
 
 import Data.ByteString (ByteString)
 import Data.Int (Int64)
+import System.OsPath (osp)
 import Test.Hspec
 
 import Nix.Unsafe.Expr (valueCall, valueCallMulti, valueForce)
@@ -63,9 +65,9 @@ spec = describe "Nix.Value construction" $ before_ initNix $ do
 
   describe "mkPath" $ do
     it "constructs a path" $ withEnv $ \state -> do
-      val <- mkPath state "/tmp"
+      val <- mkPath state [osp|/tmp|]
       getType state val `shouldReturn` TypePath
-      getPathString state val `shouldReturn` "/tmp"
+      getPathString state val `shouldReturn` [osp|/tmp|]
 
   describe "mkList" $ do
     it "constructs an empty list" $ withEnv $ \state -> do

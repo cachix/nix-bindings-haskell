@@ -5,7 +5,9 @@
 --
 -- @
 -- {-# LANGUAGE OverloadedStrings #-}
+-- {-# LANGUAGE QuasiQuotes #-}
 -- import Nix
+-- import System.OsPath (osp)
 --
 -- main :: IO ()
 -- main = do
@@ -13,7 +15,7 @@
 --     'initNix'
 --     'withStore' "local" $ \\store ->
 --       'withEvalState' store $ \\state -> do
---         val <- 'evalFromString' state "1 + 2" "."
+--         val <- 'evalFromString' state "1 + 2" [osp|.|]
 --         'valueForce' state val
 --         'getInt' state val
 --   print result  -- Right 3
@@ -35,6 +37,7 @@ module Nix
   , EvalState
   , Value
   , NixType (..)
+  , OsPath
 
     -- * Initialization
   , initNix
@@ -131,8 +134,10 @@ module Nix
   , getFlakeOutputs
   ) where
 
+import Control.Exception (try)
 import Control.Monad.IO.Class (liftIO)
 import Data.ByteString (ByteString)
+import Data.IORef (newIORef, readIORef, writeIORef)
 import Data.Int (Int64)
 import Foreign (Ptr)
 import Nix.Context (NixError (..), NixErrorKind (..))
@@ -148,6 +153,7 @@ import qualified Nix.Unsafe.Store as Unsafe
 import qualified Nix.Unsafe.Value as Unsafe
 import Nix.Unsafe.Flake (LockMode (..))
 import Nix.Unsafe.Value (FromValue (..), NixType (..), ToValue (..))
+import System.OsPath (OsPath)
 
 -- * Initialization
 
@@ -164,6 +170,9 @@ nixVersion = liftIO Unsafe.nixVersion
 
 -- | Open a Nix store and run an action with it.
 -- The store is automatically closed when the action completes.
+--
+-- The returned 'Store' handle is __not thread-safe__.
+-- Do not use it concurrently from multiple threads.
 withStore :: ByteString -> (Store -> Nix a) -> Nix a
 withStore uri f = withBracketNix (Unsafe.openStore uri) Unsafe.closeStore f
 
@@ -172,7 +181,7 @@ storeUri :: Store -> Nix ByteString
 storeUri = liftNix . Unsafe.storeUri
 
 -- | Get the store directory path (typically @"\/nix\/store"@).
-storeDir :: Store -> Nix ByteString
+storeDir :: Store -> Nix OsPath
 storeDir = liftNix . Unsafe.storeDir
 
 -- | Get the Nix daemon version for the store.
@@ -185,7 +194,7 @@ isValidPath store sp = liftNix $ Unsafe.isValidPath store sp
 
 -- | Parse a store path string into a 'StorePath'.
 -- The returned 'StorePath' is automatically freed when garbage collected.
-parseStorePath :: Store -> ByteString -> Nix StorePath
+parseStorePath :: Store -> OsPath -> Nix StorePath
 parseStorePath store path = liftNix $ Unsafe.parseStorePath' store path
 
 -- | Get the name component of a store path.
@@ -193,7 +202,7 @@ storePathName :: StorePath -> Nix ByteString
 storePathName = liftNix . Unsafe.storePathName
 
 -- | Get the real (resolved) filesystem path of a store path.
-storeRealPath :: Store -> StorePath -> Nix ByteString
+storeRealPath :: Store -> StorePath -> Nix OsPath
 storeRealPath store sp = liftNix $ Unsafe.storeRealPath store sp
 
 -- | Get the raw hash bytes (20 bytes) of a store path.
@@ -210,8 +219,27 @@ computeFSClosure store sp = liftNix $ Unsafe.computeFSClosure store sp
 -- The 'StorePath' passed to the callback is only valid for the duration
 -- of that callback invocation.
 -- Do not retain it after the callback returns.
-storeRealise :: Store -> StorePath -> ((ByteString, StorePath) -> IO ()) -> Nix ()
-storeRealise store sp callback = liftNix $ Unsafe.storeRealise store sp callback
+--
+-- After the first callback failure, subsequent callbacks are skipped.
+-- A C API build error takes priority over callback errors.
+storeRealise :: Store -> StorePath -> ((ByteString, StorePath) -> Nix ()) -> Nix ()
+storeRealise store sp callback = liftEitherNix $ do
+  nixErrRef <- newIORef Nothing
+  let ioCallback pair = do
+        prev <- readIORef nixErrRef
+        case prev of
+          Just _ -> pure ()
+          Nothing -> do
+            result <- runNix (callback pair)
+            case result of
+              Left err -> writeIORef nixErrRef (Just err)
+              Right () -> pure ()
+  cResult <- try @NixError $ Unsafe.storeRealise store sp ioCallback
+  case cResult of
+    Left err -> pure (Left err)
+    Right () -> do
+      mErr <- readIORef nixErrRef
+      pure $ maybe (Right ()) Left mErr
 
 -- | Build/realise a store path, ignoring output details.
 storeRealise_ :: Store -> StorePath -> Nix ()
@@ -244,19 +272,26 @@ queryPathInfoJson store sp fmt = liftNix $ Unsafe.queryPathInfoJson store sp fmt
 
 -- | Create an evaluator state and run an action with it.
 -- The state is automatically freed when the action completes.
+--
+-- The returned 'EvalState' handle is __not thread-safe__.
+-- Do not use it concurrently from multiple threads.
 withEvalState :: Store -> (EvalState -> Nix a) -> Nix a
 withEvalState store f = withBracketNix (Unsafe.createEvalState store) Unsafe.destroyEvalState f
 
 -- | Create an evaluator state with a custom lookup path and run an action with it.
 -- The lookup path entries should be in the form @"name=\/path"@.
+--
+-- The returned 'EvalState' handle is __not thread-safe__.
+-- Do not use it concurrently from multiple threads.
 withEvalStateWith :: Store -> [ByteString] -> (EvalState -> Nix a) -> Nix a
 withEvalStateWith store lookupPath f =
   withBracketNix (Unsafe.createEvalStateWith store lookupPath) Unsafe.destroyEvalState f
 
 -- | Parse and evaluate a Nix expression from a string.
 --
--- The @path@ argument is used to resolve relative paths in the expression.
-evalFromString :: EvalState -> ByteString -> ByteString -> Nix Value
+-- The @path@ argument is a filesystem path used to resolve relative
+-- paths in the expression.
+evalFromString :: EvalState -> ByteString -> OsPath -> Nix Value
 evalFromString es expr path = liftNix $ Unsafe.evalFromString es expr path
 
 -- | Force evaluation of a lazy value.
@@ -307,8 +342,8 @@ getBool es val = liftNix $ Unsafe.getBool es val
 getString :: EvalState -> Value -> Nix ByteString
 getString es val = liftNix $ Unsafe.getString es val
 
--- | Extract a path string from a Nix value.
-getPathString :: EvalState -> Value -> Nix ByteString
+-- | Extract a path from a Nix value as an 'OsPath'.
+getPathString :: EvalState -> Value -> Nix OsPath
 getPathString es val = liftNix $ Unsafe.getPathString es val
 
 -- | Get the number of elements in a Nix list value.
@@ -366,9 +401,9 @@ mkNull es = liftNix $ Unsafe.mkNull es
 mkString :: EvalState -> ByteString -> Nix Value
 mkString es s = liftNix $ Unsafe.mkString es s
 
--- | Construct a Nix path value.
-mkPath :: EvalState -> ByteString -> Nix Value
-mkPath es s = liftNix $ Unsafe.mkPath es s
+-- | Construct a Nix path value from an 'OsPath'.
+mkPath :: EvalState -> OsPath -> Nix Value
+mkPath es p = liftNix $ Unsafe.mkPath es p
 
 -- | Construct a Nix list value from a list of values.
 mkList :: EvalState -> [Value] -> Nix Value
@@ -430,6 +465,9 @@ withFetchersSettings f = withBracketNix Unsafe.createFetchersSettings Unsafe.fre
 
 -- | Create an evaluator state with flake settings and run an action with it.
 -- The state is automatically freed when the action completes.
+--
+-- The returned 'EvalState' handle is __not thread-safe__.
+-- Do not use it concurrently from multiple threads.
 withFlakeEvalState :: Store -> FlakeSettings -> (EvalState -> Nix a) -> Nix a
 withFlakeEvalState store fs f =
   withBracketNix (Unsafe.createFlakeEvalState store fs) Unsafe.destroyEvalState f
