@@ -30,7 +30,7 @@ jobs:
         run: nix build .#hs-nix-c-api
 
   autotag:
-    if: github.ref == 'refs/heads/main'
+    if: false # disabled for now
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -51,7 +51,7 @@ jobs:
       - name: Create release for hs-nix-c-api
         if: steps.autotag.outputs.created
         run: |
-          notes=$(parse-changelog hs-nix-c-api/CHANGELOG.md "${{ steps.autotag.outputs.version }}")
+          notes=$(parse-changelog --version-format '(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*))+' hs-nix-c-api/CHANGELOG.md "${{ steps.autotag.outputs.version }}")
           gh release create "${{ steps.autotag.outputs.name }}" --title "${{ steps.autotag.outputs.name }}" --notes "$notes"
         env:
           GH_TOKEN: ${{ github.token }}
@@ -65,7 +65,7 @@ jobs:
       - name: Create release for hs-nix-c-api-sys
         if: steps.autotag-sys.outputs.created
         run: |
-          notes=$(parse-changelog hs-nix-c-api-sys/CHANGELOG.md "${{ steps.autotag-sys.outputs.version }}")
+          notes=$(parse-changelog --version-format '(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*))+' hs-nix-c-api-sys/CHANGELOG.md "${{ steps.autotag-sys.outputs.version }}")
           gh release create "${{ steps.autotag-sys.outputs.name }}" --title "${{ steps.autotag-sys.outputs.name }}" --notes "$notes"
         env:
           GH_TOKEN: ${{ github.token }}
