@@ -1,5 +1,5 @@
 cabal-version: 3.4
-name:          hs-nix-c-api-sys
+name:          hs-nix-bindings-sys
 version:       0.1.0.0
 synopsis:      Raw Haskell FFI bindings to the Nix C API
 description:
@@ -24,15 +24,15 @@ description:
   * @Generated.Nix.\<Lib\>.FunPtr@ — function pointer wrappers for C callbacks
   .
   For a safe, idiomatic Haskell API with resource management and error
-  handling, see the @hs-nix-c-api@ package.
+  handling, see the @hs-nix-bindings@ package.
 
 license:          MIT
 license-file:     LICENSE
 author:           Cachix
 maintainer:       support@cachix.org
 category:         Nix, FFI
-homepage:         https://github.com/cachix/hs-nix-c-api
-bug-reports:      https://github.com/cachix/hs-nix-c-api/issues
+homepage:         https://github.com/cachix/hs-nix-bindings
+bug-reports:      https://github.com/cachix/hs-nix-bindings/issues
 build-type:       Simple
 extra-doc-files:
   CHANGELOG.md

@@ -19,7 +19,7 @@ jobs:
 
       - uses: cachix/cachix-action@v17
         with:
-          name: hs-nix-c-api
+          name: hs-nix-bindings
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Build source distributions

@@ -1,7 +1,7 @@
 -- | Internal types shared across Nix modules.
 -- Not intended for direct use by consumers.
 module Nix.C.Internal
-  ( -- * C type aliases (from hs-nix-c-api-sys)
+  ( -- * C type aliases (from hs-nix-bindings-sys)
     CNixContext
   , CStore
   , CStorePath

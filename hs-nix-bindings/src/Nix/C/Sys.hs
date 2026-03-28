@@ -1,4 +1,4 @@
--- | Re-export of the raw FFI bindings from @hs-nix-c-api-sys@.
+-- | Re-export of the raw FFI bindings from @hs-nix-bindings-sys@.
 --
 -- Provides direct access to the Nix C API without the safety and
 -- convenience of the high-level wrappers.
