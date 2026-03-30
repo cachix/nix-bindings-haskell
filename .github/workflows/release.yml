@@ -19,7 +19,7 @@ jobs:
 
       - uses: cachix/cachix-action@v17
         with:
-          name: nix-bindings
+          name: nix-bindings-haskell
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
       - name: Build source distributions
