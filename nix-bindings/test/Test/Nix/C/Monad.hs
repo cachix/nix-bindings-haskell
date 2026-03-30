@@ -15,11 +15,10 @@ import Test.Hspec
 import Nix.C
 
 spec :: Spec
-spec = describe "Nix.C monad" $ do
+spec = describe "Nix.C monad" $ before_ initNix $ do
   describe "runNix" $ do
     it "returns Right on success" $ do
-      result <- runNix $ do
-        initNix
+      result <- runNix $
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
             val <- evalFromString state "1 + 2" [osp|.|]
@@ -27,8 +26,7 @@ spec = describe "Nix.C monad" $ do
       result `shouldBe` Right 3
 
     it "returns Left on type mismatch" $ do
-      result <- runNix $ do
-        initNix
+      result <- runNix $
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
             val <- evalFromString state "42" [osp|.|]
@@ -38,8 +36,7 @@ spec = describe "Nix.C monad" $ do
         other -> expectationFailure $ "Expected Left NixTypeMismatch, got: " <> show other
 
     it "returns Left on eval error" $ do
-      result <- runNix $ do
-        initNix
+      result <- runNix $
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
             val <- evalFromString state "throw \"boom\"" [osp|.|]
@@ -51,8 +48,7 @@ spec = describe "Nix.C monad" $ do
   describe "error short-circuiting" $ do
     it "does not execute code after a failure" $ do
       ref <- newIORef False
-      result <- runNix $ do
-        initNix
+      result <- runNix $
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
             val <- evalFromString state "throw \"fail\"" [osp|.|]
@@ -66,8 +62,7 @@ spec = describe "Nix.C monad" $ do
 
   describe "monadic value extraction" $ do
     it "fromValue works in the Nix monad" $ do
-      result <- runNix $ do
-        initNix
+      result <- runNix $
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
             val <- evalFromString state "\"hello\"" [osp|.|]
@@ -75,8 +70,7 @@ spec = describe "Nix.C monad" $ do
       result `shouldBe` Right "hello"
 
     it "getAttr works in the Nix monad" $ do
-      result <- runNix $ do
-        initNix
+      result <- runNix $
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
             val <- evalFromString state "{ answer = 42; }" [osp|.|]
@@ -84,8 +78,7 @@ spec = describe "Nix.C monad" $ do
       result `shouldBe` Right 42
 
     it "getAttrPath works in the Nix monad" $ do
-      result <- runNix $ do
-        initNix
+      result <- runNix $
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
             val <- evalFromString state "{ a = { b = { c = 99; }; }; }" [osp|.|]
@@ -93,8 +86,7 @@ spec = describe "Nix.C monad" $ do
       result `shouldBe` Right 99
 
     it "getAttrPath returns Left for missing attr in Nix monad" $ do
-      result <- runNix $ do
-        initNix
+      result <- runNix $
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
             val <- evalFromString state "{ a = 1; }" [osp|.|]

@@ -10,19 +10,17 @@ description:
   .
   @
   {-# LANGUAGE OverloadedStrings #-}
-  {-# LANGUAGE QuasiQuotes #-}
+  {-# LANGUAGE TypeApplications #-}
+  import Data.Int (Int64)
   import Nix.C
-  import System.OsPath (osp)
   .
   main :: IO ()
   main = do
-    result <- 'runNix' $ do
-      'initNix'
-      'withStore' "local" $ \\store ->
-        'withEvalState' store $ \\state -> do
-          val <- 'evalFromString' state "1 + 2" [osp|.|]
-          'valueForce' state val
-          'getInt' state val
+    'initNix'
+    result <- 'runNix' $
+      'withStore' "daemon" $ \\store ->
+        'withEvalState' store $ \\state ->
+          'evalAs' \@Int64 state "1 + 2"
     print result  -- Right 3
   @
   .

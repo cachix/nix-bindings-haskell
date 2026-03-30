@@ -1,6 +1,6 @@
 -- | Nix library initialization.
 --
--- Call 'initNix' once before using any other Nix API functions.
+-- Call 'initNix' once at program startup, before using any other Nix API functions.
 module Nix.C.Unsafe.Init
   ( initNix
   , nixVersion

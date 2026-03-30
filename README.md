@@ -13,20 +13,17 @@ Haskell bindings to the [Nix C API](https://nix.dev/manual/nix/latest/c-api).
 
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeApplications #-}
 import Data.Int (Int64)
 import Nix.C
-import System.OsPath (osp)
 
 main :: IO ()
 main = do
-  result <- runNix $ do
-    initNix
+  initNix
+  result <- runNix $
     withStore "daemon" $ \store ->
-      withEvalState store $ \state -> do
-        val <- evalFromString state "{ a = { b = 42; }; }" [osp|.|]
-        getAttrPath @Int64 state val ["a", "b"]
+      withEvalState store $ \state ->
+        evalAs @Int64 state "{ a = { b = 42; }; }.a.b"
   print result -- Right 42
 ```
 

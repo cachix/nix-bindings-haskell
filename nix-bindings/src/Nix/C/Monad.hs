@@ -4,10 +4,10 @@
 -- | The 'Nix' monad for safe, composable Nix operations.
 --
 -- @
--- result <- 'runNix' $ 'Nix.C.withStore' "local" $ \\store ->
---   'Nix.C.withEvalState' store $ \\state -> do
---     val <- 'Nix.C.evalFromString' state "1 + 2" [osp|.|]
---     'Nix.C.fromValue' \@Int64 state val
+-- result <- 'runNix' $
+--   'Nix.C.withStore' "daemon" $ \\store ->
+--     'Nix.C.withEvalState' store $ \\state ->
+--       'Nix.C.evalAs' \@Int64 state "1 + 2"
 -- -- result :: Either NixError Int64
 -- @
 module Nix.C.Monad

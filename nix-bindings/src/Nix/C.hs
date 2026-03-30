@@ -5,19 +5,17 @@
 --
 -- @
 -- {-# LANGUAGE OverloadedStrings #-}
--- {-# LANGUAGE QuasiQuotes #-}
+-- {-# LANGUAGE TypeApplications #-}
+-- import Data.Int (Int64)
 -- import Nix.C
--- import System.OsPath (osp)
 --
 -- main :: IO ()
 -- main = do
---   result <- 'runNix' $ do
---     'initNix'
---     'withStore' "local" $ \\store ->
---       'withEvalState' store $ \\state -> do
---         val <- 'evalFromString' state "1 + 2" [osp|.|]
---         'valueForce' state val
---         'getInt' state val
+--   'initNix'
+--   result <- 'runNix' $
+--     'withStore' "daemon" $ \\store ->
+--       'withEvalState' store $ \\state ->
+--         'evalAs' \@Int64 state "1 + 2"
 --   print result  -- Right 3
 -- @
 module Nix.C
@@ -163,13 +161,14 @@ import System.OsPath (OsPath)
 -- * Initialization
 
 -- | Initialize all Nix libraries.
+-- Call once at program startup, before any 'runNix' blocks.
 -- This is idempotent and safe to call multiple times.
-initNix :: Nix ()
-initNix = liftNix Unsafe.initNix
+initNix :: IO ()
+initNix = Unsafe.initNix
 
 -- | Get the Nix version string.
-nixVersion :: Nix ByteString
-nixVersion = liftIO Unsafe.nixVersion
+nixVersion :: IO ByteString
+nixVersion = Unsafe.nixVersion
 
 -- * Store operations
 
