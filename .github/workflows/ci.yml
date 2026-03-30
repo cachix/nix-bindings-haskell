@@ -29,6 +29,12 @@ jobs:
       - name: Build nix-bindings
         run: nix build .#nix-bindings
 
+      - name: Build nix-bindings-sys sdist
+        run: nix build .#nix-bindings-sys-sdist
+
+      - name: Build nix-bindings sdist
+        run: nix build .#nix-bindings-sdist
+
   autotag:
     if: false # disabled for now
     needs: build

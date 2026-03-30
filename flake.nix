@@ -85,6 +85,8 @@
               nix-bindings-sys
               nix-bindings-sys-regenerated
               nix-bindings-regenerated;
+            nix-bindings-sdist = hlib.sdistTarball nix-bindings;
+            nix-bindings-sys-sdist = hlib.sdistTarball nix-bindings-sys;
             default = nix-bindings;
           };
 
