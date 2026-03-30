@@ -299,7 +299,7 @@ eval es expr = liftNix $ Unsafe.eval es expr
 evalAt :: EvalState -> ByteString -> OsPath -> Nix Value
 evalAt es expr path = liftNix $ Unsafe.evalAt es expr path
 
--- | Evaluate a Nix expression string and extract a typed result.
+-- | Evaluate a Nix expression string, force the result, and extract a typed value.
 -- Uses the current directory as the base path.
 --
 -- @
@@ -308,7 +308,7 @@ evalAt es expr path = liftNix $ Unsafe.evalAt es expr path
 evalAs :: FromValue a => EvalState -> ByteString -> Nix a
 evalAs es expr = liftNix $ Unsafe.evalAs es expr
 
--- | Evaluate a Nix expression string and extract a typed result
+-- | Evaluate a Nix expression string, force the result, and extract a typed value
 -- with an explicit base path.
 evalAsAt :: FromValue a => EvalState -> ByteString -> OsPath -> Nix a
 evalAsAt es expr path = liftNix $ Unsafe.evalAsAt es expr path
