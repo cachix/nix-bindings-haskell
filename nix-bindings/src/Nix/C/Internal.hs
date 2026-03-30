@@ -35,7 +35,8 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Short as SBS
 import Foreign (ForeignPtr, Ptr, castPtr, withForeignPtr)
 import System.IO.Unsafe (unsafePerformIO)
-import System.OsString.Internal.Types (OsString (..), PosixString (..))
+import System.OsString.Internal.Types (OsString (..), getOsString, getPosixString)
+import System.OsString.Posix (fromBytestring)
 import qualified Generated.Nix.Expr
 import qualified Generated.Nix.Fetchers
 import qualified Generated.Nix.Flake
@@ -168,9 +169,9 @@ newtype LockedFlake = LockedFlake (ForeignPtr CLockedFlake)
 -- | Convert an 'OsPath' to a 'ByteString'.
 -- On POSIX this is a byte-for-byte copy with no encoding.
 osPathToByteString :: OsString -> ByteString
-osPathToByteString (OsString (PosixString sbs)) = SBS.fromShort sbs
+osPathToByteString = SBS.fromShort . getPosixString . getOsString
 
 -- | Convert a 'ByteString' to an 'OsPath'.
 -- On POSIX this is a byte-for-byte copy with no encoding.
 byteStringToOsPath :: ByteString -> OsString
-byteStringToOsPath = OsString . PosixString . SBS.toShort
+byteStringToOsPath = OsString . fromBytestring
