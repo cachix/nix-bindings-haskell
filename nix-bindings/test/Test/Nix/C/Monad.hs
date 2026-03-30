@@ -40,7 +40,7 @@ spec = describe "Nix.C monad" $ before_ initNix $ do
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
             val <- evalFromString state "throw \"boom\"" [osp|.|]
-            valueForce state val
+            force state val
       case result of
         Left (NixCError {}) -> pure ()
         other -> expectationFailure $ "Expected Left NixCError, got: " <> show other
@@ -52,7 +52,7 @@ spec = describe "Nix.C monad" $ before_ initNix $ do
         withStore "daemon" $ \store ->
           withEvalState store $ \state -> do
             val <- evalFromString state "throw \"fail\"" [osp|.|]
-            valueForce state val
+            force state val
             -- Should not reach here
             liftIO $ writeIORef ref True
       readIORef ref `shouldReturn` False

@@ -49,14 +49,14 @@ module Nix.C
   , isValidPath
   , parseStorePath
   , storePathName
-  , storeRealPath
+  , realPath
   , storePathHash
-  , computeFSClosure
-  , storeRealise
-  , storeRealise_
+  , getClosure
+  , realise
+  , realise_
   , copyPath
   , copyClosure
-  , queryPathInfoJson
+  , getPathInfo
 
     -- * Path info types
   , PathInfo (..)
@@ -76,8 +76,8 @@ module Nix.C
   , evalAs
   , evalAsAt
   , evalFromString
-  , valueForce
-  , valueForceDeep
+  , force
+  , forceDeep
 
     -- * Value extraction
   , getType
@@ -89,17 +89,15 @@ module Nix.C
   , getFloat
   , getBool
   , getString
-  , getPathString
+  , getPath
   , getListSize
   , getAttrsSize
-  , hasAttrByName
-  , getAttrByName
+  , hasAttr
   , lookupAttr
-  , getListByIdx
+  , getListElem
 
     -- * Value construction
   , ToValue (..)
-  , allocValue
   , mkInt
   , mkFloat
   , mkBool
@@ -108,10 +106,10 @@ module Nix.C
   , mkPath
   , mkList
   , mkAttrs
-  , mkApply
-  , copyValue
-  , valueCall
-  , valueCallMulti
+  , apply
+  , copy
+  , call
+  , callMulti
 
     -- * Garbage collection
   , gcIncRef
@@ -205,20 +203,20 @@ parseStorePath store path = liftNix $ Unsafe.parseStorePath' store path
 storePathName :: StorePath -> Nix ByteString
 storePathName = liftNix . Unsafe.storePathName
 
--- | Get the real (resolved) filesystem path of a store path.
-storeRealPath :: Store -> StorePath -> Nix OsPath
-storeRealPath store sp = liftNix $ Unsafe.storeRealPath store sp
+-- | Get the physical filesystem location of a store path.
+realPath :: Store -> StorePath -> Nix OsPath
+realPath store sp = liftNix $ Unsafe.storeRealPath store sp
 
 -- | Get the raw hash bytes (20 bytes) of a store path.
 storePathHash :: StorePath -> Nix ByteString
 storePathHash = liftNix . Unsafe.storePathHash
 
--- | Compute the transitive closure of a store path's dependencies.
-computeFSClosure :: Store -> StorePath -> Nix [StorePath]
-computeFSClosure store sp = liftNix $ Unsafe.computeFSClosure store sp
+-- | Get the transitive closure of a store path's dependencies.
+getClosure :: Store -> StorePath -> Nix [StorePath]
+getClosure store sp = liftNix $ Unsafe.computeFSClosure store sp
 
--- | Build/realise a store path.
--- Calls the callback for each output (name, output store path).
+-- | Realise (build) a store path.
+-- Calls the callback for each realised output (name, output store path).
 --
 -- The 'StorePath' passed to the callback is only valid for the duration
 -- of that callback invocation.
@@ -226,8 +224,8 @@ computeFSClosure store sp = liftNix $ Unsafe.computeFSClosure store sp
 --
 -- After the first callback failure, subsequent callbacks are skipped.
 -- A C API build error takes priority over callback errors.
-storeRealise :: Store -> StorePath -> ((ByteString, StorePath) -> Nix ()) -> Nix ()
-storeRealise store sp callback = liftEitherNix $ do
+realise :: Store -> StorePath -> ((ByteString, StorePath) -> Nix ()) -> Nix ()
+realise store sp callback = liftEitherNix $ do
   nixErrRef <- newIORef Nothing
   let ioCallback pair = do
         prev <- readIORef nixErrRef
@@ -245,9 +243,9 @@ storeRealise store sp callback = liftEitherNix $ do
       mErr <- readIORef nixErrRef
       pure $ maybe (Right ()) Left mErr
 
--- | Build/realise a store path, ignoring output details.
-storeRealise_ :: Store -> StorePath -> Nix ()
-storeRealise_ store sp = liftNix $ Unsafe.storeRealise_ store sp
+-- | Realise (build) a store path, ignoring output details.
+realise_ :: Store -> StorePath -> Nix ()
+realise_ store sp = liftNix $ Unsafe.storeRealise_ store sp
 
 -- | Copy a store path from one store to another.
 copyPath
@@ -268,9 +266,9 @@ copyPath src dst sp repair checkSigs =
 copyClosure :: Store -> Store -> StorePath -> Nix ()
 copyClosure src dst sp = liftNix $ Unsafe.copyClosure src dst sp
 
--- | Query store path metadata and return it as a parsed 'PathInfo'.
-queryPathInfoJson :: Store -> StorePath -> PathInfoJsonFormat -> Nix PathInfo
-queryPathInfoJson store sp fmt = liftNix $ Unsafe.queryPathInfoJson store sp fmt
+-- | Get store path metadata as a parsed 'PathInfo'.
+getPathInfo :: Store -> StorePath -> PathInfoJsonFormat -> Nix PathInfo
+getPathInfo store sp fmt = liftNix $ Unsafe.queryPathInfoJson store sp fmt
 
 -- * Expression evaluation
 
@@ -323,12 +321,12 @@ evalFromString :: EvalState -> ByteString -> OsPath -> Nix Value
 evalFromString es expr path = liftNix $ Unsafe.evalFromString es expr path
 
 -- | Force evaluation of a lazy value.
-valueForce :: EvalState -> Value -> Nix ()
-valueForce es val = liftNix $ Unsafe.valueForce es val
+force :: EvalState -> Value -> Nix ()
+force es val = liftNix $ Unsafe.valueForce es val
 
 -- | Recursively force evaluation of a value and all its sub-values.
-valueForceDeep :: EvalState -> Value -> Nix ()
-valueForceDeep es val = liftNix $ Unsafe.valueForceDeep es val
+forceDeep :: EvalState -> Value -> Nix ()
+forceDeep es val = liftNix $ Unsafe.valueForceDeep es val
 
 -- * Value extraction
 
@@ -371,8 +369,8 @@ getString :: EvalState -> Value -> Nix ByteString
 getString es val = liftNix $ Unsafe.getString es val
 
 -- | Extract a path from a Nix value as an 'OsPath'.
-getPathString :: EvalState -> Value -> Nix OsPath
-getPathString es val = liftNix $ Unsafe.getPathString es val
+getPath :: EvalState -> Value -> Nix OsPath
+getPath es val = liftNix $ Unsafe.getPathString es val
 
 -- | Get the number of elements in a Nix list value.
 -- Fails on type mismatch.
@@ -386,13 +384,8 @@ getAttrsSize es val = liftNix $ Unsafe.getAttrsSize es val
 
 -- | Check if an attribute set has an attribute with the given name.
 -- Fails on type mismatch.
-hasAttrByName :: EvalState -> Value -> ByteString -> Nix Bool
-hasAttrByName es val name = liftNix $ Unsafe.hasAttrByName es val name
-
--- | Get an attribute by name from an attribute set.
--- Returns an error if the attribute does not exist.
-getAttrByName :: EvalState -> Value -> ByteString -> Nix Value
-getAttrByName es val name = liftNix $ Unsafe.getAttrByName es val name
+hasAttr :: EvalState -> Value -> ByteString -> Nix Bool
+hasAttr es val name = liftNix $ Unsafe.hasAttrByName es val name
 
 -- | Look up an attribute by name, returning 'Nothing' if absent.
 -- Only fails on genuine errors, not for missing attributes.
@@ -400,14 +393,10 @@ lookupAttr :: EvalState -> Value -> ByteString -> Nix (Maybe Value)
 lookupAttr es val name = liftNix $ Unsafe.lookupAttr es val name
 
 -- | Get a list element by index.
-getListByIdx :: EvalState -> Value -> Int -> Nix Value
-getListByIdx es val idx = liftNix $ Unsafe.getListByIdx es val idx
+getListElem :: EvalState -> Value -> Int -> Nix Value
+getListElem es val idx = liftNix $ Unsafe.getListByIdx es val idx
 
 -- * Value construction
-
--- | Allocate a fresh, uninitialised Nix value.
-allocValue :: EvalState -> Nix Value
-allocValue es = liftNix $ Unsafe.allocValue es
 
 -- | Construct a Nix integer value.
 mkInt :: EvalState -> Int64 -> Nix Value
@@ -442,20 +431,21 @@ mkAttrs :: EvalState -> [(ByteString, Value)] -> Nix Value
 mkAttrs es pairs = liftNix $ Unsafe.mkAttrs es pairs
 
 -- | Construct a lazy function application value (thunk).
-mkApply :: EvalState -> Value -> Value -> Nix Value
-mkApply es fn arg = liftNix $ Unsafe.mkApply es fn arg
+-- The function is not called immediately; the result is evaluated when forced.
+apply :: EvalState -> Value -> Value -> Nix Value
+apply es fn arg = liftNix $ Unsafe.mkApply es fn arg
 
 -- | Copy one Nix value into a fresh allocation.
-copyValue :: EvalState -> Value -> Nix Value
-copyValue es val = liftNix $ Unsafe.copyValue es val
+copy :: EvalState -> Value -> Nix Value
+copy es val = liftNix $ Unsafe.copyValue es val
 
 -- | Call a Nix function with one argument (strict).
-valueCall :: EvalState -> Value -> Value -> Nix Value
-valueCall es fn arg = liftNix $ Unsafe.valueCall es fn arg
+call :: EvalState -> Value -> Value -> Nix Value
+call es fn arg = liftNix $ Unsafe.valueCall es fn arg
 
 -- | Call a Nix function with multiple arguments (strict).
-valueCallMulti :: EvalState -> Value -> [Value] -> Nix Value
-valueCallMulti es fn args = liftNix $ Unsafe.valueCallMulti es fn args
+callMulti :: EvalState -> Value -> [Value] -> Nix Value
+callMulti es fn args = liftNix $ Unsafe.valueCallMulti es fn args
 
 -- * Garbage collection
 
