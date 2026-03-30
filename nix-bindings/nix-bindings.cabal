@@ -84,6 +84,7 @@ library
     Nix.C.Store.PathInfo
     Nix.C.Sys
     Nix.C.Unsafe
+    Nix.C.Unsafe.Eval
     Nix.C.Unsafe.Expr
     Nix.C.Unsafe.Flake
     Nix.C.Unsafe.GC

@@ -73,6 +73,10 @@ module Nix.C
     -- * Expression evaluation
   , withEvalState
   , withEvalStateWith
+  , eval
+  , evalAt
+  , evalAs
+  , evalAsAt
   , evalFromString
   , valueForce
   , valueForceDeep
@@ -141,6 +145,7 @@ import Data.IORef (newIORef, readIORef, writeIORef)
 import Data.Int (Int64)
 import Foreign (Ptr)
 import Nix.C.Context (NixError (..), NixErrorKind (..))
+import qualified Nix.C.Unsafe.Eval as Unsafe
 import qualified Nix.C.Unsafe.Expr as Unsafe
 import qualified Nix.C.Unsafe.Flake as Unsafe
 import qualified Nix.C.Unsafe.GC as Unsafe
@@ -286,6 +291,30 @@ withEvalState store f = withBracketNix (Unsafe.createEvalState store) Unsafe.des
 withEvalStateWith :: Store -> [ByteString] -> (EvalState -> Nix a) -> Nix a
 withEvalStateWith store lookupPath f =
   withBracketNix (Unsafe.createEvalStateWith store lookupPath) Unsafe.destroyEvalState f
+
+-- | Evaluate a Nix expression string.
+-- Uses the current directory as the base path for resolving relative paths.
+eval :: EvalState -> ByteString -> Nix Value
+eval es expr = liftNix $ Unsafe.eval es expr
+
+-- | Evaluate a Nix expression string with an explicit base path
+-- for resolving relative paths in the expression.
+evalAt :: EvalState -> ByteString -> OsPath -> Nix Value
+evalAt es expr path = liftNix $ Unsafe.evalAt es expr path
+
+-- | Evaluate a Nix expression string and extract a typed result.
+-- Uses the current directory as the base path.
+--
+-- @
+-- n <- evalAs \@Int64 state "1 + 2"  -- Right 3
+-- @
+evalAs :: FromValue a => EvalState -> ByteString -> Nix a
+evalAs es expr = liftNix $ Unsafe.evalAs es expr
+
+-- | Evaluate a Nix expression string and extract a typed result
+-- with an explicit base path.
+evalAsAt :: FromValue a => EvalState -> ByteString -> OsPath -> Nix a
+evalAsAt es expr path = liftNix $ Unsafe.evalAsAt es expr path
 
 -- | Parse and evaluate a Nix expression from a string.
 --

@@ -12,6 +12,7 @@ module Nix.C.Unsafe
   , module Nix.C.Unsafe.Store
     -- * Expression evaluation
   , module Nix.C.Unsafe.Expr
+  , module Nix.C.Unsafe.Eval
     -- * Value manipulation
   , module Nix.C.Unsafe.Value
     -- * Garbage collection
@@ -23,6 +24,7 @@ module Nix.C.Unsafe
   ) where
 
 import Nix.C.Context (NixError (..), NixErrorKind (..))
+import Nix.C.Unsafe.Eval
 import Nix.C.Unsafe.Expr
 import Nix.C.Unsafe.Flake
 import Nix.C.Unsafe.GC
