@@ -20,14 +20,14 @@ jobs:
 
       - uses: cachix/cachix-action@v17
         with:
-          name: hs-nix-bindings
+          name: nix-bindings
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
-      - name: Build hs-nix-bindings-sys
-        run: nix build .#hs-nix-bindings-sys
+      - name: Build nix-bindings-sys
+        run: nix build .#nix-bindings-sys
 
-      - name: Build hs-nix-bindings
-        run: nix build .#hs-nix-bindings
+      - name: Build nix-bindings
+        run: nix build .#nix-bindings
 
   autotag:
     if: false # disabled for now
@@ -45,13 +45,13 @@ jobs:
       - uses: sol/haskell-autotag@v1
         id: autotag
         with:
-          package-path: ./hs-nix-bindings
+          package-path: ./nix-bindings
           prefix: "v"
 
-      - name: Create release for hs-nix-bindings
+      - name: Create release for nix-bindings
         if: steps.autotag.outputs.created
         run: |
-          notes=$(parse-changelog --version-format '(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*))+' hs-nix-bindings/CHANGELOG.md "${{ steps.autotag.outputs.version }}")
+          notes=$(parse-changelog --version-format '(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*))+' nix-bindings/CHANGELOG.md "${{ steps.autotag.outputs.version }}")
           gh release create "${{ steps.autotag.outputs.name }}" --title "${{ steps.autotag.outputs.name }}" --notes "$notes"
         env:
           GH_TOKEN: ${{ github.token }}
@@ -59,13 +59,13 @@ jobs:
       - uses: sol/haskell-autotag@v1
         id: autotag-sys
         with:
-          package-path: ./hs-nix-bindings-sys
+          package-path: ./nix-bindings-sys
           prefix: "sys-v"
 
-      - name: Create release for hs-nix-bindings-sys
+      - name: Create release for nix-bindings-sys
         if: steps.autotag-sys.outputs.created
         run: |
-          notes=$(parse-changelog --version-format '(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*))+' hs-nix-bindings-sys/CHANGELOG.md "${{ steps.autotag-sys.outputs.version }}")
+          notes=$(parse-changelog --version-format '(0|[1-9][0-9]*)(\.(0|[1-9][0-9]*))+' nix-bindings-sys/CHANGELOG.md "${{ steps.autotag-sys.outputs.version }}")
           gh release create "${{ steps.autotag-sys.outputs.name }}" --title "${{ steps.autotag-sys.outputs.name }}" --notes "$notes"
         env:
           GH_TOKEN: ${{ github.token }}

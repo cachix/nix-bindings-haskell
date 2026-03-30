@@ -18,7 +18,7 @@ generate() {
   local header="$2"
 
   local lower="${module,,}"
-  local unique_id="org.cachix.hs-nix-bindings.${lower//./-}"
+  local unique_id="org.cachix.nix-bindings-haskell.${lower//./-}"
   local spec_name="${module#Generated.Nix.}"
   spec_name="${spec_name//.}"
 

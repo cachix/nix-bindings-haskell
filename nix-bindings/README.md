@@ -1,8 +1,8 @@
-# hs-nix-bindings
+# nix-bindings
 
 Safe, ergonomic Haskell bindings to the [Nix C API](https://nix.dev/manual/nix/latest/c-api).
 
-Built on top of [hs-nix-bindings-sys](../hs-nix-bindings-sys/) (auto-generated raw FFI bindings).
+Built on top of [nix-bindings-sys](../nix-bindings-sys/) (auto-generated raw FFI bindings).
 
 ## Three usage styles
 
@@ -123,4 +123,4 @@ Unchecked variants (`unsafeGetInt`, `unsafeGetFloat`, etc.) are available via `i
 | `Nix.C.Unsafe.Value` | Value extraction, `FromValue` (throwing + `Either`) |
 | `Nix.C.Monad` | `Nix` type, `runNix`, `runNixThrow`, `liftNix` |
 | `Nix.C.Context` | `NixError`, `NixErrorKind` |
-| `Nix.C.Sys` | Raw FFI re-exports from `hs-nix-bindings-sys` |
+| `Nix.C.Sys` | Raw FFI re-exports from `nix-bindings-sys` |

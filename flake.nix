@@ -2,8 +2,8 @@
   description = "Haskell bindings to the Nix C API";
 
   nixConfig = {
-    extra-substituters = "https://hs-nix-bindings.cachix.org";
-    extra-trusted-public-keys = "hs-nix-bindings.cachix.org-1:n5XrQOd8tq0O9MQLi4GBckH48SoFrgoIKEtQN0IxjYU=";
+    extra-substituters = "https://nix-bindings-haskell.cachix.org";
+    extra-trusted-public-keys = "nix-bindings-haskell.cachix.org-1:REDOE29ek9QD6uzyIau6MxHvoHbY8dmswgZd/sivwN4=";
   };
 
   inputs = {
@@ -44,54 +44,54 @@
             nix-main-c
           ];
 
-          hs-nix-bindings-sys =
+          nix-bindings-sys =
             hlib.overrideCabal
               (drv: {
                 pkg-configDepends = nixCApiPkgs;
               })
-              (hpkgs.callCabal2nix "hs-nix-bindings-sys" ./hs-nix-bindings-sys { });
+              (hpkgs.callCabal2nix "nix-bindings-sys" ./nix-bindings-sys { });
 
-          hs-nix-bindings = hlib.overrideCabal
+          nix-bindings = hlib.overrideCabal
             (drv: {
               pkg-configDepends = nixCApiPkgs;
             })
-            (hpkgs.callCabal2nix "hs-nix-bindings" ./hs-nix-bindings {
-              inherit hs-nix-bindings-sys;
+            (hpkgs.callCabal2nix "nix-bindings" ./nix-bindings {
+              inherit nix-bindings-sys;
               inherit (hpkgs) hs-bindgen-runtime;
             });
 
-          hs-nix-bindings-sys-regenerated =
+          nix-bindings-sys-regenerated =
             hlib.overrideCabal
               (drv: {
                 pkg-configDepends = nixCApiPkgs;
               })
               (hlib.generateBindings
-                ./hs-nix-bindings-sys/generate-bindings
-                (hpkgs.callCabal2nix "hs-nix-bindings-sys" ./hs-nix-bindings-sys { }));
+                ./nix-bindings-sys/generate-bindings
+                (hpkgs.callCabal2nix "nix-bindings-sys" ./nix-bindings-sys { }));
 
-          hs-nix-bindings-regenerated = hlib.overrideCabal
+          nix-bindings-regenerated = hlib.overrideCabal
             (drv: {
               pkg-configDepends = nixCApiPkgs;
             })
-            (hpkgs.callCabal2nix "hs-nix-bindings" ./hs-nix-bindings {
-              hs-nix-bindings-sys = hs-nix-bindings-sys-regenerated;
+            (hpkgs.callCabal2nix "nix-bindings" ./nix-bindings {
+              nix-bindings-sys = nix-bindings-sys-regenerated;
               inherit (hpkgs) hs-bindgen-runtime;
             });
         in
         {
           packages = {
             inherit
-              hs-nix-bindings
-              hs-nix-bindings-sys
-              hs-nix-bindings-sys-regenerated
-              hs-nix-bindings-regenerated;
-            default = hs-nix-bindings;
+              nix-bindings
+              nix-bindings-sys
+              nix-bindings-sys-regenerated
+              nix-bindings-regenerated;
+            default = nix-bindings;
           };
 
           devShells.default = hpkgs.shellFor {
             packages = _: [
-              hs-nix-bindings
-              hs-nix-bindings-sys
+              nix-bindings
+              nix-bindings-sys
             ];
             nativeBuildInputs = [
               hpkgs.cabal-install

@@ -1,5 +1,5 @@
 cabal-version: 3.4
-name:          hs-nix-bindings
+name:          nix-bindings
 version:       0.1.0.0
 synopsis:      Safe Haskell bindings to the Nix C API
 description:
@@ -32,7 +32,7 @@ description:
   * "Nix.C.Unsafe" — throwing IO API (re-exports domain modules)
   * "Nix.C.Monad" — 'Nix' monad type and runners
   * "Nix.C.Context" — error types ('NixError', 'NixErrorKind')
-  * "Nix.C.Sys" — re-export of raw FFI bindings from @hs-nix-bindings-sys@
+  * "Nix.C.Sys" — re-export of raw FFI bindings from @nix-bindings-sys@
   .
   == Design
   .
@@ -52,8 +52,8 @@ license-file:     LICENSE
 author:           Cachix
 maintainer:       support@cachix.org
 category:         Nix, System
-homepage:         https://github.com/cachix/hs-nix-bindings
-bug-reports:      https://github.com/cachix/hs-nix-bindings/issues
+homepage:         https://github.com/cachix/nix-bindings-haskell
+bug-reports:      https://github.com/cachix/nix-bindings-haskell/issues
 build-type:       Simple
 extra-doc-files:
   CHANGELOG.md
@@ -73,7 +73,7 @@ library
     , bytestring
     , filepath          >=1.4.200
     , hs-bindgen-runtime
-    , hs-nix-bindings-sys
+    , nix-bindings-sys
     , os-string         >=2.0
     , text
     , transformers
@@ -106,7 +106,7 @@ library
     DerivingVia
     TypeApplications
 
-test-suite hs-nix-bindings-test
+test-suite nix-bindings-test
   import:           common
   type:             exitcode-stdio-1.0
   hs-source-dirs:   test
@@ -124,6 +124,6 @@ test-suite hs-nix-bindings-test
   build-depends:
     , bytestring
     , filepath    >=1.4.200
-    , hs-nix-bindings
+    , nix-bindings
     , hspec
     , temporary
