@@ -26,7 +26,7 @@ eval es expr = evalFromString es expr (byteStringToOsPath ".")
 evalAt :: EvalState -> ByteString -> OsPath -> IO Value
 evalAt = evalFromString
 
--- | Evaluate a Nix expression string and extract a typed result.
+-- | Evaluate a Nix expression string, force the result, and extract a typed value.
 -- Uses the current directory as the base path.
 --
 -- @
@@ -35,7 +35,7 @@ evalAt = evalFromString
 evalAs :: FromValue a => EvalState -> ByteString -> IO a
 evalAs es expr = unsafeForceGet es =<< eval es expr
 
--- | Evaluate a Nix expression string and extract a typed result
+-- | Evaluate a Nix expression string, force the result, and extract a typed value
 -- with an explicit base path.
 evalAsAt :: FromValue a => EvalState -> ByteString -> OsPath -> IO a
 evalAsAt es expr path = unsafeForceGet es =<< evalFromString es expr path
