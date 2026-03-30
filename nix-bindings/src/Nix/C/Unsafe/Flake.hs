@@ -114,16 +114,16 @@ withFlakeEvalState store fs f =
 
 -- | Parse a flake reference string into a 'FlakeReference' and a fragment.
 parseFlakeReference
-  :: FetchersSettings
-  -> FlakeSettings
+  :: FlakeSettings
+  -> FetchersSettings
   -> Maybe ByteString
   -- ^ Optional base directory for resolving relative paths.
   -> ByteString
   -- ^ Flake reference string (e.g. @".#default"@).
   -> IO (FlakeReference, ByteString)
-parseFlakeReference (FetchersSettings fetchFP) (FlakeSettings flakeFP) mBaseDir refStr =
-  withForeignPtr fetchFP $ \fetchS ->
-    withForeignPtr flakeFP $ \flakeS ->
+parseFlakeReference (FlakeSettings flakeFP) (FetchersSettings fetchFP) mBaseDir refStr =
+  withForeignPtr flakeFP $ \flakeS ->
+    withForeignPtr fetchFP $ \fetchS ->
       withContext' $ \ctx -> do
         parseFlags <- checkNull ctx
           =<< SysFlake.nix_flake_reference_parse_flags_new ctx flakeS
@@ -150,15 +150,15 @@ freeFlakeReference (FlakeReference ref) = finalizeForeignPtr ref
 -- Automatically freed when garbage collected.
 -- Use 'freeLockedFlake' for immediate deterministic cleanup.
 lockFlake
-  :: FetchersSettings
+  :: EvalState
   -> FlakeSettings
-  -> EvalState
+  -> FetchersSettings
   -> LockMode
   -> FlakeReference
   -> IO LockedFlake
-lockFlake (FetchersSettings fetchFP) (FlakeSettings flakeFP) es mode (FlakeReference refFP) =
-  withForeignPtr fetchFP $ \fetchS ->
-    withForeignPtr flakeFP $ \flakeS ->
+lockFlake es (FlakeSettings flakeFP) (FetchersSettings fetchFP) mode (FlakeReference refFP) =
+  withForeignPtr flakeFP $ \flakeS ->
+    withForeignPtr fetchFP $ \fetchS ->
       withForeignPtr refFP $ \ref -> do
         let ctx = evalCtx es
         lockFlags <- checkNull ctx =<< SysFlake.nix_flake_lock_flags_new ctx flakeS
@@ -177,8 +177,8 @@ freeLockedFlake :: LockedFlake -> IO ()
 freeLockedFlake (LockedFlake lf) = finalizeForeignPtr lf
 
 -- | Get the output attributes of a locked flake.
-getFlakeOutputs :: FlakeSettings -> EvalState -> LockedFlake -> IO Value
-getFlakeOutputs (FlakeSettings flakeFP) es (LockedFlake lfFP) =
+getFlakeOutputs :: EvalState -> FlakeSettings -> LockedFlake -> IO Value
+getFlakeOutputs es (FlakeSettings flakeFP) (LockedFlake lfFP) =
   withForeignPtr flakeFP $ \flakeS ->
     withForeignPtr lfFP $ \lf -> do
       let ctx = evalCtx es

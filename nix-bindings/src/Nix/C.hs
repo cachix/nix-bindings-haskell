@@ -503,28 +503,28 @@ withFlakeEvalState store fs f =
 
 -- | Parse a flake reference string into a 'FlakeReference' and a fragment.
 parseFlakeReference
-  :: FetchersSettings
-  -> FlakeSettings
+  :: FlakeSettings
+  -> FetchersSettings
   -> Maybe ByteString
   -- ^ Optional base directory for resolving relative paths.
   -> ByteString
   -- ^ Flake reference string (e.g. @".#default"@).
   -> Nix (FlakeReference, ByteString)
-parseFlakeReference fs flakeS mBaseDir refStr =
-  liftNix $ Unsafe.parseFlakeReference fs flakeS mBaseDir refStr
+parseFlakeReference flakeS fs mBaseDir refStr =
+  liftNix $ Unsafe.parseFlakeReference flakeS fs mBaseDir refStr
 
 -- | Lock a flake reference.
 -- The returned 'LockedFlake' is automatically freed when garbage collected.
 lockFlake
-  :: FetchersSettings
+  :: EvalState
   -> FlakeSettings
-  -> EvalState
+  -> FetchersSettings
   -> LockMode
   -> FlakeReference
   -> Nix LockedFlake
-lockFlake fs flakeS es mode ref =
-  liftNix $ Unsafe.lockFlake fs flakeS es mode ref
+lockFlake es flakeS fs mode ref =
+  liftNix $ Unsafe.lockFlake es flakeS fs mode ref
 
 -- | Get the output attributes of a locked flake.
-getFlakeOutputs :: FlakeSettings -> EvalState -> LockedFlake -> Nix Value
-getFlakeOutputs flakeS es lf = liftNix $ Unsafe.getFlakeOutputs flakeS es lf
+getFlakeOutputs :: EvalState -> FlakeSettings -> LockedFlake -> Nix Value
+getFlakeOutputs es flakeS lf = liftNix $ Unsafe.getFlakeOutputs es flakeS lf
