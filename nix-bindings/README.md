@@ -45,14 +45,6 @@ main = do
       print n -- 3
 ```
 
-### Either via `runNix`
-
-```haskell
-result <- runNix $ eval state "some expression"
-case result of
-  Left err -> handleError err
-  Right val -> useValue val
-```
 
 ## Type-directed extraction (`FromValue`)
 
