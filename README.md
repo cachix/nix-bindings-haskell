@@ -48,7 +48,7 @@ The `-regenerated` variants use [hs-bindgen](https://github.com/well-typed/hs-bi
 Override the `nix` flake input to generate bindings for a different Nix version:
 
 ```bash
-nix build .#nix-bindings-regenerated --override-input nix github:NixOS/nix/2.26.0
+nix build .#nix-bindings-regenerated --override-input nix github:NixOS/nix/3.34.4
 ```
 
 ## Regenerating FFI bindings
