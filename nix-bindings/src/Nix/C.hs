@@ -43,7 +43,8 @@ module Nix.C
 
     -- * Store operations
   , withStore
-  , storeUri
+  , storeReference
+  , StoreReference (..)
   , storeDir
   , storeVersion
   , isValidPath
@@ -149,6 +150,7 @@ import qualified Nix.C.Unsafe.Init as Unsafe
 import qualified Nix.C.Unsafe.Settings as Unsafe
 import Nix.C.Internal (EvalState, FetchersSettings, FlakeReference, FlakeSettings, LockedFlake, Store, StorePath, Value)
 import Nix.C.Store.PathInfo (ContentAddress (..), Hash (..), HashAlgo (..), PathInfo (..), PathInfoJsonFormat (..), Signature (..), hashAlgoText, hashToSRI)
+import Nix.C.Store.Reference (StoreReference (..))
 import Nix.C.Monad (Nix, liftEitherNix, liftNix, runNix, runNixThrow, withBracketNix)
 import qualified Nix.C.Unsafe.Store as Unsafe
 import qualified Nix.C.Unsafe.Value as Unsafe
@@ -178,9 +180,9 @@ nixVersion = Unsafe.nixVersion
 withStore :: ByteString -> (Store -> Nix a) -> Nix a
 withStore uri f = withBracketNix (Unsafe.openStore uri) Unsafe.closeStore f
 
--- | Get the URI of the store.
-storeUri :: Store -> Nix ByteString
-storeUri = liftNix . Unsafe.storeUri
+-- | Get the store reference.
+storeReference :: Store -> Nix StoreReference
+storeReference = liftNix . Unsafe.storeReference
 
 -- | Get the store directory path (typically @"\/nix\/store"@).
 storeDir :: Store -> Nix OsPath

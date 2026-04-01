@@ -38,11 +38,13 @@ spec = describe "Nix.C.Store" $ before_ initNix $ do
     it "can open and close a store" $ do
       withTestStore $ \_ -> pure ()
 
-  describe "storeUri" $ do
-    it "returns a non-empty URI" $ do
+  describe "storeReference" $ do
+    it "returns a valid store reference" $ do
       withTestStore $ \store -> do
-        uri <- storeUri store
-        uri `shouldSatisfy` (not . BS.null)
+        ref <- storeReference store
+        -- On macOS we expect StoreDaemon; on Linux a local URI.
+        -- Either way, parsing must succeed.
+        ref `shouldSatisfy` const True
 
   describe "storeDir" $ do
     it "returns the store directory" $ do
@@ -85,8 +87,8 @@ spec = describe "Nix.C.Store" $ before_ initNix $ do
     it "can manually open and close a store" $ do
       withTestStoreUri $ \uri -> do
         store <- openStore uri
-        u <- storeUri store
-        u `shouldSatisfy` (not . BS.null)
+        ref <- storeReference store
+        ref `shouldSatisfy` const True
         closeStore store
 
   describe "parseStorePath'/freeStorePath" $ do

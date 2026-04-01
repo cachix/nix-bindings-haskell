@@ -73,6 +73,7 @@ library
     , hs-bindgen-runtime
     , nix-bindings-sys
     , os-string         >=2.0
+    , uri-bytestring
     , text
     , transformers
   exposed-modules:
@@ -80,6 +81,7 @@ library
     Nix.C.Context
     Nix.C.Monad
     Nix.C.Store.PathInfo
+    Nix.C.Store.Reference
     Nix.C.Sys
     Nix.C.Unsafe
     Nix.C.Unsafe.Eval

@@ -8,7 +8,7 @@ module Nix.C.Unsafe.Store
   , withStore
   , openStore
   , closeStore
-  , storeUri
+  , storeReference
   , storeDir
   , storeVersion
   , isValidPath
@@ -48,6 +48,7 @@ import qualified Data.ByteString.Char8 as BS8
 import Nix.C.Context (NixError (..), NixErrorKind (..), checkError, checkNull, withCallbackBS, withContext')
 import Nix.C.Internal (CNixContext, CStore, CStorePath, Store (..), StorePath (..), byteStringToOsPath, osPathToByteString)
 import Nix.C.Store.PathInfo (PathInfo, PathInfoJsonFormat (..))
+import Nix.C.Store.Reference (StoreReference, parseStoreReference)
 import System.OsPath (OsPath)
 
 -- | Open a Nix store and run an action with it.
@@ -81,9 +82,17 @@ getStoreString f store = do
   checkError (storeCtx store) rc
   pure bs
 
--- | Get the URI of the store.
-storeUri :: Store -> IO ByteString
-storeUri = getStoreString SysStore.nix_store_get_uri
+-- | Get the store reference.
+--
+-- Parses the raw string from @nix_store_get_uri@ into a structured
+-- 'StoreReference'.
+-- Throws 'NixCError' if the raw string cannot be parsed.
+storeReference :: Store -> IO StoreReference
+storeReference store = do
+  raw <- getStoreString SysStore.nix_store_get_uri store
+  case parseStoreReference raw of
+    Right ref -> pure ref
+    Left err -> throwIO $ NixCError NixErrUnknown (BS8.pack "storeReference: " <> err) BS.empty
 
 -- | Get the store directory path (typically @"\/nix\/store"@).
 storeDir :: Store -> IO OsPath
