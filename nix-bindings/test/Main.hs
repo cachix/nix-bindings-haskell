@@ -4,6 +4,7 @@ import Test.Hspec
 
 import qualified Test.Nix.C.Construction
 import qualified Test.Nix.C.Expr
+import qualified Test.Nix.C.Hash.Nix32
 import qualified Test.Nix.C.Monad
 import qualified Test.Nix.C.Settings
 import qualified Test.Nix.C.Store
@@ -12,6 +13,7 @@ import qualified Test.Nix.C.Value
 
 main :: IO ()
 main = hspec $ do
+  Test.Nix.C.Hash.Nix32.spec
   Test.Nix.C.Util.spec
   Test.Nix.C.Store.spec
   Test.Nix.C.Expr.spec

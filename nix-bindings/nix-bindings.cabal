@@ -117,6 +117,7 @@ test-suite nix-bindings-test
   other-modules:
     Test.Nix.C.Construction
     Test.Nix.C.Expr
+    Test.Nix.C.Hash.Nix32
     Test.Nix.C.Monad
     Test.Nix.C.Settings
     Test.Nix.C.Store
@@ -128,4 +129,5 @@ test-suite nix-bindings-test
     , filepath    >=1.4.200
     , nix-bindings
     , hspec
+    , QuickCheck
     , temporary

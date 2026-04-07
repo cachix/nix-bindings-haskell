@@ -53,7 +53,7 @@ decode t
   | T.null t = Right BS.empty
   | otherwise = do
       let s = T.unpack t
-          outLen = (length s * 5 + 7) `div` 8
+          outLen = (length s * 5) `div` 8
           initial = BS.replicate outLen 0
       foldlM (decodeChar (length s)) initial (zip [0..] s)
   where
