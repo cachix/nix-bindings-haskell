@@ -61,13 +61,11 @@ module Nix.C
 
     -- * Path info types
   , PathInfo (..)
-  , PathInfoJsonFormat (..)
   , HashAlgo (..)
   , Hash (..)
   , hashAlgoText
   , hashToSRI
-  , ContentAddress (..)
-  , Signature (..)
+  , parseHashSRI
 
     -- * Expression evaluation
   , withEvalState
@@ -149,7 +147,7 @@ import qualified Nix.C.Unsafe.GC as Unsafe
 import qualified Nix.C.Unsafe.Init as Unsafe
 import qualified Nix.C.Unsafe.Settings as Unsafe
 import Nix.C.Internal (EvalState, FetchersSettings, FlakeReference, FlakeSettings, LockedFlake, Store, StorePath, Value)
-import Nix.C.Store.PathInfo (ContentAddress (..), Hash (..), HashAlgo (..), PathInfo (..), PathInfoJsonFormat (..), Signature (..), hashAlgoText, hashToSRI)
+import Nix.C.Store.PathInfo (Hash (..), HashAlgo (..), PathInfo (..), hashAlgoText, hashToSRI, parseHashSRI)
 import Nix.C.Store.Reference (StoreReference (..))
 import Nix.C.Monad (Nix, liftEitherNix, liftNix, runNix, runNixThrow, withBracketNix)
 import qualified Nix.C.Unsafe.Store as Unsafe
@@ -269,8 +267,8 @@ copyClosure :: Store -> Store -> StorePath -> Nix ()
 copyClosure src dst sp = liftNix $ Unsafe.copyClosure src dst sp
 
 -- | Get store path metadata as a parsed 'PathInfo'.
-getPathInfo :: Store -> StorePath -> PathInfoJsonFormat -> Nix PathInfo
-getPathInfo store sp fmt = liftNix $ Unsafe.queryPathInfoJson store sp fmt
+getPathInfo :: Store -> StorePath -> Nix PathInfo
+getPathInfo store sp = liftNix $ Unsafe.queryPathInfo store sp
 
 -- * Expression evaluation
 
