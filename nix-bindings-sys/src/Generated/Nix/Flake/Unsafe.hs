@@ -34,19 +34,19 @@ import Generated.Nix.Flake
 
 $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.unlines
   [ "#include <nix_api_flake.h>"
-  , "nix_flake_settings *hs_bindgen_1acb73e23e33613b ("
+  , "nix_flake_settings *hs_bindgen_21a1964a3f3ddd9a ("
   , "  nix_c_context *arg1"
   , ")"
   , "{"
   , "  return (nix_flake_settings_new)(arg1);"
   , "}"
-  , "void hs_bindgen_fde54fe7f2e8d74b ("
+  , "void hs_bindgen_6d5995860506341a ("
   , "  nix_flake_settings *arg1"
   , ")"
   , "{"
   , "  (nix_flake_settings_free)(arg1);"
   , "}"
-  , "nix_err hs_bindgen_c908f898fe5ad9ff ("
+  , "nix_err hs_bindgen_722e17ae3c410091 ("
   , "  nix_c_context *arg1,"
   , "  nix_flake_settings *arg2,"
   , "  nix_eval_state_builder *arg3"
@@ -54,20 +54,20 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_flake_settings_add_to_eval_state_builder)(arg1, arg2, arg3);"
   , "}"
-  , "nix_flake_reference_parse_flags *hs_bindgen_ed0e4921e7db974b ("
+  , "nix_flake_reference_parse_flags *hs_bindgen_40411ccc8c10df2d ("
   , "  nix_c_context *arg1,"
   , "  nix_flake_settings *arg2"
   , ")"
   , "{"
   , "  return (nix_flake_reference_parse_flags_new)(arg1, arg2);"
   , "}"
-  , "void hs_bindgen_77705d4896ca17af ("
+  , "void hs_bindgen_a7081ee32cef5768 ("
   , "  nix_flake_reference_parse_flags *arg1"
   , ")"
   , "{"
   , "  (nix_flake_reference_parse_flags_free)(arg1);"
   , "}"
-  , "nix_err hs_bindgen_571268588130e7ca ("
+  , "nix_err hs_bindgen_ed7f8ad0b9510190 ("
   , "  nix_c_context *arg1,"
   , "  nix_flake_reference_parse_flags *arg2,"
   , "  char const *arg3,"
@@ -76,41 +76,41 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_flake_reference_parse_flags_set_base_directory)(arg1, arg2, arg3, arg4);"
   , "}"
-  , "nix_flake_lock_flags *hs_bindgen_a371f860f0885e51 ("
+  , "nix_flake_lock_flags *hs_bindgen_5de49b83641ebd60 ("
   , "  nix_c_context *arg1,"
   , "  nix_flake_settings *arg2"
   , ")"
   , "{"
   , "  return (nix_flake_lock_flags_new)(arg1, arg2);"
   , "}"
-  , "void hs_bindgen_4ef4267e0c66929a ("
+  , "void hs_bindgen_c4b60608a4ed7841 ("
   , "  nix_flake_lock_flags *arg1"
   , ")"
   , "{"
   , "  (nix_flake_lock_flags_free)(arg1);"
   , "}"
-  , "nix_err hs_bindgen_6669d9d52fe7484d ("
+  , "nix_err hs_bindgen_018a039147a0f9e7 ("
   , "  nix_c_context *arg1,"
   , "  nix_flake_lock_flags *arg2"
   , ")"
   , "{"
   , "  return (nix_flake_lock_flags_set_mode_check)(arg1, arg2);"
   , "}"
-  , "nix_err hs_bindgen_daf4570743f6fb1f ("
+  , "nix_err hs_bindgen_c80e7791d8c5bd7e ("
   , "  nix_c_context *arg1,"
   , "  nix_flake_lock_flags *arg2"
   , ")"
   , "{"
   , "  return (nix_flake_lock_flags_set_mode_virtual)(arg1, arg2);"
   , "}"
-  , "nix_err hs_bindgen_51dd1b2a30551c1b ("
+  , "nix_err hs_bindgen_33565dab287b4117 ("
   , "  nix_c_context *arg1,"
   , "  nix_flake_lock_flags *arg2"
   , ")"
   , "{"
   , "  return (nix_flake_lock_flags_set_mode_write_as_needed)(arg1, arg2);"
   , "}"
-  , "nix_err hs_bindgen_b0f801ae7f3593db ("
+  , "nix_err hs_bindgen_9279f027c178a738 ("
   , "  nix_c_context *arg1,"
   , "  nix_flake_lock_flags *arg2,"
   , "  char const *arg3,"
@@ -119,7 +119,7 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_flake_lock_flags_add_input_override)(arg1, arg2, arg3, arg4);"
   , "}"
-  , "nix_locked_flake *hs_bindgen_382d07cf598b8a71 ("
+  , "nix_locked_flake *hs_bindgen_9e08e6a664ba6d1d ("
   , "  nix_c_context *arg1,"
   , "  nix_fetchers_settings *arg2,"
   , "  nix_flake_settings *arg3,"
@@ -130,13 +130,13 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_flake_lock)(arg1, arg2, arg3, arg4, arg5, arg6);"
   , "}"
-  , "void hs_bindgen_8e4c85554c8ee102 ("
+  , "void hs_bindgen_1bd6a456354cf2cf ("
   , "  nix_locked_flake *arg1"
   , ")"
   , "{"
   , "  (nix_locked_flake_free)(arg1);"
   , "}"
-  , "nix_err hs_bindgen_9cb6a31f26915e87 ("
+  , "nix_err hs_bindgen_921572f08bc01d76 ("
   , "  nix_c_context *arg1,"
   , "  nix_fetchers_settings *arg2,"
   , "  nix_flake_settings *arg3,"
@@ -150,13 +150,13 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_flake_reference_and_fragment_from_string)(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);"
   , "}"
-  , "void hs_bindgen_7c34650d6e0045a9 ("
+  , "void hs_bindgen_f850d5f3161814fb ("
   , "  nix_flake_reference *arg1"
   , ")"
   , "{"
   , "  (nix_flake_reference_free)(arg1);"
   , "}"
-  , "nix_value *hs_bindgen_18622227a1528f23 ("
+  , "nix_value *hs_bindgen_8b5199a06e597952 ("
   , "  nix_c_context *arg1,"
   , "  nix_flake_settings *arg2,"
   , "  EvalState *arg3,"
@@ -167,17 +167,17 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "}"
   ]))
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_settings_new@
-foreign import ccall unsafe "hs_bindgen_1acb73e23e33613b" hs_bindgen_1acb73e23e33613b_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_settings_new@
+foreign import ccall unsafe "hs_bindgen_21a1964a3f3ddd9a" hs_bindgen_21a1964a3f3ddd9a_base ::
      RIP.Ptr RIP.Void
   -> IO (RIP.Ptr RIP.Void)
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_settings_new@
-hs_bindgen_1acb73e23e33613b ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_settings_new@
+hs_bindgen_21a1964a3f3ddd9a ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> IO (RIP.Ptr Nix_flake_settings)
-hs_bindgen_1acb73e23e33613b =
-  RIP.fromFFIType hs_bindgen_1acb73e23e33613b_base
+hs_bindgen_21a1964a3f3ddd9a =
+  RIP.fromFFIType hs_bindgen_21a1964a3f3ddd9a_base
 
 {-| __C declaration:__ @nix_flake_settings_new@
 
@@ -189,19 +189,19 @@ nix_flake_settings_new ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
   -> IO (RIP.Ptr Nix_flake_settings)
-nix_flake_settings_new = hs_bindgen_1acb73e23e33613b
+nix_flake_settings_new = hs_bindgen_21a1964a3f3ddd9a
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_settings_free@
-foreign import ccall unsafe "hs_bindgen_fde54fe7f2e8d74b" hs_bindgen_fde54fe7f2e8d74b_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_settings_free@
+foreign import ccall unsafe "hs_bindgen_6d5995860506341a" hs_bindgen_6d5995860506341a_base ::
      RIP.Ptr RIP.Void
   -> IO ()
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_settings_free@
-hs_bindgen_fde54fe7f2e8d74b ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_settings_free@
+hs_bindgen_6d5995860506341a ::
      RIP.Ptr Nix_flake_settings
   -> IO ()
-hs_bindgen_fde54fe7f2e8d74b =
-  RIP.fromFFIType hs_bindgen_fde54fe7f2e8d74b_base
+hs_bindgen_6d5995860506341a =
+  RIP.fromFFIType hs_bindgen_6d5995860506341a_base
 
 {-| __C declaration:__ @nix_flake_settings_free@
 
@@ -213,23 +213,23 @@ nix_flake_settings_free ::
      RIP.Ptr Nix_flake_settings
      -- ^ __C declaration:__ @settings@
   -> IO ()
-nix_flake_settings_free = hs_bindgen_fde54fe7f2e8d74b
+nix_flake_settings_free = hs_bindgen_6d5995860506341a
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_settings_add_to_eval_state_builder@
-foreign import ccall unsafe "hs_bindgen_c908f898fe5ad9ff" hs_bindgen_c908f898fe5ad9ff_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_settings_add_to_eval_state_builder@
+foreign import ccall unsafe "hs_bindgen_722e17ae3c410091" hs_bindgen_722e17ae3c410091_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_settings_add_to_eval_state_builder@
-hs_bindgen_c908f898fe5ad9ff ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_settings_add_to_eval_state_builder@
+hs_bindgen_722e17ae3c410091 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> RIP.Ptr Nix_flake_settings
   -> RIP.Ptr Generated.Nix.Expr.Nix_eval_state_builder
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_c908f898fe5ad9ff =
-  RIP.fromFFIType hs_bindgen_c908f898fe5ad9ff_base
+hs_bindgen_722e17ae3c410091 =
+  RIP.fromFFIType hs_bindgen_722e17ae3c410091_base
 
 {-| __C declaration:__ @nix_flake_settings_add_to_eval_state_builder@
 
@@ -246,21 +246,21 @@ nix_flake_settings_add_to_eval_state_builder ::
      -- ^ __C declaration:__ @builder@
   -> IO Generated.Nix.Util.Nix_err
 nix_flake_settings_add_to_eval_state_builder =
-  hs_bindgen_c908f898fe5ad9ff
+  hs_bindgen_722e17ae3c410091
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_parse_flags_new@
-foreign import ccall unsafe "hs_bindgen_ed0e4921e7db974b" hs_bindgen_ed0e4921e7db974b_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_parse_flags_new@
+foreign import ccall unsafe "hs_bindgen_40411ccc8c10df2d" hs_bindgen_40411ccc8c10df2d_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO (RIP.Ptr RIP.Void)
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_parse_flags_new@
-hs_bindgen_ed0e4921e7db974b ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_parse_flags_new@
+hs_bindgen_40411ccc8c10df2d ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> RIP.Ptr Nix_flake_settings
   -> IO (RIP.Ptr Nix_flake_reference_parse_flags)
-hs_bindgen_ed0e4921e7db974b =
-  RIP.fromFFIType hs_bindgen_ed0e4921e7db974b_base
+hs_bindgen_40411ccc8c10df2d =
+  RIP.fromFFIType hs_bindgen_40411ccc8c10df2d_base
 
 {-| __C declaration:__ @nix_flake_reference_parse_flags_new@
 
@@ -275,19 +275,19 @@ nix_flake_reference_parse_flags_new ::
      -- ^ __C declaration:__ @settings@
   -> IO (RIP.Ptr Nix_flake_reference_parse_flags)
 nix_flake_reference_parse_flags_new =
-  hs_bindgen_ed0e4921e7db974b
+  hs_bindgen_40411ccc8c10df2d
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_parse_flags_free@
-foreign import ccall unsafe "hs_bindgen_77705d4896ca17af" hs_bindgen_77705d4896ca17af_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_parse_flags_free@
+foreign import ccall unsafe "hs_bindgen_a7081ee32cef5768" hs_bindgen_a7081ee32cef5768_base ::
      RIP.Ptr RIP.Void
   -> IO ()
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_parse_flags_free@
-hs_bindgen_77705d4896ca17af ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_parse_flags_free@
+hs_bindgen_a7081ee32cef5768 ::
      RIP.Ptr Nix_flake_reference_parse_flags
   -> IO ()
-hs_bindgen_77705d4896ca17af =
-  RIP.fromFFIType hs_bindgen_77705d4896ca17af_base
+hs_bindgen_a7081ee32cef5768 =
+  RIP.fromFFIType hs_bindgen_a7081ee32cef5768_base
 
 {-| __C declaration:__ @nix_flake_reference_parse_flags_free@
 
@@ -300,25 +300,25 @@ nix_flake_reference_parse_flags_free ::
      -- ^ __C declaration:__ @flags@
   -> IO ()
 nix_flake_reference_parse_flags_free =
-  hs_bindgen_77705d4896ca17af
+  hs_bindgen_a7081ee32cef5768
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_parse_flags_set_base_directory@
-foreign import ccall unsafe "hs_bindgen_571268588130e7ca" hs_bindgen_571268588130e7ca_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_parse_flags_set_base_directory@
+foreign import ccall unsafe "hs_bindgen_ed7f8ad0b9510190" hs_bindgen_ed7f8ad0b9510190_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Word64
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_parse_flags_set_base_directory@
-hs_bindgen_571268588130e7ca ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_parse_flags_set_base_directory@
+hs_bindgen_ed7f8ad0b9510190 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> RIP.Ptr Nix_flake_reference_parse_flags
   -> PtrConst.PtrConst RIP.CChar
   -> HsBindgen.Runtime.LibC.CSize
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_571268588130e7ca =
-  RIP.fromFFIType hs_bindgen_571268588130e7ca_base
+hs_bindgen_ed7f8ad0b9510190 =
+  RIP.fromFFIType hs_bindgen_ed7f8ad0b9510190_base
 
 {-| __C declaration:__ @nix_flake_reference_parse_flags_set_base_directory@
 
@@ -337,21 +337,21 @@ nix_flake_reference_parse_flags_set_base_directory ::
      -- ^ __C declaration:__ @baseDirectoryLen@
   -> IO Generated.Nix.Util.Nix_err
 nix_flake_reference_parse_flags_set_base_directory =
-  hs_bindgen_571268588130e7ca
+  hs_bindgen_ed7f8ad0b9510190
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_new@
-foreign import ccall unsafe "hs_bindgen_a371f860f0885e51" hs_bindgen_a371f860f0885e51_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_new@
+foreign import ccall unsafe "hs_bindgen_5de49b83641ebd60" hs_bindgen_5de49b83641ebd60_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO (RIP.Ptr RIP.Void)
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_new@
-hs_bindgen_a371f860f0885e51 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_new@
+hs_bindgen_5de49b83641ebd60 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> RIP.Ptr Nix_flake_settings
   -> IO (RIP.Ptr Nix_flake_lock_flags)
-hs_bindgen_a371f860f0885e51 =
-  RIP.fromFFIType hs_bindgen_a371f860f0885e51_base
+hs_bindgen_5de49b83641ebd60 =
+  RIP.fromFFIType hs_bindgen_5de49b83641ebd60_base
 
 {-| __C declaration:__ @nix_flake_lock_flags_new@
 
@@ -366,19 +366,19 @@ nix_flake_lock_flags_new ::
      -- ^ __C declaration:__ @settings@
   -> IO (RIP.Ptr Nix_flake_lock_flags)
 nix_flake_lock_flags_new =
-  hs_bindgen_a371f860f0885e51
+  hs_bindgen_5de49b83641ebd60
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_free@
-foreign import ccall unsafe "hs_bindgen_4ef4267e0c66929a" hs_bindgen_4ef4267e0c66929a_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_free@
+foreign import ccall unsafe "hs_bindgen_c4b60608a4ed7841" hs_bindgen_c4b60608a4ed7841_base ::
      RIP.Ptr RIP.Void
   -> IO ()
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_free@
-hs_bindgen_4ef4267e0c66929a ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_free@
+hs_bindgen_c4b60608a4ed7841 ::
      RIP.Ptr Nix_flake_lock_flags
   -> IO ()
-hs_bindgen_4ef4267e0c66929a =
-  RIP.fromFFIType hs_bindgen_4ef4267e0c66929a_base
+hs_bindgen_c4b60608a4ed7841 =
+  RIP.fromFFIType hs_bindgen_c4b60608a4ed7841_base
 
 {-| __C declaration:__ @nix_flake_lock_flags_free@
 
@@ -391,21 +391,21 @@ nix_flake_lock_flags_free ::
      -- ^ __C declaration:__ @settings@
   -> IO ()
 nix_flake_lock_flags_free =
-  hs_bindgen_4ef4267e0c66929a
+  hs_bindgen_c4b60608a4ed7841
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_set_mode_check@
-foreign import ccall unsafe "hs_bindgen_6669d9d52fe7484d" hs_bindgen_6669d9d52fe7484d_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_set_mode_check@
+foreign import ccall unsafe "hs_bindgen_018a039147a0f9e7" hs_bindgen_018a039147a0f9e7_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_set_mode_check@
-hs_bindgen_6669d9d52fe7484d ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_set_mode_check@
+hs_bindgen_018a039147a0f9e7 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> RIP.Ptr Nix_flake_lock_flags
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_6669d9d52fe7484d =
-  RIP.fromFFIType hs_bindgen_6669d9d52fe7484d_base
+hs_bindgen_018a039147a0f9e7 =
+  RIP.fromFFIType hs_bindgen_018a039147a0f9e7_base
 
 {-| __C declaration:__ @nix_flake_lock_flags_set_mode_check@
 
@@ -420,21 +420,21 @@ nix_flake_lock_flags_set_mode_check ::
      -- ^ __C declaration:__ @flags@
   -> IO Generated.Nix.Util.Nix_err
 nix_flake_lock_flags_set_mode_check =
-  hs_bindgen_6669d9d52fe7484d
+  hs_bindgen_018a039147a0f9e7
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_set_mode_virtual@
-foreign import ccall unsafe "hs_bindgen_daf4570743f6fb1f" hs_bindgen_daf4570743f6fb1f_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_set_mode_virtual@
+foreign import ccall unsafe "hs_bindgen_c80e7791d8c5bd7e" hs_bindgen_c80e7791d8c5bd7e_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_set_mode_virtual@
-hs_bindgen_daf4570743f6fb1f ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_set_mode_virtual@
+hs_bindgen_c80e7791d8c5bd7e ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> RIP.Ptr Nix_flake_lock_flags
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_daf4570743f6fb1f =
-  RIP.fromFFIType hs_bindgen_daf4570743f6fb1f_base
+hs_bindgen_c80e7791d8c5bd7e =
+  RIP.fromFFIType hs_bindgen_c80e7791d8c5bd7e_base
 
 {-| __C declaration:__ @nix_flake_lock_flags_set_mode_virtual@
 
@@ -449,21 +449,21 @@ nix_flake_lock_flags_set_mode_virtual ::
      -- ^ __C declaration:__ @flags@
   -> IO Generated.Nix.Util.Nix_err
 nix_flake_lock_flags_set_mode_virtual =
-  hs_bindgen_daf4570743f6fb1f
+  hs_bindgen_c80e7791d8c5bd7e
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_set_mode_write_as_needed@
-foreign import ccall unsafe "hs_bindgen_51dd1b2a30551c1b" hs_bindgen_51dd1b2a30551c1b_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_set_mode_write_as_needed@
+foreign import ccall unsafe "hs_bindgen_33565dab287b4117" hs_bindgen_33565dab287b4117_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_set_mode_write_as_needed@
-hs_bindgen_51dd1b2a30551c1b ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_set_mode_write_as_needed@
+hs_bindgen_33565dab287b4117 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> RIP.Ptr Nix_flake_lock_flags
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_51dd1b2a30551c1b =
-  RIP.fromFFIType hs_bindgen_51dd1b2a30551c1b_base
+hs_bindgen_33565dab287b4117 =
+  RIP.fromFFIType hs_bindgen_33565dab287b4117_base
 
 {-| __C declaration:__ @nix_flake_lock_flags_set_mode_write_as_needed@
 
@@ -478,25 +478,25 @@ nix_flake_lock_flags_set_mode_write_as_needed ::
      -- ^ __C declaration:__ @flags@
   -> IO Generated.Nix.Util.Nix_err
 nix_flake_lock_flags_set_mode_write_as_needed =
-  hs_bindgen_51dd1b2a30551c1b
+  hs_bindgen_33565dab287b4117
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_add_input_override@
-foreign import ccall unsafe "hs_bindgen_b0f801ae7f3593db" hs_bindgen_b0f801ae7f3593db_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_add_input_override@
+foreign import ccall unsafe "hs_bindgen_9279f027c178a738" hs_bindgen_9279f027c178a738_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_add_input_override@
-hs_bindgen_b0f801ae7f3593db ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock_flags_add_input_override@
+hs_bindgen_9279f027c178a738 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> RIP.Ptr Nix_flake_lock_flags
   -> PtrConst.PtrConst RIP.CChar
   -> RIP.Ptr Nix_flake_reference
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_b0f801ae7f3593db =
-  RIP.fromFFIType hs_bindgen_b0f801ae7f3593db_base
+hs_bindgen_9279f027c178a738 =
+  RIP.fromFFIType hs_bindgen_9279f027c178a738_base
 
 {-| __C declaration:__ @nix_flake_lock_flags_add_input_override@
 
@@ -515,10 +515,10 @@ nix_flake_lock_flags_add_input_override ::
      -- ^ __C declaration:__ @flakeRef@
   -> IO Generated.Nix.Util.Nix_err
 nix_flake_lock_flags_add_input_override =
-  hs_bindgen_b0f801ae7f3593db
+  hs_bindgen_9279f027c178a738
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock@
-foreign import ccall unsafe "hs_bindgen_382d07cf598b8a71" hs_bindgen_382d07cf598b8a71_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock@
+foreign import ccall unsafe "hs_bindgen_9e08e6a664ba6d1d" hs_bindgen_9e08e6a664ba6d1d_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
@@ -527,8 +527,8 @@ foreign import ccall unsafe "hs_bindgen_382d07cf598b8a71" hs_bindgen_382d07cf598
   -> RIP.Ptr RIP.Void
   -> IO (RIP.Ptr RIP.Void)
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock@
-hs_bindgen_382d07cf598b8a71 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_lock@
+hs_bindgen_9e08e6a664ba6d1d ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> RIP.Ptr Generated.Nix.Fetchers.Nix_fetchers_settings
   -> RIP.Ptr Nix_flake_settings
@@ -536,8 +536,8 @@ hs_bindgen_382d07cf598b8a71 ::
   -> RIP.Ptr Nix_flake_lock_flags
   -> RIP.Ptr Nix_flake_reference
   -> IO (RIP.Ptr Nix_locked_flake)
-hs_bindgen_382d07cf598b8a71 =
-  RIP.fromFFIType hs_bindgen_382d07cf598b8a71_base
+hs_bindgen_9e08e6a664ba6d1d =
+  RIP.fromFFIType hs_bindgen_9e08e6a664ba6d1d_base
 
 {-| __C declaration:__ @nix_flake_lock@
 
@@ -559,19 +559,19 @@ nix_flake_lock ::
   -> RIP.Ptr Nix_flake_reference
      -- ^ __C declaration:__ @flake@
   -> IO (RIP.Ptr Nix_locked_flake)
-nix_flake_lock = hs_bindgen_382d07cf598b8a71
+nix_flake_lock = hs_bindgen_9e08e6a664ba6d1d
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_locked_flake_free@
-foreign import ccall unsafe "hs_bindgen_8e4c85554c8ee102" hs_bindgen_8e4c85554c8ee102_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_locked_flake_free@
+foreign import ccall unsafe "hs_bindgen_1bd6a456354cf2cf" hs_bindgen_1bd6a456354cf2cf_base ::
      RIP.Ptr RIP.Void
   -> IO ()
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_locked_flake_free@
-hs_bindgen_8e4c85554c8ee102 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_locked_flake_free@
+hs_bindgen_1bd6a456354cf2cf ::
      RIP.Ptr Nix_locked_flake
   -> IO ()
-hs_bindgen_8e4c85554c8ee102 =
-  RIP.fromFFIType hs_bindgen_8e4c85554c8ee102_base
+hs_bindgen_1bd6a456354cf2cf =
+  RIP.fromFFIType hs_bindgen_1bd6a456354cf2cf_base
 
 {-| __C declaration:__ @nix_locked_flake_free@
 
@@ -583,10 +583,10 @@ nix_locked_flake_free ::
      RIP.Ptr Nix_locked_flake
      -- ^ __C declaration:__ @locked_flake@
   -> IO ()
-nix_locked_flake_free = hs_bindgen_8e4c85554c8ee102
+nix_locked_flake_free = hs_bindgen_1bd6a456354cf2cf
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_and_fragment_from_string@
-foreign import ccall unsafe "hs_bindgen_9cb6a31f26915e87" hs_bindgen_9cb6a31f26915e87_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_and_fragment_from_string@
+foreign import ccall unsafe "hs_bindgen_921572f08bc01d76" hs_bindgen_921572f08bc01d76_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
@@ -598,8 +598,8 @@ foreign import ccall unsafe "hs_bindgen_9cb6a31f26915e87" hs_bindgen_9cb6a31f269
   -> RIP.Ptr RIP.Void
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_and_fragment_from_string@
-hs_bindgen_9cb6a31f26915e87 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_and_fragment_from_string@
+hs_bindgen_921572f08bc01d76 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> RIP.Ptr Generated.Nix.Fetchers.Nix_fetchers_settings
   -> RIP.Ptr Nix_flake_settings
@@ -610,8 +610,8 @@ hs_bindgen_9cb6a31f26915e87 ::
   -> Generated.Nix.Util.Nix_get_string_callback
   -> RIP.Ptr RIP.Void
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_9cb6a31f26915e87 =
-  RIP.fromFFIType hs_bindgen_9cb6a31f26915e87_base
+hs_bindgen_921572f08bc01d76 =
+  RIP.fromFFIType hs_bindgen_921572f08bc01d76_base
 
 {-| __C declaration:__ @nix_flake_reference_and_fragment_from_string@
 
@@ -640,19 +640,19 @@ nix_flake_reference_and_fragment_from_string ::
      -- ^ __C declaration:__ @fragmentCallbackUserData@
   -> IO Generated.Nix.Util.Nix_err
 nix_flake_reference_and_fragment_from_string =
-  hs_bindgen_9cb6a31f26915e87
+  hs_bindgen_921572f08bc01d76
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_free@
-foreign import ccall unsafe "hs_bindgen_7c34650d6e0045a9" hs_bindgen_7c34650d6e0045a9_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_free@
+foreign import ccall unsafe "hs_bindgen_f850d5f3161814fb" hs_bindgen_f850d5f3161814fb_base ::
      RIP.Ptr RIP.Void
   -> IO ()
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_free@
-hs_bindgen_7c34650d6e0045a9 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_flake_reference_free@
+hs_bindgen_f850d5f3161814fb ::
      RIP.Ptr Nix_flake_reference
   -> IO ()
-hs_bindgen_7c34650d6e0045a9 =
-  RIP.fromFFIType hs_bindgen_7c34650d6e0045a9_base
+hs_bindgen_f850d5f3161814fb =
+  RIP.fromFFIType hs_bindgen_f850d5f3161814fb_base
 
 {-| __C declaration:__ @nix_flake_reference_free@
 
@@ -665,25 +665,25 @@ nix_flake_reference_free ::
      -- ^ __C declaration:__ @store@
   -> IO ()
 nix_flake_reference_free =
-  hs_bindgen_7c34650d6e0045a9
+  hs_bindgen_f850d5f3161814fb
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_locked_flake_get_output_attrs@
-foreign import ccall unsafe "hs_bindgen_18622227a1528f23" hs_bindgen_18622227a1528f23_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_locked_flake_get_output_attrs@
+foreign import ccall unsafe "hs_bindgen_8b5199a06e597952" hs_bindgen_8b5199a06e597952_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO (RIP.Ptr RIP.Void)
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixflake_Generated.Nix.Flake_Unsafe_nix_locked_flake_get_output_attrs@
-hs_bindgen_18622227a1528f23 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixflake_Generated.Nix.Flake_Unsafe_nix_locked_flake_get_output_attrs@
+hs_bindgen_8b5199a06e597952 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> RIP.Ptr Nix_flake_settings
   -> RIP.Ptr Generated.Nix.Expr.EvalState
   -> RIP.Ptr Nix_locked_flake
   -> IO (RIP.Ptr Generated.Nix.Expr.Nix_value)
-hs_bindgen_18622227a1528f23 =
-  RIP.fromFFIType hs_bindgen_18622227a1528f23_base
+hs_bindgen_8b5199a06e597952 =
+  RIP.fromFFIType hs_bindgen_8b5199a06e597952_base
 
 {-| __C declaration:__ @nix_locked_flake_get_output_attrs@
 
@@ -702,4 +702,4 @@ nix_locked_flake_get_output_attrs ::
      -- ^ __C declaration:__ @lockedFlake@
   -> IO (RIP.Ptr Generated.Nix.Expr.Nix_value)
 nix_locked_flake_get_output_attrs =
-  hs_bindgen_18622227a1528f23
+  hs_bindgen_8b5199a06e597952
