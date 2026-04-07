@@ -46,7 +46,8 @@ import qualified HsBindgen.Runtime.ConstantArray as CA
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr)
 import Nix.C.Context (NixError (..), NixErrorKind (..), checkError, checkNull, withCallbackBS, withContext')
 import Nix.C.Internal (CNixContext, CStore, CStorePath, Store (..), StorePath (..), byteStringToOsPath, osPathToByteString)
-import Nix.C.Store.PathInfo (PathInfo (..), parseHashSRI)
+import Nix.C.Hash (parseHash)
+import Nix.C.Store.PathInfo (PathInfo (..))
 import Nix.C.Store.Reference (StoreReference, parseStoreReference)
 import System.OsPath (OsPath)
 
@@ -229,12 +230,12 @@ extractPathInfo store piPtr = do
   let ctx = storeCtx store
       cpi = unsafeFromPtr piPtr
 
-  -- NAR hash (SRI string via callback)
+  -- NAR hash (Nix32 string via callback)
   (Nix_err hashRc, narHashBS) <- withCallbackBS $ \cb ud ->
     SysPathInfo.nix_path_info_get_nar_hash ctx cpi cb (castPtr ud)
   checkError ctx hashRc
-  narHash <- case parseHashSRI (T.decodeUtf8 narHashBS) of
-    Left err -> throwIO $ NixCError NixErrUnknown (BS8.pack $ "queryPathInfo: " <> err) BS.empty
+  narHash <- case parseHash (T.decodeUtf8 narHashBS) of
+    Left err -> throwIO $ NixHashError err
     Right h -> pure h
 
   -- NAR size
@@ -322,8 +323,8 @@ storeRealPath store (StorePath spFP) =
 -- | Get the raw hash bytes (20 bytes) of a store path.
 --
 -- This is the binary hash, not the nix-base32 encoded version.
--- Use @System.Nix.Base32.encode@ from @hnix-store-core@ to get
--- the human-readable nix-base32 representation.
+-- Use 'Nix.C.Hash.Nix32.encode' to get the human-readable
+-- nix-base32 representation.
 storePathHash :: StorePath -> IO ByteString
 storePathHash (StorePath spFP) =
   withForeignPtr spFP $ \sp ->

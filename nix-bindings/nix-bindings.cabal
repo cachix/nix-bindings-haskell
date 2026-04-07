@@ -78,6 +78,8 @@ library
   exposed-modules:
     Nix.C
     Nix.C.Context
+    Nix.C.Hash
+    Nix.C.Hash.Nix32
     Nix.C.Monad
     Nix.C.Store.PathInfo
     Nix.C.Store.Reference

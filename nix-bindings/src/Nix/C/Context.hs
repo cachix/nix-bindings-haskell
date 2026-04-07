@@ -17,6 +17,7 @@ module Nix.C.Context
   ) where
 
 import Control.Exception (Exception, bracket, throwIO)
+import Nix.C.Hash (HashError)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
@@ -108,6 +109,8 @@ data NixError
       , nixCErrorInfo :: !ByteString
       -- ^ Stack trace, source location. Empty if not available.
       }
+  | -- | Hash parsing or construction error.
+    NixHashError !HashError
   deriving (Show, Eq)
 
 instance Exception NixError

@@ -61,11 +61,18 @@ module Nix.C
 
     -- * Path info types
   , PathInfo (..)
+
+    -- * Hash types
   , HashAlgo (..)
-  , Hash (..)
-  , hashAlgoText
+  , Hash
+  , HashError (..)
+  , newHash
+  , hashAlgo
+  , hashDigest
+  , parseHash
+  , hashToNix32
   , hashToSRI
-  , parseHashSRI
+  , hashAlgoText
 
     -- * Expression evaluation
   , withEvalState
@@ -147,7 +154,8 @@ import qualified Nix.C.Unsafe.GC as Unsafe
 import qualified Nix.C.Unsafe.Init as Unsafe
 import qualified Nix.C.Unsafe.Settings as Unsafe
 import Nix.C.Internal (EvalState, FetchersSettings, FlakeReference, FlakeSettings, LockedFlake, Store, StorePath, Value)
-import Nix.C.Store.PathInfo (Hash (..), HashAlgo (..), PathInfo (..), hashAlgoText, hashToSRI, parseHashSRI)
+import Nix.C.Hash (Hash, HashAlgo (..), HashError (..), hashAlgo, hashAlgoText, hashDigest, hashToNix32, hashToSRI, newHash, parseHash)
+import Nix.C.Store.PathInfo (PathInfo (..))
 import Nix.C.Store.Reference (StoreReference (..))
 import Nix.C.Monad (Nix, liftEitherNix, liftNix, runNix, runNixThrow, withBracketNix)
 import qualified Nix.C.Unsafe.Store as Unsafe
