@@ -17,6 +17,7 @@ module Nix.C.Store.PathInfo
   , Hash (..)
   , hashAlgoText
   , hashToSRI
+  , hashToNix32
     -- * Sub-types
   , ContentAddress (..)
   , Signature (..)
@@ -31,6 +32,7 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
 import Data.Word (Word64)
+import Nix.C.Hash.Nix32 qualified as Nix32
 
 -- | JSON format version for path info serialization.
 data PathInfoJsonFormat
@@ -100,6 +102,12 @@ data Hash = Hash
 hashToSRI :: Hash -> Text
 hashToSRI (Hash algo digest) =
   hashAlgoText algo <> "-" <> T.decodeUtf8 (Base64.encode digest)
+
+-- | Render a hash in Nix's @\<algo\>:\<nix32\>@ format
+-- (e.g. @\"sha256:0c0msqmygrgkmkk...\"@).
+hashToNix32 :: Hash -> Text
+hashToNix32 (Hash algo digest) =
+  hashAlgoText algo <> ":" <> Nix32.encode digest
 
 instance FromJSON Hash where
   parseJSON = withText "Hash" $ \t ->

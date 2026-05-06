@@ -80,6 +80,7 @@ library
     Nix.C
     Nix.C.Context
     Nix.C.Monad
+    Nix.C.Hash.Nix32
     Nix.C.Store.Derivation
     Nix.C.Store.PathInfo
     Nix.C.Store.Realisation
