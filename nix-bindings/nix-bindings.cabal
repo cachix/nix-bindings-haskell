@@ -80,7 +80,9 @@ library
     Nix.C
     Nix.C.Context
     Nix.C.Monad
+    Nix.C.Store.Derivation
     Nix.C.Store.PathInfo
+    Nix.C.Store.Realisation
     Nix.C.Store.Reference
     Nix.C.Sys
     Nix.C.Unsafe

@@ -378,7 +378,7 @@ data Nix_c_context
 
 __C declaration:__ @nix_get_string_callback@
 
-__defined at:__ @nix_api_util.h 171:16@
+__defined at:__ @nix_api_util.h 172:16@
 
 __exported by:__ @nix_api_util.h@
 -}
@@ -435,7 +435,7 @@ instance HasCField.HasCField Nix_get_string_callback_Aux "unwrapNix_get_string_c
 
 {-| __C declaration:__ @nix_get_string_callback@
 
-    __defined at:__ @nix_api_util.h 171:16@
+    __defined at:__ @nix_api_util.h 172:16@
 
     __exported by:__ @nix_api_util.h@
 -}

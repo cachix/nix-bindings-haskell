@@ -55,6 +55,7 @@ library
     Generated.Nix.Store.FunPtr
     Generated.Nix.Store.Safe
     Generated.Nix.Store.Unsafe
+    Generated.Nix.Store.Fwd
     Generated.Nix.Store.Path
     Generated.Nix.Store.Path.FunPtr
     Generated.Nix.Store.Path.Safe
@@ -67,6 +68,10 @@ library
     Generated.Nix.Store.PathInfo.FunPtr
     Generated.Nix.Store.PathInfo.Safe
     Generated.Nix.Store.PathInfo.Unsafe
+    Generated.Nix.Store.Realisation
+    Generated.Nix.Store.Realisation.FunPtr
+    Generated.Nix.Store.Realisation.Safe
+    Generated.Nix.Store.Realisation.Unsafe
     Generated.Nix.Expr
     Generated.Nix.Expr.FunPtr
     Generated.Nix.Expr.Safe

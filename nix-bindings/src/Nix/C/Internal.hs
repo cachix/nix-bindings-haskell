@@ -5,6 +5,8 @@ module Nix.C.Internal
     CNixContext
   , CStore
   , CStorePath
+  , CDerivation
+  , CRealisation
   , CEvalState
   , CNixValue
   , CEvalStateBuilder
@@ -19,6 +21,8 @@ module Nix.C.Internal
     -- * Haskell wrapper types
   , Store (..)
   , StorePath (..)
+  , Derivation (..)
+  , Realisation (..)
   , EvalState (..)
   , castEvalPtr
   , Value (..)
@@ -40,8 +44,10 @@ import System.OsString.Posix (fromBytestring)
 import qualified Generated.Nix.Expr
 import qualified Generated.Nix.Fetchers
 import qualified Generated.Nix.Flake
-import qualified Generated.Nix.Store
+import qualified Generated.Nix.Store.Derivation
+import qualified Generated.Nix.Store.Fwd
 import qualified Generated.Nix.Store.Path
+import qualified Generated.Nix.Store.Realisation
 import qualified Generated.Nix.Util
 import qualified Generated.Nix.Value
 
@@ -49,10 +55,18 @@ import qualified Generated.Nix.Value
 type CNixContext = Generated.Nix.Util.Nix_c_context
 
 -- | Alias for the C @Store@ type from the -sys package.
-type CStore = Generated.Nix.Store.Store
+-- Uses the canonical forward-declared @Store@ from @nix_api_store/fwd.h@,
+-- which all other store-related headers reference.
+type CStore = Generated.Nix.Store.Fwd.Store
 
 -- | Alias for the C @StorePath@ type from the -sys package.
 type CStorePath = Generated.Nix.Store.Path.StorePath
+
+-- | Alias for the C @nix_derivation@ type from the -sys package.
+type CDerivation = Generated.Nix.Store.Derivation.Nix_derivation
+
+-- | Alias for the C @nix_realisation@ type from the -sys package.
+type CRealisation = Generated.Nix.Store.Realisation.Nix_realisation
 
 -- | Alias for the C @EvalState@ type from the -sys package.
 type CEvalState = Generated.Nix.Expr.EvalState
@@ -128,6 +142,14 @@ instance Ord StorePath where
       withForeignPtr a $ \pa ->
         withForeignPtr b $ \pb ->
           pure (compare pa pb)
+
+-- | Handle to a parsed Nix derivation.
+-- Automatically freed when garbage collected.
+newtype Derivation = Derivation (ForeignPtr CDerivation)
+
+-- | Handle to a CA-derivation realisation record.
+-- Automatically freed when garbage collected.
+newtype Realisation = Realisation (ForeignPtr CRealisation)
 
 -- | Handle to a Nix language evaluator state.
 -- Carries a reusable error context to avoid per-call allocation.

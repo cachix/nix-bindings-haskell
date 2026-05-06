@@ -133,7 +133,7 @@ instance HasCField.HasCField Nix_path_info_json_format "unwrapNix_path_info_json
 
 {-| __C declaration:__ @NIX_PATH_INFO_JSON_FORMAT_V1@
 
-    __defined at:__ @nix_api_store\/path_info.h 39:5@
+    __defined at:__ @nix_api_store\/path_info.h 40:5@
 
     __exported by:__ @nix_api_store\/path_info.h@
 -}
@@ -142,7 +142,7 @@ pattern NIX_PATH_INFO_JSON_FORMAT_V1 = Nix_path_info_json_format 1
 
 {-| __C declaration:__ @NIX_PATH_INFO_JSON_FORMAT_V2@
 
-    __defined at:__ @nix_api_store\/path_info.h 47:5@
+    __defined at:__ @nix_api_store\/path_info.h 49:5@
 
     __exported by:__ @nix_api_store\/path_info.h@
 -}
@@ -151,7 +151,7 @@ pattern NIX_PATH_INFO_JSON_FORMAT_V2 = Nix_path_info_json_format 2
 
 {-| __C declaration:__ @NIX_PATH_INFO_JSON_FORMAT_V3@
 
-    __defined at:__ @nix_api_store\/path_info.h 52:5@
+    __defined at:__ @nix_api_store\/path_info.h 54:5@
 
     __exported by:__ @nix_api_store\/path_info.h@
 -}

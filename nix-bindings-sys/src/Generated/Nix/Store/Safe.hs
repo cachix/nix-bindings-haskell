@@ -25,28 +25,28 @@ module Generated.Nix.Store.Safe
   where
 
 import qualified Generated.Nix.Store.Derivation
+import qualified Generated.Nix.Store.Fwd
 import qualified Generated.Nix.Store.Path
 import qualified Generated.Nix.Util
 import qualified HsBindgen.Runtime.Internal.CAPI
 import qualified HsBindgen.Runtime.Internal.Prelude as RIP
 import qualified HsBindgen.Runtime.PtrConst as PtrConst
-import Generated.Nix.Store
 
 $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.unlines
   [ "#include <nix_api_store.h>"
-  , "nix_err hs_bindgen_4aef9d69fa7a2037 ("
+  , "nix_err hs_bindgen_62391331eced0cba ("
   , "  nix_c_context *arg1"
   , ")"
   , "{"
   , "  return (nix_libstore_init)(arg1);"
   , "}"
-  , "nix_err hs_bindgen_1e6f6dad12ef8db9 ("
+  , "nix_err hs_bindgen_3eb7cd7807ad15d4 ("
   , "  nix_c_context *arg1"
   , ")"
   , "{"
   , "  return (nix_libstore_init_no_load_config)(arg1);"
   , "}"
-  , "Store *hs_bindgen_4ffc914eb31b9d6a ("
+  , "Store *hs_bindgen_3f5f440366993856 ("
   , "  nix_c_context *arg1,"
   , "  char const *arg2,"
   , "  char const ***arg3"
@@ -54,13 +54,13 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_store_open)(arg1, arg2, arg3);"
   , "}"
-  , "void hs_bindgen_bfdb1216bce846ed ("
+  , "void hs_bindgen_67113f69ee17da25 ("
   , "  Store *arg1"
   , ")"
   , "{"
   , "  (nix_store_free)(arg1);"
   , "}"
-  , "nix_err hs_bindgen_44fabed7a439a0f0 ("
+  , "nix_err hs_bindgen_b7476612655325f0 ("
   , "  nix_c_context *arg1,"
   , "  Store *arg2,"
   , "  nix_get_string_callback arg3,"
@@ -69,7 +69,7 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_store_get_uri)(arg1, arg2, arg3, arg4);"
   , "}"
-  , "nix_err hs_bindgen_525cd4b335ab7886 ("
+  , "nix_err hs_bindgen_3ac0e0b9e94dcf0a ("
   , "  nix_c_context *arg1,"
   , "  Store *arg2,"
   , "  nix_get_string_callback arg3,"
@@ -78,7 +78,7 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_store_get_storedir)(arg1, arg2, arg3, arg4);"
   , "}"
-  , "StorePath *hs_bindgen_e02d7c4bfd0910e0 ("
+  , "StorePath *hs_bindgen_c4aa5b7fd33e33c9 ("
   , "  nix_c_context *arg1,"
   , "  Store *arg2,"
   , "  char const *arg3"
@@ -86,7 +86,7 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_store_parse_path)(arg1, arg2, arg3);"
   , "}"
-  , "_Bool hs_bindgen_e1e242bc82721b34 ("
+  , "_Bool hs_bindgen_d3b710be2f0c6cc6 ("
   , "  nix_c_context *arg1,"
   , "  Store *arg2,"
   , "  StorePath const *arg3"
@@ -94,7 +94,7 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_store_is_valid_path)(arg1, arg2, arg3);"
   , "}"
-  , "nix_err hs_bindgen_c01c27d95b136e6e ("
+  , "nix_err hs_bindgen_aaa4adef266901e2 ("
   , "  nix_c_context *arg1,"
   , "  Store *arg2,"
   , "  StorePath *arg3,"
@@ -104,7 +104,7 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_store_real_path)(arg1, arg2, arg3, arg4, arg5);"
   , "}"
-  , "nix_err hs_bindgen_a9802cc3c6df0a70 ("
+  , "nix_err hs_bindgen_2a1b5009036f735c ("
   , "  nix_c_context *arg1,"
   , "  Store *arg2,"
   , "  StorePath *arg3,"
@@ -118,7 +118,7 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_store_realise)(arg1, arg2, arg3, arg4, arg5);"
   , "}"
-  , "nix_err hs_bindgen_bee147feeea58615 ("
+  , "nix_err hs_bindgen_1fbe8156ea2c1bf5 ("
   , "  nix_c_context *arg1,"
   , "  Store *arg2,"
   , "  nix_get_string_callback arg3,"
@@ -127,7 +127,7 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_store_get_version)(arg1, arg2, arg3, arg4);"
   , "}"
-  , "nix_derivation *hs_bindgen_5827edc64aea0699 ("
+  , "nix_derivation *hs_bindgen_057a7f1d8bbc4891 ("
   , "  nix_c_context *arg1,"
   , "  Store *arg2,"
   , "  char const *arg3"
@@ -135,7 +135,7 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_derivation_from_json)(arg1, arg2, arg3);"
   , "}"
-  , "StorePath *hs_bindgen_0c533e3e8ee46804 ("
+  , "StorePath *hs_bindgen_85b5503d840f19f3 ("
   , "  nix_c_context *arg1,"
   , "  Store *arg2,"
   , "  nix_derivation *arg3"
@@ -143,7 +143,7 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_add_derivation)(arg1, arg2, arg3);"
   , "}"
-  , "nix_err hs_bindgen_9c011660a28b0503 ("
+  , "nix_err hs_bindgen_5244d1aedf5c0179 ("
   , "  nix_c_context *arg1,"
   , "  Store *arg2,"
   , "  Store *arg3,"
@@ -152,7 +152,7 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_store_copy_closure)(arg1, arg2, arg3, arg4);"
   , "}"
-  , "nix_err hs_bindgen_bd94ce86e82d1a08 ("
+  , "nix_err hs_bindgen_d9e2e547c5fb05dc ("
   , "  nix_c_context *arg1,"
   , "  Store *arg2,"
   , "  StorePath const *arg3,"
@@ -169,7 +169,7 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_store_get_fs_closure)(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8);"
   , "}"
-  , "nix_derivation *hs_bindgen_14f6c421556a8589 ("
+  , "nix_derivation *hs_bindgen_fc0a8ad70578e0a7 ("
   , "  nix_c_context *arg1,"
   , "  Store *arg2,"
   , "  StorePath const *arg3"
@@ -177,7 +177,7 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_store_drv_from_store_path)(arg1, arg2, arg3);"
   , "}"
-  , "StorePath *hs_bindgen_840632288be3866d ("
+  , "StorePath *hs_bindgen_3bc8ef3727b2650c ("
   , "  nix_c_context *arg1,"
   , "  Store *arg2,"
   , "  char const *arg3"
@@ -185,7 +185,7 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return (nix_store_query_path_from_hash_part)(arg1, arg2, arg3);"
   , "}"
-  , "nix_err hs_bindgen_bdd5d1d6ecf22875 ("
+  , "nix_err hs_bindgen_25fe7160dc00c734 ("
   , "  nix_c_context *arg1,"
   , "  Store *arg2,"
   , "  Store *arg3,"
@@ -198,21 +198,21 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "}"
   ]))
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_libstore_init@
-foreign import ccall safe "hs_bindgen_4aef9d69fa7a2037" hs_bindgen_4aef9d69fa7a2037_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_libstore_init@
+foreign import ccall safe "hs_bindgen_62391331eced0cba" hs_bindgen_62391331eced0cba_base ::
      RIP.Ptr RIP.Void
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_libstore_init@
-hs_bindgen_4aef9d69fa7a2037 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_libstore_init@
+hs_bindgen_62391331eced0cba ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_4aef9d69fa7a2037 =
-  RIP.fromFFIType hs_bindgen_4aef9d69fa7a2037_base
+hs_bindgen_62391331eced0cba =
+  RIP.fromFFIType hs_bindgen_62391331eced0cba_base
 
 {-| __C declaration:__ @nix_libstore_init@
 
-    __defined at:__ @nix_api_store.h 37:9@
+    __defined at:__ @nix_api_store.h 35:9@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -220,23 +220,23 @@ nix_libstore_init ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
   -> IO Generated.Nix.Util.Nix_err
-nix_libstore_init = hs_bindgen_4aef9d69fa7a2037
+nix_libstore_init = hs_bindgen_62391331eced0cba
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_libstore_init_no_load_config@
-foreign import ccall safe "hs_bindgen_1e6f6dad12ef8db9" hs_bindgen_1e6f6dad12ef8db9_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_libstore_init_no_load_config@
+foreign import ccall safe "hs_bindgen_3eb7cd7807ad15d4" hs_bindgen_3eb7cd7807ad15d4_base ::
      RIP.Ptr RIP.Void
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_libstore_init_no_load_config@
-hs_bindgen_1e6f6dad12ef8db9 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_libstore_init_no_load_config@
+hs_bindgen_3eb7cd7807ad15d4 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_1e6f6dad12ef8db9 =
-  RIP.fromFFIType hs_bindgen_1e6f6dad12ef8db9_base
+hs_bindgen_3eb7cd7807ad15d4 =
+  RIP.fromFFIType hs_bindgen_3eb7cd7807ad15d4_base
 
 {-| __C declaration:__ @nix_libstore_init_no_load_config@
 
-    __defined at:__ @nix_api_store.h 44:9@
+    __defined at:__ @nix_api_store.h 42:9@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -245,27 +245,27 @@ nix_libstore_init_no_load_config ::
      -- ^ __C declaration:__ @context@
   -> IO Generated.Nix.Util.Nix_err
 nix_libstore_init_no_load_config =
-  hs_bindgen_1e6f6dad12ef8db9
+  hs_bindgen_3eb7cd7807ad15d4
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_open@
-foreign import ccall safe "hs_bindgen_4ffc914eb31b9d6a" hs_bindgen_4ffc914eb31b9d6a_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_open@
+foreign import ccall safe "hs_bindgen_3f5f440366993856" hs_bindgen_3f5f440366993856_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO (RIP.Ptr RIP.Void)
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_open@
-hs_bindgen_4ffc914eb31b9d6a ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_open@
+hs_bindgen_3f5f440366993856 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> PtrConst.PtrConst RIP.CChar
   -> RIP.Ptr (RIP.Ptr (PtrConst.PtrConst RIP.CChar))
-  -> IO (RIP.Ptr Store)
-hs_bindgen_4ffc914eb31b9d6a =
-  RIP.fromFFIType hs_bindgen_4ffc914eb31b9d6a_base
+  -> IO (RIP.Ptr Generated.Nix.Store.Fwd.Store)
+hs_bindgen_3f5f440366993856 =
+  RIP.fromFFIType hs_bindgen_3f5f440366993856_base
 
 {-| __C declaration:__ @nix_store_open@
 
-    __defined at:__ @nix_api_store.h 75:9@
+    __defined at:__ @nix_api_store.h 73:9@
 
     __exported by:__ @nix_api_store.h@
 -}
@@ -276,171 +276,171 @@ nix_store_open ::
      -- ^ __C declaration:__ @uri@
   -> RIP.Ptr (RIP.Ptr (PtrConst.PtrConst RIP.CChar))
      -- ^ __C declaration:__ @params@
-  -> IO (RIP.Ptr Store)
-nix_store_open = hs_bindgen_4ffc914eb31b9d6a
+  -> IO (RIP.Ptr Generated.Nix.Store.Fwd.Store)
+nix_store_open = hs_bindgen_3f5f440366993856
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_free@
-foreign import ccall safe "hs_bindgen_bfdb1216bce846ed" hs_bindgen_bfdb1216bce846ed_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_free@
+foreign import ccall safe "hs_bindgen_67113f69ee17da25" hs_bindgen_67113f69ee17da25_base ::
      RIP.Ptr RIP.Void
   -> IO ()
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_free@
-hs_bindgen_bfdb1216bce846ed ::
-     RIP.Ptr Store
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_free@
+hs_bindgen_67113f69ee17da25 ::
+     RIP.Ptr Generated.Nix.Store.Fwd.Store
   -> IO ()
-hs_bindgen_bfdb1216bce846ed =
-  RIP.fromFFIType hs_bindgen_bfdb1216bce846ed_base
+hs_bindgen_67113f69ee17da25 =
+  RIP.fromFFIType hs_bindgen_67113f69ee17da25_base
 
 {-| __C declaration:__ @nix_store_free@
 
-    __defined at:__ @nix_api_store.h 84:6@
+    __defined at:__ @nix_api_store.h 82:6@
 
     __exported by:__ @nix_api_store.h@
 -}
 nix_store_free ::
-     RIP.Ptr Store
+     RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @store@
   -> IO ()
-nix_store_free = hs_bindgen_bfdb1216bce846ed
+nix_store_free = hs_bindgen_67113f69ee17da25
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_get_uri@
-foreign import ccall safe "hs_bindgen_44fabed7a439a0f0" hs_bindgen_44fabed7a439a0f0_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_get_uri@
+foreign import ccall safe "hs_bindgen_b7476612655325f0" hs_bindgen_b7476612655325f0_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.FunPtr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_get_uri@
-hs_bindgen_44fabed7a439a0f0 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_get_uri@
+hs_bindgen_b7476612655325f0 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
   -> Generated.Nix.Util.Nix_get_string_callback
   -> RIP.Ptr RIP.Void
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_44fabed7a439a0f0 =
-  RIP.fromFFIType hs_bindgen_44fabed7a439a0f0_base
+hs_bindgen_b7476612655325f0 =
+  RIP.fromFFIType hs_bindgen_b7476612655325f0_base
 
 {-| __C declaration:__ @nix_store_get_uri@
 
-    __defined at:__ @nix_api_store.h 95:9@
+    __defined at:__ @nix_api_store.h 93:9@
 
     __exported by:__ @nix_api_store.h@
 -}
 nix_store_get_uri ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @store@
   -> Generated.Nix.Util.Nix_get_string_callback
      -- ^ __C declaration:__ @callback@
   -> RIP.Ptr RIP.Void
      -- ^ __C declaration:__ @user_data@
   -> IO Generated.Nix.Util.Nix_err
-nix_store_get_uri = hs_bindgen_44fabed7a439a0f0
+nix_store_get_uri = hs_bindgen_b7476612655325f0
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_get_storedir@
-foreign import ccall safe "hs_bindgen_525cd4b335ab7886" hs_bindgen_525cd4b335ab7886_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_get_storedir@
+foreign import ccall safe "hs_bindgen_3ac0e0b9e94dcf0a" hs_bindgen_3ac0e0b9e94dcf0a_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.FunPtr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_get_storedir@
-hs_bindgen_525cd4b335ab7886 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_get_storedir@
+hs_bindgen_3ac0e0b9e94dcf0a ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
   -> Generated.Nix.Util.Nix_get_string_callback
   -> RIP.Ptr RIP.Void
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_525cd4b335ab7886 =
-  RIP.fromFFIType hs_bindgen_525cd4b335ab7886_base
+hs_bindgen_3ac0e0b9e94dcf0a =
+  RIP.fromFFIType hs_bindgen_3ac0e0b9e94dcf0a_base
 
 {-| __C declaration:__ @nix_store_get_storedir@
 
-    __defined at:__ @nix_api_store.h 107:1@
+    __defined at:__ @nix_api_store.h 105:1@
 
     __exported by:__ @nix_api_store.h@
 -}
 nix_store_get_storedir ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @store@
   -> Generated.Nix.Util.Nix_get_string_callback
      -- ^ __C declaration:__ @callback@
   -> RIP.Ptr RIP.Void
      -- ^ __C declaration:__ @user_data@
   -> IO Generated.Nix.Util.Nix_err
-nix_store_get_storedir = hs_bindgen_525cd4b335ab7886
+nix_store_get_storedir = hs_bindgen_3ac0e0b9e94dcf0a
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_parse_path@
-foreign import ccall safe "hs_bindgen_e02d7c4bfd0910e0" hs_bindgen_e02d7c4bfd0910e0_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_parse_path@
+foreign import ccall safe "hs_bindgen_c4aa5b7fd33e33c9" hs_bindgen_c4aa5b7fd33e33c9_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO (RIP.Ptr RIP.Void)
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_parse_path@
-hs_bindgen_e02d7c4bfd0910e0 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_parse_path@
+hs_bindgen_c4aa5b7fd33e33c9 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
   -> PtrConst.PtrConst RIP.CChar
   -> IO (RIP.Ptr Generated.Nix.Store.Path.StorePath)
-hs_bindgen_e02d7c4bfd0910e0 =
-  RIP.fromFFIType hs_bindgen_e02d7c4bfd0910e0_base
+hs_bindgen_c4aa5b7fd33e33c9 =
+  RIP.fromFFIType hs_bindgen_c4aa5b7fd33e33c9_base
 
 {-| __C declaration:__ @nix_store_parse_path@
 
-    __defined at:__ @nix_api_store.h 118:13@
+    __defined at:__ @nix_api_store.h 116:13@
 
     __exported by:__ @nix_api_store.h@
 -}
 nix_store_parse_path ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @store@
   -> PtrConst.PtrConst RIP.CChar
      -- ^ __C declaration:__ @path@
   -> IO (RIP.Ptr Generated.Nix.Store.Path.StorePath)
-nix_store_parse_path = hs_bindgen_e02d7c4bfd0910e0
+nix_store_parse_path = hs_bindgen_c4aa5b7fd33e33c9
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_is_valid_path@
-foreign import ccall safe "hs_bindgen_e1e242bc82721b34" hs_bindgen_e1e242bc82721b34_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_is_valid_path@
+foreign import ccall safe "hs_bindgen_d3b710be2f0c6cc6" hs_bindgen_d3b710be2f0c6cc6_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO RIP.Word8
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_is_valid_path@
-hs_bindgen_e1e242bc82721b34 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_is_valid_path@
+hs_bindgen_d3b710be2f0c6cc6 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
   -> PtrConst.PtrConst Generated.Nix.Store.Path.StorePath
   -> IO RIP.CBool
-hs_bindgen_e1e242bc82721b34 =
-  RIP.fromFFIType hs_bindgen_e1e242bc82721b34_base
+hs_bindgen_d3b710be2f0c6cc6 =
+  RIP.fromFFIType hs_bindgen_d3b710be2f0c6cc6_base
 
 {-| __C declaration:__ @nix_store_is_valid_path@
 
-    __defined at:__ @nix_api_store.h 128:6@
+    __defined at:__ @nix_api_store.h 126:6@
 
     __exported by:__ @nix_api_store.h@
 -}
 nix_store_is_valid_path ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @store@
   -> PtrConst.PtrConst Generated.Nix.Store.Path.StorePath
      -- ^ __C declaration:__ @path@
   -> IO RIP.CBool
-nix_store_is_valid_path = hs_bindgen_e1e242bc82721b34
+nix_store_is_valid_path = hs_bindgen_d3b710be2f0c6cc6
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_real_path@
-foreign import ccall safe "hs_bindgen_c01c27d95b136e6e" hs_bindgen_c01c27d95b136e6e_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_real_path@
+foreign import ccall safe "hs_bindgen_aaa4adef266901e2" hs_bindgen_aaa4adef266901e2_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
@@ -448,27 +448,27 @@ foreign import ccall safe "hs_bindgen_c01c27d95b136e6e" hs_bindgen_c01c27d95b136
   -> RIP.Ptr RIP.Void
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_real_path@
-hs_bindgen_c01c27d95b136e6e ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_real_path@
+hs_bindgen_aaa4adef266901e2 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
   -> RIP.Ptr Generated.Nix.Store.Path.StorePath
   -> Generated.Nix.Util.Nix_get_string_callback
   -> RIP.Ptr RIP.Void
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_c01c27d95b136e6e =
-  RIP.fromFFIType hs_bindgen_c01c27d95b136e6e_base
+hs_bindgen_aaa4adef266901e2 =
+  RIP.fromFFIType hs_bindgen_aaa4adef266901e2_base
 
 {-| __C declaration:__ @nix_store_real_path@
 
-    __defined at:__ @nix_api_store.h 146:9@
+    __defined at:__ @nix_api_store.h 144:9@
 
     __exported by:__ @nix_api_store.h@
 -}
 nix_store_real_path ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @store@
   -> RIP.Ptr Generated.Nix.Store.Path.StorePath
      -- ^ __C declaration:__ @path@
@@ -477,10 +477,10 @@ nix_store_real_path ::
   -> RIP.Ptr RIP.Void
      -- ^ __C declaration:__ @user_data@
   -> IO Generated.Nix.Util.Nix_err
-nix_store_real_path = hs_bindgen_c01c27d95b136e6e
+nix_store_real_path = hs_bindgen_aaa4adef266901e2
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_realise@
-foreign import ccall safe "hs_bindgen_a9802cc3c6df0a70" hs_bindgen_a9802cc3c6df0a70_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_realise@
+foreign import ccall safe "hs_bindgen_2a1b5009036f735c" hs_bindgen_2a1b5009036f735c_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
@@ -488,27 +488,27 @@ foreign import ccall safe "hs_bindgen_a9802cc3c6df0a70" hs_bindgen_a9802cc3c6df0
   -> RIP.FunPtr RIP.Void
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_realise@
-hs_bindgen_a9802cc3c6df0a70 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_realise@
+hs_bindgen_2a1b5009036f735c ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
   -> RIP.Ptr Generated.Nix.Store.Path.StorePath
   -> RIP.Ptr RIP.Void
   -> RIP.FunPtr ((RIP.Ptr RIP.Void) -> (PtrConst.PtrConst RIP.CChar) -> (PtrConst.PtrConst Generated.Nix.Store.Path.StorePath) -> IO ())
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_a9802cc3c6df0a70 =
-  RIP.fromFFIType hs_bindgen_a9802cc3c6df0a70_base
+hs_bindgen_2a1b5009036f735c =
+  RIP.fromFFIType hs_bindgen_2a1b5009036f735c_base
 
 {-| __C declaration:__ @nix_store_realise@
 
-    __defined at:__ @nix_api_store.h 167:9@
+    __defined at:__ @nix_api_store.h 165:9@
 
     __exported by:__ @nix_api_store.h@
 -}
 nix_store_realise ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @store@
   -> RIP.Ptr Generated.Nix.Store.Path.StorePath
      -- ^ __C declaration:__ @path@
@@ -517,147 +517,147 @@ nix_store_realise ::
   -> RIP.FunPtr ((RIP.Ptr RIP.Void) -> (PtrConst.PtrConst RIP.CChar) -> (PtrConst.PtrConst Generated.Nix.Store.Path.StorePath) -> IO ())
      -- ^ __C declaration:__ @callback@
   -> IO Generated.Nix.Util.Nix_err
-nix_store_realise = hs_bindgen_a9802cc3c6df0a70
+nix_store_realise = hs_bindgen_2a1b5009036f735c
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_get_version@
-foreign import ccall safe "hs_bindgen_bee147feeea58615" hs_bindgen_bee147feeea58615_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_get_version@
+foreign import ccall safe "hs_bindgen_1fbe8156ea2c1bf5" hs_bindgen_1fbe8156ea2c1bf5_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.FunPtr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_get_version@
-hs_bindgen_bee147feeea58615 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_get_version@
+hs_bindgen_1fbe8156ea2c1bf5 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
   -> Generated.Nix.Util.Nix_get_string_callback
   -> RIP.Ptr RIP.Void
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_bee147feeea58615 =
-  RIP.fromFFIType hs_bindgen_bee147feeea58615_base
+hs_bindgen_1fbe8156ea2c1bf5 =
+  RIP.fromFFIType hs_bindgen_1fbe8156ea2c1bf5_base
 
 {-| __C declaration:__ @nix_store_get_version@
 
-    __defined at:__ @nix_api_store.h 187:1@
+    __defined at:__ @nix_api_store.h 185:1@
 
     __exported by:__ @nix_api_store.h@
 -}
 nix_store_get_version ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @store@
   -> Generated.Nix.Util.Nix_get_string_callback
      -- ^ __C declaration:__ @callback@
   -> RIP.Ptr RIP.Void
      -- ^ __C declaration:__ @user_data@
   -> IO Generated.Nix.Util.Nix_err
-nix_store_get_version = hs_bindgen_bee147feeea58615
+nix_store_get_version = hs_bindgen_1fbe8156ea2c1bf5
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_derivation_from_json@
-foreign import ccall safe "hs_bindgen_5827edc64aea0699" hs_bindgen_5827edc64aea0699_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_derivation_from_json@
+foreign import ccall safe "hs_bindgen_057a7f1d8bbc4891" hs_bindgen_057a7f1d8bbc4891_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO (RIP.Ptr RIP.Void)
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_derivation_from_json@
-hs_bindgen_5827edc64aea0699 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_derivation_from_json@
+hs_bindgen_057a7f1d8bbc4891 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
   -> PtrConst.PtrConst RIP.CChar
   -> IO (RIP.Ptr Generated.Nix.Store.Derivation.Nix_derivation)
-hs_bindgen_5827edc64aea0699 =
-  RIP.fromFFIType hs_bindgen_5827edc64aea0699_base
+hs_bindgen_057a7f1d8bbc4891 =
+  RIP.fromFFIType hs_bindgen_057a7f1d8bbc4891_base
 
 {-| __C declaration:__ @nix_derivation_from_json@
 
-    __defined at:__ @nix_api_store.h 203:18@
+    __defined at:__ @nix_api_store.h 201:18@
 
     __exported by:__ @nix_api_store.h@
 -}
 nix_derivation_from_json ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @store@
   -> PtrConst.PtrConst RIP.CChar
      -- ^ __C declaration:__ @json@
   -> IO (RIP.Ptr Generated.Nix.Store.Derivation.Nix_derivation)
 nix_derivation_from_json =
-  hs_bindgen_5827edc64aea0699
+  hs_bindgen_057a7f1d8bbc4891
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_add_derivation@
-foreign import ccall safe "hs_bindgen_0c533e3e8ee46804" hs_bindgen_0c533e3e8ee46804_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_add_derivation@
+foreign import ccall safe "hs_bindgen_85b5503d840f19f3" hs_bindgen_85b5503d840f19f3_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO (RIP.Ptr RIP.Void)
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_add_derivation@
-hs_bindgen_0c533e3e8ee46804 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_add_derivation@
+hs_bindgen_85b5503d840f19f3 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
   -> RIP.Ptr Generated.Nix.Store.Derivation.Nix_derivation
   -> IO (RIP.Ptr Generated.Nix.Store.Path.StorePath)
-hs_bindgen_0c533e3e8ee46804 =
-  RIP.fromFFIType hs_bindgen_0c533e3e8ee46804_base
+hs_bindgen_85b5503d840f19f3 =
+  RIP.fromFFIType hs_bindgen_85b5503d840f19f3_base
 
 {-| __C declaration:__ @nix_add_derivation@
 
-    __defined at:__ @nix_api_store.h 212:13@
+    __defined at:__ @nix_api_store.h 210:13@
 
     __exported by:__ @nix_api_store.h@
 -}
 nix_add_derivation ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @store@
   -> RIP.Ptr Generated.Nix.Store.Derivation.Nix_derivation
      -- ^ __C declaration:__ @derivation@
   -> IO (RIP.Ptr Generated.Nix.Store.Path.StorePath)
-nix_add_derivation = hs_bindgen_0c533e3e8ee46804
+nix_add_derivation = hs_bindgen_85b5503d840f19f3
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_copy_closure@
-foreign import ccall safe "hs_bindgen_9c011660a28b0503" hs_bindgen_9c011660a28b0503_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_copy_closure@
+foreign import ccall safe "hs_bindgen_5244d1aedf5c0179" hs_bindgen_5244d1aedf5c0179_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_copy_closure@
-hs_bindgen_9c011660a28b0503 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_copy_closure@
+hs_bindgen_5244d1aedf5c0179 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
-  -> RIP.Ptr Store
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
   -> RIP.Ptr Generated.Nix.Store.Path.StorePath
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_9c011660a28b0503 =
-  RIP.fromFFIType hs_bindgen_9c011660a28b0503_base
+hs_bindgen_5244d1aedf5c0179 =
+  RIP.fromFFIType hs_bindgen_5244d1aedf5c0179_base
 
 {-| __C declaration:__ @nix_store_copy_closure@
 
-    __defined at:__ @nix_api_store.h 222:9@
+    __defined at:__ @nix_api_store.h 220:9@
 
     __exported by:__ @nix_api_store.h@
 -}
 nix_store_copy_closure ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @srcStore@
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @dstStore@
   -> RIP.Ptr Generated.Nix.Store.Path.StorePath
      -- ^ __C declaration:__ @path@
   -> IO Generated.Nix.Util.Nix_err
-nix_store_copy_closure = hs_bindgen_9c011660a28b0503
+nix_store_copy_closure = hs_bindgen_5244d1aedf5c0179
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_get_fs_closure@
-foreign import ccall safe "hs_bindgen_bd94ce86e82d1a08" hs_bindgen_bd94ce86e82d1a08_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_get_fs_closure@
+foreign import ccall safe "hs_bindgen_d9e2e547c5fb05dc" hs_bindgen_d9e2e547c5fb05dc_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
@@ -668,10 +668,10 @@ foreign import ccall safe "hs_bindgen_bd94ce86e82d1a08" hs_bindgen_bd94ce86e82d1
   -> RIP.FunPtr RIP.Void
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_get_fs_closure@
-hs_bindgen_bd94ce86e82d1a08 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_get_fs_closure@
+hs_bindgen_d9e2e547c5fb05dc ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
   -> PtrConst.PtrConst Generated.Nix.Store.Path.StorePath
   -> RIP.CBool
   -> RIP.CBool
@@ -679,19 +679,19 @@ hs_bindgen_bd94ce86e82d1a08 ::
   -> RIP.Ptr RIP.Void
   -> RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr RIP.Void) -> (PtrConst.PtrConst Generated.Nix.Store.Path.StorePath) -> IO ())
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_bd94ce86e82d1a08 =
-  RIP.fromFFIType hs_bindgen_bd94ce86e82d1a08_base
+hs_bindgen_d9e2e547c5fb05dc =
+  RIP.fromFFIType hs_bindgen_d9e2e547c5fb05dc_base
 
 {-| __C declaration:__ @nix_store_get_fs_closure@
 
-    __defined at:__ @nix_api_store.h 243:9@
+    __defined at:__ @nix_api_store.h 241:9@
 
     __exported by:__ @nix_api_store.h@
 -}
 nix_store_get_fs_closure ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @store@
   -> PtrConst.PtrConst Generated.Nix.Store.Path.StorePath
      -- ^ __C declaration:__ @store_path@
@@ -707,76 +707,76 @@ nix_store_get_fs_closure ::
      -- ^ __C declaration:__ @callback@
   -> IO Generated.Nix.Util.Nix_err
 nix_store_get_fs_closure =
-  hs_bindgen_bd94ce86e82d1a08
+  hs_bindgen_d9e2e547c5fb05dc
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_drv_from_store_path@
-foreign import ccall safe "hs_bindgen_14f6c421556a8589" hs_bindgen_14f6c421556a8589_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_drv_from_store_path@
+foreign import ccall safe "hs_bindgen_fc0a8ad70578e0a7" hs_bindgen_fc0a8ad70578e0a7_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO (RIP.Ptr RIP.Void)
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_drv_from_store_path@
-hs_bindgen_14f6c421556a8589 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_drv_from_store_path@
+hs_bindgen_fc0a8ad70578e0a7 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
   -> PtrConst.PtrConst Generated.Nix.Store.Path.StorePath
   -> IO (RIP.Ptr Generated.Nix.Store.Derivation.Nix_derivation)
-hs_bindgen_14f6c421556a8589 =
-  RIP.fromFFIType hs_bindgen_14f6c421556a8589_base
+hs_bindgen_fc0a8ad70578e0a7 =
+  RIP.fromFFIType hs_bindgen_fc0a8ad70578e0a7_base
 
 {-| __C declaration:__ @nix_store_drv_from_store_path@
 
-    __defined at:__ @nix_api_store.h 261:18@
+    __defined at:__ @nix_api_store.h 259:18@
 
     __exported by:__ @nix_api_store.h@
 -}
 nix_store_drv_from_store_path ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @store@
   -> PtrConst.PtrConst Generated.Nix.Store.Path.StorePath
      -- ^ __C declaration:__ @path@
   -> IO (RIP.Ptr Generated.Nix.Store.Derivation.Nix_derivation)
 nix_store_drv_from_store_path =
-  hs_bindgen_14f6c421556a8589
+  hs_bindgen_fc0a8ad70578e0a7
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_query_path_from_hash_part@
-foreign import ccall safe "hs_bindgen_840632288be3866d" hs_bindgen_840632288be3866d_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_query_path_from_hash_part@
+foreign import ccall safe "hs_bindgen_3bc8ef3727b2650c" hs_bindgen_3bc8ef3727b2650c_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> IO (RIP.Ptr RIP.Void)
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_query_path_from_hash_part@
-hs_bindgen_840632288be3866d ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_query_path_from_hash_part@
+hs_bindgen_3bc8ef3727b2650c ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
   -> PtrConst.PtrConst RIP.CChar
   -> IO (RIP.Ptr Generated.Nix.Store.Path.StorePath)
-hs_bindgen_840632288be3866d =
-  RIP.fromFFIType hs_bindgen_840632288be3866d_base
+hs_bindgen_3bc8ef3727b2650c =
+  RIP.fromFFIType hs_bindgen_3bc8ef3727b2650c_base
 
 {-| __C declaration:__ @nix_store_query_path_from_hash_part@
 
-    __defined at:__ @nix_api_store.h 272:13@
+    __defined at:__ @nix_api_store.h 270:13@
 
     __exported by:__ @nix_api_store.h@
 -}
 nix_store_query_path_from_hash_part ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @store@
   -> PtrConst.PtrConst RIP.CChar
      -- ^ __C declaration:__ @hash@
   -> IO (RIP.Ptr Generated.Nix.Store.Path.StorePath)
 nix_store_query_path_from_hash_part =
-  hs_bindgen_840632288be3866d
+  hs_bindgen_3bc8ef3727b2650c
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_copy_path@
-foreign import ccall safe "hs_bindgen_bdd5d1d6ecf22875" hs_bindgen_bdd5d1d6ecf22875_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_copy_path@
+foreign import ccall safe "hs_bindgen_25fe7160dc00c734" hs_bindgen_25fe7160dc00c734_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
@@ -785,30 +785,30 @@ foreign import ccall safe "hs_bindgen_bdd5d1d6ecf22875" hs_bindgen_bdd5d1d6ecf22
   -> RIP.Word8
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstore_Generated.Nix.Store_Safe_nix_store_copy_path@
-hs_bindgen_bdd5d1d6ecf22875 ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstore_Generated.Nix.Store_Safe_nix_store_copy_path@
+hs_bindgen_25fe7160dc00c734 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
-  -> RIP.Ptr Store
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
   -> PtrConst.PtrConst Generated.Nix.Store.Path.StorePath
   -> RIP.CBool
   -> RIP.CBool
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_bdd5d1d6ecf22875 =
-  RIP.fromFFIType hs_bindgen_bdd5d1d6ecf22875_base
+hs_bindgen_25fe7160dc00c734 =
+  RIP.fromFFIType hs_bindgen_25fe7160dc00c734_base
 
 {-| __C declaration:__ @nix_store_copy_path@
 
-    __defined at:__ @nix_api_store.h 284:9@
+    __defined at:__ @nix_api_store.h 282:9@
 
     __exported by:__ @nix_api_store.h@
 -}
 nix_store_copy_path ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
      -- ^ __C declaration:__ @context@
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @srcStore@
-  -> RIP.Ptr Store
+  -> RIP.Ptr Generated.Nix.Store.Fwd.Store
      -- ^ __C declaration:__ @dstStore@
   -> PtrConst.PtrConst Generated.Nix.Store.Path.StorePath
      -- ^ __C declaration:__ @path@
@@ -817,4 +817,4 @@ nix_store_copy_path ::
   -> RIP.CBool
      -- ^ __C declaration:__ @checkSigs@
   -> IO Generated.Nix.Util.Nix_err
-nix_store_copy_path = hs_bindgen_bdd5d1d6ecf22875
+nix_store_copy_path = hs_bindgen_25fe7160dc00c734

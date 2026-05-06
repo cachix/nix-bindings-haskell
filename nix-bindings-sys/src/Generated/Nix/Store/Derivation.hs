@@ -7,7 +7,7 @@ module Generated.Nix.Store.Derivation
 
 {-| __C declaration:__ @struct nix_derivation@
 
-    __defined at:__ @nix_api_store\/derivation.h 21:16@
+    __defined at:__ @nix_api_store\/derivation.h 25:16@
 
     __exported by:__ @nix_api_store\/derivation.h@
 -}

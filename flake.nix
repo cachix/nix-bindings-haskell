@@ -12,7 +12,7 @@
       url = "github:well-typed/hs-bindgen";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix.url = "github:cachix/nix/feat-query-path-info-json";
+    nix.url = "github:cachix/nix/cachix";
     flake-parts.url = "github:hercules-ci/flake-parts";
   };
 

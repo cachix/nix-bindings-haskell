@@ -5,6 +5,7 @@
 module Nix.C.Unsafe.Store
   ( Store
   , StorePath
+  , Derivation
   , withStore
   , openStore
   , closeStore
@@ -24,6 +25,7 @@ module Nix.C.Unsafe.Store
   , storePathHash
   , computeFSClosure
   , queryPathInfoJson
+  , drvFromStorePath
   ) where
 
 import Control.Exception (SomeException, bracket, bracketOnError, throwIO, try)
@@ -32,6 +34,7 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import Data.IORef (IORef, modifyIORef', newIORef, readIORef, writeIORef)
 import Foreign (FunPtr, Ptr, alloca, castFunPtr, castPtr, finalizeForeignPtr, freeHaskellFunPtr, newForeignPtr, newForeignPtr_, nullPtr, peek, withForeignPtr)
+import qualified Generated.Nix.Store.Derivation.FunPtr as FPDerivation
 import qualified Generated.Nix.Store.Path.FunPtr as FPStorePath
 import Foreign.C (CChar)
 import Foreign.Marshal.Utils (fromBool)
@@ -46,7 +49,7 @@ import qualified HsBindgen.Runtime.ConstantArray as CA
 import HsBindgen.Runtime.PtrConst (unsafeFromPtr)
 import qualified Data.ByteString.Char8 as BS8
 import Nix.C.Context (NixError (..), NixErrorKind (..), checkError, checkNull, withCallbackBS, withContext')
-import Nix.C.Internal (CNixContext, CStore, CStorePath, Store (..), StorePath (..), byteStringToOsPath, osPathToByteString)
+import Nix.C.Internal (CNixContext, CStore, CStorePath, Derivation (..), Store (..), StorePath (..), byteStringToOsPath, osPathToByteString)
 import Nix.C.Store.PathInfo (PathInfo, PathInfoJsonFormat (..))
 import Nix.C.Store.Reference (StoreReference, parseStoreReference)
 import System.OsPath (OsPath)
@@ -257,6 +260,20 @@ type RawClosureCallback = Ptr CNixContext -> Ptr () -> Ptr CStorePath -> IO ()
 
 foreign import ccall "wrapper"
   mkClosureCallback :: RawClosureCallback -> IO (FunPtr RawClosureCallback)
+
+-- | Parse a derivation from its store path.
+--
+-- The returned 'Derivation' carries an opaque handle to a parsed
+-- derivation that you can pass to the accessors in
+-- "Nix.C.Store.Derivation".
+drvFromStorePath :: Store -> StorePath -> IO Derivation
+drvFromStorePath store (StorePath spFP) =
+  withForeignPtr spFP $ \sp -> do
+    ptr <-
+      SysStore.nix_store_drv_from_store_path
+        (storeCtx store) (storePtr store) (unsafeFromPtr sp)
+    p <- checkNull (storeCtx store) ptr
+    Derivation <$> newForeignPtr (castFunPtr FPDerivation.nix_derivation_free) p
 
 -- | Compute the transitive closure of a store path's dependencies.
 --

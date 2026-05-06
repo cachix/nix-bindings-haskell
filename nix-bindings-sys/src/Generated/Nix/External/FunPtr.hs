@@ -20,18 +20,18 @@ import Generated.Nix.External
 
 $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.unlines
   [ "#include <nix_api_external.h>"
-  , "/* org_cachix_hsnixcapi_generatednixexternal_Generated.Nix.External_get_nix_set_string_return */"
+  , "/* org_cachix_nixbindingshaskell_generatednixexternal_Generated.Nix.External_get_nix_set_string_return */"
   , "__attribute__ ((const))"
-  , "void (*hs_bindgen_2979851fd32ff7df (void)) ("
+  , "void (*hs_bindgen_6952c30967b26297 (void)) ("
   , "  nix_string_return *arg1,"
   , "  char const *arg2"
   , ")"
   , "{"
   , "  return &nix_set_string_return;"
   , "}"
-  , "/* org_cachix_hsnixcapi_generatednixexternal_Generated.Nix.External_get_nix_external_print */"
+  , "/* org_cachix_nixbindingshaskell_generatednixexternal_Generated.Nix.External_get_nix_external_print */"
   , "__attribute__ ((const))"
-  , "nix_err (*hs_bindgen_7150373b880980d8 (void)) ("
+  , "nix_err (*hs_bindgen_a9d462c8e6928208 (void)) ("
   , "  nix_c_context *arg1,"
   , "  nix_printer *arg2,"
   , "  char const *arg3"
@@ -39,9 +39,9 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return &nix_external_print;"
   , "}"
-  , "/* org_cachix_hsnixcapi_generatednixexternal_Generated.Nix.External_get_nix_external_add_string_context */"
+  , "/* org_cachix_nixbindingshaskell_generatednixexternal_Generated.Nix.External_get_nix_external_add_string_context */"
   , "__attribute__ ((const))"
-  , "nix_err (*hs_bindgen_3224527c86d4c90f (void)) ("
+  , "nix_err (*hs_bindgen_f666286ac750b00c (void)) ("
   , "  nix_c_context *arg1,"
   , "  nix_string_context *arg2,"
   , "  char const *arg3"
@@ -49,9 +49,9 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return &nix_external_add_string_context;"
   , "}"
-  , "/* org_cachix_hsnixcapi_generatednixexternal_Generated.Nix.External_get_nix_create_external_value */"
+  , "/* org_cachix_nixbindingshaskell_generatednixexternal_Generated.Nix.External_get_nix_create_external_value */"
   , "__attribute__ ((const))"
-  , "ExternalValue *(*hs_bindgen_5982c03c78932db3 (void)) ("
+  , "ExternalValue *(*hs_bindgen_89fd88ee2e048c61 (void)) ("
   , "  nix_c_context *arg1,"
   , "  NixCExternalValueDesc *arg2,"
   , "  void *arg3"
@@ -59,9 +59,9 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "{"
   , "  return &nix_create_external_value;"
   , "}"
-  , "/* org_cachix_hsnixcapi_generatednixexternal_Generated.Nix.External_get_nix_get_external_value_content */"
+  , "/* org_cachix_nixbindingshaskell_generatednixexternal_Generated.Nix.External_get_nix_get_external_value_content */"
   , "__attribute__ ((const))"
-  , "void *(*hs_bindgen_45ee3594493ce5f2 (void)) ("
+  , "void *(*hs_bindgen_65bb21d55826a086 (void)) ("
   , "  nix_c_context *arg1,"
   , "  ExternalValue *arg2"
   , ")"
@@ -70,14 +70,14 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "}"
   ]))
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixexternal_Generated.Nix.External_get_nix_set_string_return@
-foreign import ccall unsafe "hs_bindgen_2979851fd32ff7df" hs_bindgen_2979851fd32ff7df_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixexternal_Generated.Nix.External_get_nix_set_string_return@
+foreign import ccall unsafe "hs_bindgen_6952c30967b26297" hs_bindgen_6952c30967b26297_base ::
      IO (RIP.FunPtr RIP.Void)
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixexternal_Generated.Nix.External_get_nix_set_string_return@
-hs_bindgen_2979851fd32ff7df :: IO (RIP.FunPtr ((RIP.Ptr Nix_string_return) -> (PtrConst.PtrConst RIP.CChar) -> IO ()))
-hs_bindgen_2979851fd32ff7df =
-  RIP.fromFFIType hs_bindgen_2979851fd32ff7df_base
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixexternal_Generated.Nix.External_get_nix_set_string_return@
+hs_bindgen_6952c30967b26297 :: IO (RIP.FunPtr ((RIP.Ptr Nix_string_return) -> (PtrConst.PtrConst RIP.CChar) -> IO ()))
+hs_bindgen_6952c30967b26297 =
+  RIP.fromFFIType hs_bindgen_6952c30967b26297_base
 
 {-# NOINLINE nix_set_string_return #-}
 {-| __C declaration:__ @nix_set_string_return@
@@ -88,16 +88,16 @@ hs_bindgen_2979851fd32ff7df =
 -}
 nix_set_string_return :: RIP.FunPtr ((RIP.Ptr Nix_string_return) -> (PtrConst.PtrConst RIP.CChar) -> IO ())
 nix_set_string_return =
-  RIP.unsafePerformIO hs_bindgen_2979851fd32ff7df
+  RIP.unsafePerformIO hs_bindgen_6952c30967b26297
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixexternal_Generated.Nix.External_get_nix_external_print@
-foreign import ccall unsafe "hs_bindgen_7150373b880980d8" hs_bindgen_7150373b880980d8_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixexternal_Generated.Nix.External_get_nix_external_print@
+foreign import ccall unsafe "hs_bindgen_a9d462c8e6928208" hs_bindgen_a9d462c8e6928208_base ::
      IO (RIP.FunPtr RIP.Void)
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixexternal_Generated.Nix.External_get_nix_external_print@
-hs_bindgen_7150373b880980d8 :: IO (RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr Nix_printer) -> (PtrConst.PtrConst RIP.CChar) -> IO Generated.Nix.Util.Nix_err))
-hs_bindgen_7150373b880980d8 =
-  RIP.fromFFIType hs_bindgen_7150373b880980d8_base
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixexternal_Generated.Nix.External_get_nix_external_print@
+hs_bindgen_a9d462c8e6928208 :: IO (RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr Nix_printer) -> (PtrConst.PtrConst RIP.CChar) -> IO Generated.Nix.Util.Nix_err))
+hs_bindgen_a9d462c8e6928208 =
+  RIP.fromFFIType hs_bindgen_a9d462c8e6928208_base
 
 {-# NOINLINE nix_external_print #-}
 {-| __C declaration:__ @nix_external_print@
@@ -108,16 +108,16 @@ hs_bindgen_7150373b880980d8 =
 -}
 nix_external_print :: RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr Nix_printer) -> (PtrConst.PtrConst RIP.CChar) -> IO Generated.Nix.Util.Nix_err)
 nix_external_print =
-  RIP.unsafePerformIO hs_bindgen_7150373b880980d8
+  RIP.unsafePerformIO hs_bindgen_a9d462c8e6928208
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixexternal_Generated.Nix.External_get_nix_external_add_string_context@
-foreign import ccall unsafe "hs_bindgen_3224527c86d4c90f" hs_bindgen_3224527c86d4c90f_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixexternal_Generated.Nix.External_get_nix_external_add_string_context@
+foreign import ccall unsafe "hs_bindgen_f666286ac750b00c" hs_bindgen_f666286ac750b00c_base ::
      IO (RIP.FunPtr RIP.Void)
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixexternal_Generated.Nix.External_get_nix_external_add_string_context@
-hs_bindgen_3224527c86d4c90f :: IO (RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr Nix_string_context) -> (PtrConst.PtrConst RIP.CChar) -> IO Generated.Nix.Util.Nix_err))
-hs_bindgen_3224527c86d4c90f =
-  RIP.fromFFIType hs_bindgen_3224527c86d4c90f_base
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixexternal_Generated.Nix.External_get_nix_external_add_string_context@
+hs_bindgen_f666286ac750b00c :: IO (RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr Nix_string_context) -> (PtrConst.PtrConst RIP.CChar) -> IO Generated.Nix.Util.Nix_err))
+hs_bindgen_f666286ac750b00c =
+  RIP.fromFFIType hs_bindgen_f666286ac750b00c_base
 
 {-# NOINLINE nix_external_add_string_context #-}
 {-| __C declaration:__ @nix_external_add_string_context@
@@ -128,16 +128,16 @@ hs_bindgen_3224527c86d4c90f =
 -}
 nix_external_add_string_context :: RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr Nix_string_context) -> (PtrConst.PtrConst RIP.CChar) -> IO Generated.Nix.Util.Nix_err)
 nix_external_add_string_context =
-  RIP.unsafePerformIO hs_bindgen_3224527c86d4c90f
+  RIP.unsafePerformIO hs_bindgen_f666286ac750b00c
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixexternal_Generated.Nix.External_get_nix_create_external_value@
-foreign import ccall unsafe "hs_bindgen_5982c03c78932db3" hs_bindgen_5982c03c78932db3_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixexternal_Generated.Nix.External_get_nix_create_external_value@
+foreign import ccall unsafe "hs_bindgen_89fd88ee2e048c61" hs_bindgen_89fd88ee2e048c61_base ::
      IO (RIP.FunPtr RIP.Void)
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixexternal_Generated.Nix.External_get_nix_create_external_value@
-hs_bindgen_5982c03c78932db3 :: IO (RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr NixCExternalValueDesc) -> (RIP.Ptr RIP.Void) -> IO (RIP.Ptr Generated.Nix.Value.ExternalValue)))
-hs_bindgen_5982c03c78932db3 =
-  RIP.fromFFIType hs_bindgen_5982c03c78932db3_base
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixexternal_Generated.Nix.External_get_nix_create_external_value@
+hs_bindgen_89fd88ee2e048c61 :: IO (RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr NixCExternalValueDesc) -> (RIP.Ptr RIP.Void) -> IO (RIP.Ptr Generated.Nix.Value.ExternalValue)))
+hs_bindgen_89fd88ee2e048c61 =
+  RIP.fromFFIType hs_bindgen_89fd88ee2e048c61_base
 
 {-# NOINLINE nix_create_external_value #-}
 {-| __C declaration:__ @nix_create_external_value@
@@ -148,16 +148,16 @@ hs_bindgen_5982c03c78932db3 =
 -}
 nix_create_external_value :: RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr NixCExternalValueDesc) -> (RIP.Ptr RIP.Void) -> IO (RIP.Ptr Generated.Nix.Value.ExternalValue))
 nix_create_external_value =
-  RIP.unsafePerformIO hs_bindgen_5982c03c78932db3
+  RIP.unsafePerformIO hs_bindgen_89fd88ee2e048c61
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixexternal_Generated.Nix.External_get_nix_get_external_value_content@
-foreign import ccall unsafe "hs_bindgen_45ee3594493ce5f2" hs_bindgen_45ee3594493ce5f2_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixexternal_Generated.Nix.External_get_nix_get_external_value_content@
+foreign import ccall unsafe "hs_bindgen_65bb21d55826a086" hs_bindgen_65bb21d55826a086_base ::
      IO (RIP.FunPtr RIP.Void)
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixexternal_Generated.Nix.External_get_nix_get_external_value_content@
-hs_bindgen_45ee3594493ce5f2 :: IO (RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr Generated.Nix.Value.ExternalValue) -> IO (RIP.Ptr RIP.Void)))
-hs_bindgen_45ee3594493ce5f2 =
-  RIP.fromFFIType hs_bindgen_45ee3594493ce5f2_base
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixexternal_Generated.Nix.External_get_nix_get_external_value_content@
+hs_bindgen_65bb21d55826a086 :: IO (RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr Generated.Nix.Value.ExternalValue) -> IO (RIP.Ptr RIP.Void)))
+hs_bindgen_65bb21d55826a086 =
+  RIP.fromFFIType hs_bindgen_65bb21d55826a086_base
 
 {-# NOINLINE nix_get_external_value_content #-}
 {-| __C declaration:__ @nix_get_external_value_content@
@@ -168,4 +168,4 @@ hs_bindgen_45ee3594493ce5f2 =
 -}
 nix_get_external_value_content :: RIP.FunPtr ((RIP.Ptr Generated.Nix.Util.Nix_c_context) -> (RIP.Ptr Generated.Nix.Value.ExternalValue) -> IO (RIP.Ptr RIP.Void))
 nix_get_external_value_content =
-  RIP.unsafePerformIO hs_bindgen_45ee3594493ce5f2
+  RIP.unsafePerformIO hs_bindgen_65bb21d55826a086

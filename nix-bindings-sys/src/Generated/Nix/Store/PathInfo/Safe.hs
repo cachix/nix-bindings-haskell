@@ -16,7 +16,7 @@ import Generated.Nix.Store.PathInfo
 
 $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.unlines
   [ "#include <nix_api_store/path_info.h>"
-  , "nix_err hs_bindgen_09d2b5c7a381adcc ("
+  , "nix_err hs_bindgen_db98c09d73c46234 ("
   , "  nix_c_context *arg1,"
   , "  Store *arg2,"
   , "  StorePath const *arg3,"
@@ -29,8 +29,8 @@ $(HsBindgen.Runtime.Internal.CAPI.addCSource (HsBindgen.Runtime.Internal.CAPI.un
   , "}"
   ]))
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstorepathinfo_Generated.Nix.Store.PathInfo_Safe_nix_store_query_path_info_json@
-foreign import ccall safe "hs_bindgen_09d2b5c7a381adcc" hs_bindgen_09d2b5c7a381adcc_base ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstorepathinfo_Generated.Nix.Store.PathInfo_Safe_nix_store_query_path_info_json@
+foreign import ccall safe "hs_bindgen_db98c09d73c46234" hs_bindgen_db98c09d73c46234_base ::
      RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
   -> RIP.Ptr RIP.Void
@@ -39,8 +39,8 @@ foreign import ccall safe "hs_bindgen_09d2b5c7a381adcc" hs_bindgen_09d2b5c7a381a
   -> RIP.Ptr RIP.Void
   -> IO RIP.Int32
 
--- __unique:__ @org_cachix_hsnixcapi_generatednixstorepathinfo_Generated.Nix.Store.PathInfo_Safe_nix_store_query_path_info_json@
-hs_bindgen_09d2b5c7a381adcc ::
+-- __unique:__ @org_cachix_nixbindingshaskell_generatednixstorepathinfo_Generated.Nix.Store.PathInfo_Safe_nix_store_query_path_info_json@
+hs_bindgen_db98c09d73c46234 ::
      RIP.Ptr Generated.Nix.Util.Nix_c_context
   -> RIP.Ptr Store
   -> PtrConst.PtrConst Generated.Nix.Store.Path.StorePath
@@ -48,12 +48,12 @@ hs_bindgen_09d2b5c7a381adcc ::
   -> Generated.Nix.Util.Nix_get_string_callback
   -> RIP.Ptr RIP.Void
   -> IO Generated.Nix.Util.Nix_err
-hs_bindgen_09d2b5c7a381adcc =
-  RIP.fromFFIType hs_bindgen_09d2b5c7a381adcc_base
+hs_bindgen_db98c09d73c46234 =
+  RIP.fromFFIType hs_bindgen_db98c09d73c46234_base
 
 {-| __C declaration:__ @nix_store_query_path_info_json@
 
-    __defined at:__ @nix_api_store\/path_info.h 75:9@
+    __defined at:__ @nix_api_store\/path_info.h 77:9@
 
     __exported by:__ @nix_api_store\/path_info.h@
 -}
@@ -72,4 +72,4 @@ nix_store_query_path_info_json ::
      -- ^ __C declaration:__ @user_data@
   -> IO Generated.Nix.Util.Nix_err
 nix_store_query_path_info_json =
-  hs_bindgen_09d2b5c7a381adcc
+  hs_bindgen_db98c09d73c46234
